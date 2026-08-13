@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
-import { COLORS } from '../../theme/colors';
+import { COLORS, GLASS } from '../../theme/colors';
 import { 
   LayoutDashboard, 
   Sun, 
@@ -25,14 +25,10 @@ export const tabsConfig = [
 ];
 
 export const SegmentedTabs = () => {
-  const { activeTab, setActiveTab, isDarkMode } = useEnergy();
-
-  const themeColors = isDarkMode
-    ? { bg: '#0F172A', cardBg: '#1E293B', text: '#94A3B8', activeText: '#FFFFFF', border: '#334155' }
-    : { bg: '#F8FAFC', cardBg: '#FFFFFF', text: '#64748B', activeText: '#0F172A', border: '#E2E8F0' };
+  const { activeTab, setActiveTab } = useEnergy();
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.bg, borderColor: themeColors.border }]}>
+    <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -47,20 +43,18 @@ export const SegmentedTabs = () => {
               key={tab.id}
               style={[
                 styles.tabButton,
-                { backgroundColor: themeColors.cardBg, borderColor: themeColors.border },
                 isActive && styles.tabButtonActive,
               ]}
               onPress={() => setActiveTab(tab.id)}
               activeOpacity={0.7}
             >
               <IconComponent
-                size={16}
-                color={isActive ? '#FFFFFF' : themeColors.text}
+                size={14}
+                color={isActive ? COLORS.amberLight : COLORS.textMuted}
               />
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: isActive ? '#FFFFFF' : themeColors.text },
                   isActive && styles.tabLabelActive,
                 ]}
               >
@@ -76,48 +70,36 @@ export const SegmentedTabs = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 10,
+    paddingVertical: 6,
     borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   scrollContent: {
     paddingHorizontal: 16,
-    gap: 8,
+    gap: 6,
   },
   tabButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   tabButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primaryDark,
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
   },
   tabLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
+    color: COLORS.textMuted,
   },
   tabLabelActive: {
-    fontWeight: '700',
-  },
-  storyPill: {
-    backgroundColor: 'rgba(148, 163, 184, 0.15)',
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  storyPillActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-  },
-  storyText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#94A3B8',
-  },
-  storyTextActive: {
-    color: '#FFFFFF',
+    fontWeight: '800',
+    color: COLORS.amberLight,
   },
 });

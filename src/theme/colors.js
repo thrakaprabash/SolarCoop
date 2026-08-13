@@ -1,78 +1,72 @@
 export const COLORS = {
-  // Brand colors
-  primary: '#10B981',       // Emerald Green (Clean Energy)
-  primaryDark: '#059669',
-  primaryLight: '#D1FAE5',
-  
-  secondary: '#F59E0B',     // Solar Amber/Gold (Solar Gen)
-  secondaryDark: '#D97706',
-  secondaryLight: '#FEF3C7',
-  
-  accent: '#06B6D4',        // Electric Cyan (Grid/Flow)
-  accentDark: '#0891B2',
-  accentLight: '#CFFAFE',
+  // Glass Surface Colors
+  glassBg: 'rgba(255, 255, 255, 0.08)',
+  glassBgLight: 'rgba(255, 255, 255, 0.12)',
+  glassBorder: 'rgba(255, 255, 255, 0.15)',
+  glassBorderLight: 'rgba(255, 255, 255, 0.25)',
 
-  alert: '#EF4444',         // Deficit Red
-  alertLight: '#FEE2E2',
-  
-  warning: '#F97316',       // Warning Orange
-  warningLight: '#FFEDD5',
+  // Solar Amber Accents
+  amber: '#F59E0B',
+  amberDark: '#D97706',
+  amberLight: '#FBBF24',
+  amberGlow: 'rgba(245, 158, 11, 0.35)',
 
-  // Background & Surfaces
-  bgDark: '#0F172A',        // Dark Slate Main BG
-  cardDark: '#1E293B',      // Card Surface
-  cardBorderDark: '#334155',
-  
-  bgLight: '#F8FAFC',       // Light Mode BG
-  cardLight: '#FFFFFF',     // Light Card
-  cardBorderLight: '#E2E8F0',
+  // Clean Energy Teal
+  teal: '#14B8A6',
+  tealLight: '#2DD4BF',
+  tealGlow: 'rgba(20, 184, 166, 0.3)',
 
-  // Neutral text
-  textPrimaryDark: '#F8FAFC',
-  textSecondaryDark: '#94A3B8',
-  textMutedDark: '#64748B',
+  // Alert Red
+  red: '#EF4444',
+  redGlow: 'rgba(239, 68, 68, 0.3)',
 
-  textPrimaryLight: '#0F172A',
-  textSecondaryLight: '#475569',
-  textMutedLight: '#94A3B8',
+  // White Text Hierarchy
+  textBright: '#FFFFFF',
+  textPrimary: 'rgba(255, 255, 255, 0.95)',
+  textSecondary: 'rgba(255, 255, 255, 0.6)',
+  textMuted: 'rgba(255, 255, 255, 0.35)',
+};
 
-  // Special energy indicators
-  batteryFull: '#10B981',
-  batteryMid: '#F59E0B',
-  batteryLow: '#EF4444',
-  
-  gridExport: '#10B981',
-  gridImport: '#EF4444',
-  coopPool: '#06B6D4',
+export const GLASS = {
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 24,
+  },
+  cardLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 24,
+  },
+  pill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 50,
+  },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 14,
+  },
 };
 
 export const SHADOWS = {
-  small: {
+  glass: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  medium: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  glowGreen: {
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
+    shadowRadius: 24,
     elevation: 8,
   },
-  glowSolar: {
+  glow: {
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-  }
+    shadowRadius: 16,
+    elevation: 10,
+  },
 };

@@ -30,6 +30,9 @@ export const initialChartData = {
 };
 
 export const EnergyProvider = ({ children }) => {
+  // Theme state: default to studio warm light theme from reference design
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   // Main bottom navigation taskbar tab ('dashboard' | 'trade' | 'alerts' | 'profile')
   const [mainBottomTab, setMainBottomTab] = useState('dashboard');
 

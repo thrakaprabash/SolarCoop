@@ -1,410 +1,347 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
-import { COLORS, SHADOWS } from '../../theme/colors';
-import Svg, { Circle, Line, Path, Text as SvgText, Rect } from 'react-native-svg';
+import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { 
   Sun, 
   Zap, 
   Battery, 
-  Users, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  RefreshCw, 
-  Sparkles,
+  Info,
+  Leaf,
+  Globe,
+  Activity,
+  Maximize2,
   TrendingUp,
-  Award
+  TrendingDown,
 } from 'lucide-react-native';
 
 export const HomeDashboard = () => {
-  const { isDarkMode, metrics, setActiveTab, viewScope, executeShareEnergy, executeBorrowEnergy } = useEnergy();
+  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
+  const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
 
-  const themeColors = isDarkMode
-    ? { bg: '#0F172A', card: '#1E293B', border: '#334155', text: '#F8FAFC', textSub: '#94A3B8' }
-    : { bg: '#F8FAFC', card: '#FFFFFF', border: '#E2E8F0', text: '#0F172A', textSub: '#64748B' };
-
-  const netPower = parseFloat((metrics.instantProduction - metrics.instantConsumption).toFixed(1));
-  const isSurplus = netPower >= 0;
+  const isSurplus = metrics.instantProduction > metrics.instantConsumption;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: themeColors.bg }]} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Title Header */}
-      <View style={styles.storyBadgeHeader}>
-        <Text style={[styles.storyBadgeTitle, { color: themeColors.text }]}>Home & Co-op Energy Dashboard</Text>
-      </View>
-
-      {/* Hero Overview Energy Flow Card */}
-      <View style={[styles.heroCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-        <View style={styles.heroCardHeader}>
-          <View>
-            <Text style={[styles.heroSubtitle, { color: themeColors.textSub }]}>Live Grid Status</Text>
-            <Text style={[styles.heroTitle, { color: themeColors.text }]}>
-              {isSurplus ? '⚡ Surplus Energy Generating' : '⚠️ Drawing Deficit Energy'}
-            </Text>
-          </View>
-          <View style={[styles.netBadge, { backgroundColor: isSurplus ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' }]}>
-            <Text style={[styles.netBadgeText, { color: isSurplus ? '#10B981' : '#EF4444' }]}>
-              {isSurplus ? `+${netPower} kW Net` : `${netPower} kW Net`}
-            </Text>
-          </View>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.title}>Current Power</Text>
+          <Text style={styles.lastUpdate}>Last updated 2 mins ago</Text>
         </View>
-
-        {/* SVG Energy Flow Diagram */}
-        <View style={styles.svgFlowContainer}>
-          <Svg height="160" width="100%" viewBox="0 0 340 160">
-            {/* Flow Connecting Lines */}
-            <Line x1="70" y1="50" x2="170" y2="50" stroke={COLORS.secondary} strokeWidth="3" strokeDasharray="4 4" />
-            <Line x1="170" y1="50" x2="270" y2="50" stroke={COLORS.primary} strokeWidth="3" strokeDasharray="4 4" />
-            <Line x1="170" y1="50" x2="170" y2="120" stroke={COLORS.accent} strokeWidth="3" strokeDasharray="4 4" />
-
-            {/* Node 1: Solar Gen */}
-            <Circle cx="70" cy="50" r="30" fill="#F59E0B" fillOpacity="0.2" stroke="#F59E0B" strokeWidth="2" />
-            <SvgText x="70" y="46" fill="#F59E0B" fontSize="11" fontWeight="bold" textAnchor="middle">SOLAR</SvgText>
-            <SvgText x="70" y="60" fill="#F59E0B" fontSize="10" textAnchor="middle">{metrics.instantProduction} kW</SvgText>
-
-            {/* Node 2: Home Load Hub */}
-            <Circle cx="170" cy="50" r="32" fill="#10B981" fillOpacity="0.2" stroke="#10B981" strokeWidth="3" />
-            <SvgText x="170" y="46" fill="#10B981" fontSize="12" fontWeight="bold" textAnchor="middle">HOME</SvgText>
-            <SvgText x="170" y="60" fill="#10B981" fontSize="10" textAnchor="middle">{metrics.instantConsumption} kW</SvgText>
-
-            {/* Node 3: Battery Storage */}
-            <Circle cx="270" cy="50" r="30" fill="#06B6D4" fillOpacity="0.2" stroke="#06B6D4" strokeWidth="2" />
-            <SvgText x="270" y="46" fill="#06B6D4" fontSize="11" fontWeight="bold" textAnchor="middle">BATTERY</SvgText>
-            <SvgText x="270" y="60" fill="#06B6D4" fontSize="10" textAnchor="middle">{metrics.batteryLevel}%</SvgText>
-
-            {/* Node 4: Co-op Pool Grid */}
-            <Rect x="120" y="110" width="100" height="34" rx="17" fill="#8B5CF6" fillOpacity="0.2" stroke="#8B5CF6" strokeWidth="2" />
-            <SvgText x="170" y="126" fill="#8B5CF6" fontSize="10" fontWeight="bold" textAnchor="middle">CO-OP POOL</SvgText>
-            <SvgText x="170" y="138" fill="#8B5CF6" fontSize="9" textAnchor="middle">14 Active Members</SvgText>
-          </Svg>
-        </View>
-
-        {/* Quick Summary Grid inside Hero Card */}
-        <View style={styles.heroMetricsRow}>
-          <View style={styles.heroMetricCol}>
-            <Text style={[styles.heroMetricLabel, { color: themeColors.textSub }]}>Self-Sufficiency</Text>
-            <Text style={[styles.heroMetricValue, { color: COLORS.primary }]}>{metrics.gridIndependence}%</Text>
-          </View>
-
-          <View style={styles.heroMetricDivider} />
-
-          <View style={styles.heroMetricCol}>
-            <Text style={[styles.heroMetricLabel, { color: themeColors.textSub }]}>Co-op Shared Today</Text>
-            <Text style={[styles.heroMetricValue, { color: COLORS.accent }]}>{metrics.coopPoolSharedToday} kWh</Text>
-          </View>
-
-          <View style={styles.heroMetricDivider} />
-
-          <View style={styles.heroMetricCol}>
-            <Text style={[styles.heroMetricLabel, { color: themeColors.textSub }]}>Credits Earned</Text>
-            <Text style={[styles.heroMetricValue, { color: COLORS.secondary }]}>{metrics.coopTokensEarned} pts</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Quick Stat Cards Grid */}
-      <View style={styles.statsGrid}>
-        {/* Card 1: Production */}
-        <TouchableOpacity 
-          style={[styles.statCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-          onPress={() => setActiveTab('production')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.statHeader}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
-              <Sun size={20} color="#F59E0B" />
-            </View>
-          </View>
-          <Text style={[styles.statVal, { color: themeColors.text }]}>{metrics.instantProduction} <Text style={styles.unit}>kW</Text></Text>
-          <Text style={[styles.statTitle, { color: themeColors.textSub }]}>Solar Production</Text>
-          <Text style={styles.statSubText}>Daily Total: {metrics.dailyProduction} kWh</Text>
-        </TouchableOpacity>
-
-        {/* Card 2: Consumption */}
-        <TouchableOpacity 
-          style={[styles.statCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-          onPress={() => setActiveTab('consumption')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.statHeader}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-              <Zap size={20} color="#10B981" />
-            </View>
-          </View>
-          <Text style={[styles.statVal, { color: themeColors.text }]}>{metrics.instantConsumption} <Text style={styles.unit}>kW</Text></Text>
-          <Text style={[styles.statTitle, { color: themeColors.textSub }]}>Home Load</Text>
-          <Text style={styles.statSubText}>Daily Total: {metrics.dailyConsumption} kWh</Text>
-        </TouchableOpacity>
-
-        {/* Card 3: Surplus */}
-        <TouchableOpacity 
-          style={[styles.statCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-          onPress={() => setActiveTab('surplus')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.statHeader}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(6, 182, 212, 0.15)' }]}>
-              <Battery size={20} color="#06B6D4" />
-            </View>
-          </View>
-          <Text style={[styles.statVal, { color: themeColors.text }]}>{metrics.surplusAvailable} <Text style={styles.unit}>kW</Text></Text>
-          <Text style={[styles.statTitle, { color: themeColors.textSub }]}>Surplus Available</Text>
-          <Text style={styles.statSubText}>Battery: {metrics.batteryLevel}% Charged</Text>
-        </TouchableOpacity>
-
-        {/* Card 4: Deficit */}
-        <TouchableOpacity 
-          style={[styles.statCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-          onPress={() => setActiveTab('deficit')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.statHeader}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
-              <ArrowDownLeft size={20} color="#EF4444" />
-            </View>
-          </View>
-          <Text style={[styles.statVal, { color: themeColors.text }]}>0.0 <Text style={styles.unit}>kW</Text></Text>
-          <Text style={[styles.statTitle, { color: themeColors.textSub }]}>Grid Import Deficit</Text>
-          <Text style={styles.statSubText}>Co-op Backup Ready</Text>
+        <TouchableOpacity style={styles.iconExpand}>
+          <Maximize2 size={14} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      {/* Quick Action Shortcuts Banner */}
-      <View style={[styles.sectionCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Quick Energy Actions</Text>
-        
-        <View style={styles.actionsGrid}>
+      {/* 2x2 Power Grid — Glass Cards */}
+      <View style={[GLASS.card, styles.powerGridCard]}>
+        <View style={styles.gridRow}>
+          {/* Solar */}
           <TouchableOpacity 
-            style={styles.actionBtnPrimary}
-            onPress={() => executeShareEnergy(2.5, 'House #04')}
+            style={styles.gridCell}
+            onPress={() => setActiveTab('production')}
+            activeOpacity={0.7}
           >
-            <ArrowUpRight size={18} color="#FFFFFF" />
-            <Text style={styles.actionBtnText}>Share 2.5 kWh to Co-op</Text>
+            <View style={styles.cellIconRow}>
+              <Sun size={16} color={COLORS.amberLight} />
+              <Text style={styles.cellLabel}>Solar</Text>
+            </View>
+            <Text style={styles.cellValue}>
+              {metrics.instantProduction} <Text style={styles.cellUnit}>kW</Text>
+            </Text>
+            <View style={styles.cellTrend}>
+              <TrendingUp size={10} color={COLORS.tealLight} />
+              <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>+12%</Text>
+            </View>
           </TouchableOpacity>
 
+          {/* Grid */}
           <TouchableOpacity 
-            style={styles.actionBtnSecondary}
-            onPress={() => executeBorrowEnergy(1.5)}
+            style={styles.gridCell}
+            onPress={() => setActiveTab('deficit')}
+            activeOpacity={0.7}
           >
-            <ArrowDownLeft size={18} color="#06B6D4" />
-            <Text style={[styles.actionBtnSecText, { color: COLORS.accent }]}>Request 1.5 kWh Draw</Text>
+            <View style={styles.cellIconRow}>
+              <Globe size={16} color={COLORS.textSecondary} />
+              <Text style={styles.cellLabel}>Grid</Text>
+            </View>
+            <Text style={styles.cellValue}>
+              0.00 <Text style={styles.cellUnit}>kW</Text>
+            </Text>
+            <View style={styles.cellTrend}>
+              <Activity size={10} color={COLORS.textMuted} />
+              <Text style={styles.cellTrendText}>Offline</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.gridRow}>
+          {/* Output — Highlighted Amber Cell */}
+          <View style={[styles.gridCell, styles.gridCellHighlight]}>
+            <View style={styles.cellIconRow}>
+              <Zap size={16} color={COLORS.amber} />
+              <Text style={[styles.cellLabel, { color: COLORS.amberLight }]}>Output</Text>
+            </View>
+            <Text style={[styles.cellValue, { color: COLORS.textBright }]}>
+              {(metrics.instantProduction - 2.92).toFixed(2)} <Text style={[styles.cellUnit, { color: COLORS.amberLight }]}>kW</Text>
+            </Text>
+          </View>
+
+          {/* Battery */}
+          <TouchableOpacity 
+            style={styles.gridCell}
+            onPress={() => setActiveTab('surplus')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.cellIconRow}>
+              <Battery size={16} color={COLORS.tealLight} />
+              <Text style={styles.cellLabel}>Battery</Text>
+            </View>
+            <Text style={styles.cellValue}>
+              {(metrics.instantConsumption * 0.1).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
+            </Text>
+            <View style={styles.cellTrend}>
+              <TrendingUp size={10} color={COLORS.tealLight} />
+              <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>84%</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Navigation Shortcut Banner to Analytics */}
-      <View style={[styles.sectionCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Energy Analytics & Tools</Text>
-        
-        <View style={styles.storyShortcutsList}>
-          {[
-            { id: 'charts', title: 'Interactive Energy Charts', sub: 'Gen vs Load curves & surplus bars' },
-            { id: 'history', title: 'Energy History & Export', sub: 'Filterable logs & PDF statement generator' },
-            { id: 'summary', title: 'Energy Summary & Impact', sub: 'CO2 offset, trees saved, billing savings' },
-          ].map(item => (
+      {/* Environmental Benefits — Glass Card */}
+      <View style={[GLASS.card, styles.sectionCard]}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Environmental Benefits</Text>
+          <Info size={14} color={COLORS.textMuted} />
+        </View>
+
+        <View style={styles.benefitsRow}>
+          {/* CO2 */}
+          <View style={styles.benefitCol}>
+            <View style={[styles.gaugeCircle, { borderColor: COLORS.tealLight }]}>
+              <Leaf size={12} color={COLORS.tealLight} style={{ position: 'absolute', top: 6 }} />
+              <Text style={styles.gaugeNum}>{metrics.co2SavedKg.toFixed(0)}</Text>
+            </View>
+            <Text style={styles.benefitLabel}>CO₂ Saved</Text>
+            <Text style={styles.benefitUnit}>kg</Text>
+          </View>
+
+          {/* Solar % */}
+          <View style={styles.benefitCol}>
+            <View style={[styles.gaugeCircle, { borderColor: COLORS.amber }]}>
+              <Sun size={12} color={COLORS.amber} style={{ position: 'absolute', top: 6 }} />
+              <Text style={styles.gaugeNum}>98</Text>
+            </View>
+            <Text style={styles.benefitLabel}>Sunshine</Text>
+            <Text style={styles.benefitUnit}>%</Text>
+          </View>
+
+          {/* Grid Independence */}
+          <View style={styles.benefitCol}>
+            <View style={[styles.gaugeCircle, { borderColor: COLORS.amberLight }]}>
+              <Globe size={12} color={COLORS.amberLight} style={{ position: 'absolute', top: 6 }} />
+              <Text style={styles.gaugeNum}>{metrics.gridIndependence}</Text>
+            </View>
+            <Text style={styles.benefitLabel}>Grid Free</Text>
+            <Text style={styles.benefitUnit}>%</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Site Power & Consumption — Glass Card */}
+      <View style={[GLASS.card, styles.sectionCard]}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Site Power</Text>
+          <View style={styles.togglePillContainer}>
             <TouchableOpacity
-              key={item.id}
-              style={[styles.shortcutRow, { borderBottomColor: themeColors.border }]}
-              onPress={() => setActiveTab(item.id)}
+              style={[styles.togglePillBtn, powerEnergyToggle === 'power' && styles.togglePillBtnActive]}
+              onPress={() => setPowerEnergyToggle('power')}
             >
-              <View style={styles.shortcutInfo}>
-                <View>
-                  <Text style={[styles.shortcutTitle, { color: themeColors.text }]}>{item.title}</Text>
-                  <Text style={[styles.shortcutSub, { color: themeColors.textSub }]}>{item.sub}</Text>
-                </View>
-              </View>
-              <ArrowUpRight size={18} color={COLORS.primary} />
+              <Text style={[styles.togglePillText, powerEnergyToggle === 'power' && styles.togglePillTextActive]}>
+                Power
+              </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.togglePillBtn, powerEnergyToggle === 'energy' && styles.togglePillBtnActive]}
+              onPress={() => setPowerEnergyToggle('energy')}
+            >
+              <Text style={[styles.togglePillText, powerEnergyToggle === 'energy' && styles.togglePillTextActive]}>
+                Energy
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.consumptionMetricRow}>
+          <Text style={styles.consValue}>
+            {metrics.dailyConsumption} <Text style={styles.consUnit}>kWh</Text>
+          </Text>
+          <View style={styles.consDotsRow}>
+            <View style={styles.dotLegend}>
+              <View style={[styles.dot, { backgroundColor: COLORS.amber }]} />
+              <Text style={styles.dotText}>Solar 28.25</Text>
+            </View>
+            <View style={styles.dotLegend}>
+              <View style={[styles.dot, { backgroundColor: COLORS.tealLight }]} />
+              <Text style={styles.dotText}>Co-op 28.21</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Energy Flow Visualization */}
+        <View style={styles.energyFlowRow}>
+          {[
+            { size: 20, color: COLORS.amber, opacity: 0.6 },
+            { size: 32, color: COLORS.amberLight, opacity: 0.5 },
+            { size: 16, color: COLORS.amber, opacity: 0.4 },
+            { size: 40, color: COLORS.tealLight, opacity: 0.45 },
+            { size: 26, color: COLORS.amber, opacity: 0.55 },
+            { size: 18, color: COLORS.tealLight, opacity: 0.35 },
+            { size: 24, color: COLORS.amberLight, opacity: 0.5 },
+          ].map((b, idx) => (
+            <View
+              key={idx}
+              style={{
+                width: b.size,
+                height: b.size,
+                borderRadius: b.size / 2,
+                backgroundColor: b.color,
+                opacity: b.opacity,
+              }}
+            />
           ))}
         </View>
       </View>
+
+      {/* Quick Actions */}
+      <View style={styles.actionsRow}>
+        <TouchableOpacity 
+          style={styles.actionBtnPrimary}
+          onPress={() => executeShareEnergy(2.5, 'House #04')}
+          activeOpacity={0.8}
+        >
+          <ArrowUpRight size={16} color="#FFFFFF" />
+          <Text style={styles.actionBtnPrimaryText}>Share Surplus</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.actionBtnSecondary}
+          onPress={() => executeBorrowEnergy(1.5)}
+          activeOpacity={0.8}
+        >
+          <ArrowDownLeft size={16} color={COLORS.textPrimary} />
+          <Text style={styles.actionBtnSecondaryText}>Request Draw</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Spacer */}
+      <View style={{ height: 20 }} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: 'transparent' },
+  content: { padding: 16, gap: 14 },
+
+  // Header
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 20, fontWeight: '800', color: COLORS.textBright, letterSpacing: -0.3 },
+  lastUpdate: { fontSize: 11, marginTop: 2, color: COLORS.textMuted },
+  iconExpand: { 
+    width: 32, height: 32, borderRadius: 16, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  content: {
-    padding: 16,
-    gap: 16,
-  },
-  storyBadgeHeader: {
-    gap: 2,
-  },
-  storyBadgeTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  heroCard: {
-    borderRadius: 20,
-    padding: 16,
+
+  // Power Grid
+  powerGridCard: { padding: 10, gap: 8 },
+  gridRow: { flexDirection: 'row', gap: 8 },
+  gridCell: { 
+    flex: 1, 
+    borderRadius: 18, 
+    padding: 14, 
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    ...SHADOWS.medium,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  heroCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  gridCellHighlight: { 
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(245, 158, 11, 0.25)',
   },
-  heroSubtitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  cellIconRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cellLabel: { fontSize: 11, fontWeight: '600', color: COLORS.textSecondary },
+  cellValue: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary, marginTop: 2 },
+  cellUnit: { fontSize: 13, fontWeight: '600', color: COLORS.textMuted },
+  cellTrend: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  cellTrendText: { fontSize: 9, fontWeight: '700', color: COLORS.textMuted },
+
+  // Section Cards
+  sectionCard: { padding: 16, gap: 14 },
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textBright },
+
+  // Environmental Benefits
+  benefitsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop: 4 },
+  benefitCol: { alignItems: 'center', gap: 4 },
+  gaugeCircle: { 
+    width: 60, height: 60, borderRadius: 30, borderWidth: 3, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
-  heroTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  netBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  netBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  svgFlowContainer: {
-    marginVertical: 8,
-    alignItems: 'center',
-  },
-  heroMetricsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.15)',
-  },
-  heroMetricCol: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  heroMetricLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  heroMetricValue: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  heroMetricDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  statCard: {
-    width: '48%',
-    borderRadius: 16,
-    padding: 14,
+  gaugeNum: { fontSize: 18, fontWeight: '800', color: COLORS.textBright, marginTop: 6 },
+  benefitLabel: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary, textAlign: 'center' },
+  benefitUnit: { fontSize: 9, fontWeight: '500', color: COLORS.textMuted },
+
+  // Toggle Pill
+  togglePillContainer: { 
+    flexDirection: 'row', borderRadius: 18, padding: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
-    ...SHADOWS.small,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+  togglePillBtn: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14 },
+  togglePillBtnActive: { backgroundColor: 'rgba(245, 158, 11, 0.3)' },
+  togglePillText: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
+  togglePillTextActive: { color: COLORS.amberLight, fontWeight: '700' },
+
+  // Consumption
+  consumptionMetricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  consValue: { fontSize: 24, fontWeight: '800', color: COLORS.textBright },
+  consUnit: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted },
+  consDotsRow: { gap: 4 },
+  dotLegend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  dotText: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary },
+
+  // Energy Flow
+  energyFlowRow: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', 
+    paddingVertical: 8, height: 56,
   },
-  statIconBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statVal: {
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  unit: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  statTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  statSubText: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  sectionCard: {
-    borderRadius: 16,
-    padding: 16,
+
+  // Actions
+  actionsRow: { flexDirection: 'row', gap: 10 },
+  actionBtnPrimary: { 
+    flex: 1, 
+    backgroundColor: 'rgba(245, 158, 11, 0.3)',
     borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+    gap: 8, paddingVertical: 14, borderRadius: 18,
+    ...SHADOWS.glow,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 12,
+  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  actionBtnSecondary: { 
+    flex: 1, 
+    ...GLASS.card,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+    gap: 8, paddingVertical: 14,
   },
-  actionsGrid: {
-    flexDirection: 'column',
-    gap: 10,
-  },
-  actionBtnPrimary: {
-    backgroundColor: COLORS.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
-    ...SHADOWS.glowGreen,
-  },
-  actionBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  actionBtnSecondary: {
-    backgroundColor: 'rgba(6, 182, 212, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(6, 182, 212, 0.4)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  actionBtnSecText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  storyShortcutsList: {
-    gap: 10,
-  },
-  shortcutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  shortcutInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  shortcutTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  shortcutSub: {
-    fontSize: 11,
-  },
+  actionBtnSecondaryText: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary },
 });

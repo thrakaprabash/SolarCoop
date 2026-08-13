@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
-import { COLORS, SHADOWS } from '../../theme/colors';
+import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { History, Search, Download, Filter, Sun, Battery, Zap, ArrowUpRight, ArrowDownLeft, FileText, Check } from 'lucide-react-native';
 
 export const EnergyHistoryView = () => {
-  const { isDarkMode, historyLogs } = useEnergy();
+  const { historyLogs } = useEnergy();
   const [filterType, setFilterType] = useState('all'); // 'all' | 'surplus' | 'production' | 'consumption' | 'deficit'
   const [searchQuery, setSearchQuery] = useState('');
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-
-  const themeColors = isDarkMode
-    ? { bg: '#0F172A', card: '#1E293B', border: '#334155', text: '#F8FAFC', textSub: '#94A3B8' }
-    : { bg: '#F8FAFC', card: '#FFFFFF', border: '#E2E8F0', text: '#0F172A', textSub: '#64748B' };
 
   const filteredLogs = historyLogs.filter(log => {
     const matchesFilter = filterType === 'all' || log.type === filterType;
@@ -23,11 +19,11 @@ export const EnergyHistoryView = () => {
 
   const getLogIcon = (type) => {
     switch (type) {
-      case 'surplus': return <ArrowUpRight size={18} color="#06B6D4" />;
-      case 'production': return <Sun size={18} color="#F59E0B" />;
-      case 'consumption': return <Zap size={18} color="#10B981" />;
-      case 'deficit': return <ArrowDownLeft size={18} color="#EF4444" />;
-      default: return <Battery size={18} color={COLORS.primary} />;
+      case 'surplus': return <ArrowUpRight size={18} color={COLORS.tealLight} />;
+      case 'production': return <Sun size={18} color={COLORS.amber} />;
+      case 'consumption': return <Zap size={18} color={COLORS.amberLight} />;
+      case 'deficit': return <ArrowDownLeft size={18} color={COLORS.red} />;
+      default: return <Battery size={18} color={COLORS.amber} />;
     }
   };
 
@@ -40,19 +36,19 @@ export const EnergyHistoryView = () => {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: themeColors.bg }]} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={[styles.storyBadgeTitle, { color: themeColors.text }]}>Energy Logs & Statements</Text>
+        <Text style={styles.storyBadgeTitle}>Energy Logs & Statements</Text>
       </View>
 
       {/* Export Statement Action Bar */}
-      <View style={[styles.exportBar, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+      <View style={[styles.exportBar, GLASS.card, SHADOWS.glass]}>
         <View style={styles.exportInfo}>
-          <FileText size={22} color={COLORS.primary} />
+          <FileText size={22} color={COLORS.amber} />
           <View>
-            <Text style={[styles.exportTitle, { color: themeColors.text }]}>Co-op Energy Statement</Text>
-            <Text style={[styles.exportSub, { color: themeColors.textSub }]}>Download verified monthly solar ledger (PDF/CSV)</Text>
+            <Text style={styles.exportTitle}>Co-op Energy Statement</Text>
+            <Text style={styles.exportSub}>Download verified monthly solar ledger (PDF/CSV)</Text>
           </View>
         </View>
 
@@ -68,12 +64,12 @@ export const EnergyHistoryView = () => {
 
       {/* Search & Filter Controls */}
       <View style={styles.controlsRow}>
-        <View style={[styles.searchBox, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          <Search size={16} color={themeColors.textSub} />
+        <View style={[styles.searchBox, GLASS.input]}>
+          <Search size={16} color={COLORS.textMuted} />
           <TextInput
-            style={[styles.searchInput, { color: themeColors.text }]}
+            style={styles.searchInput}
             placeholder="Search transactions..."
-            placeholderTextColor={themeColors.textSub}
+            placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -93,12 +89,12 @@ export const EnergyHistoryView = () => {
             key={p.id}
             style={[
               styles.filterPill,
+              GLASS.pill,
               filterType === p.id && styles.filterPillActive,
-              { backgroundColor: filterType === p.id ? COLORS.primary : themeColors.card, borderColor: themeColors.border }
             ]}
             onPress={() => setFilterType(p.id)}
           >
-            <Text style={[styles.filterPillText, filterType === p.id && { color: '#FFFFFF', fontWeight: '800' }]}>
+            <Text style={[styles.filterPillText, filterType === p.id && styles.filterPillTextActive]}>
               {p.label}
             </Text>
           </TouchableOpacity>
@@ -106,22 +102,22 @@ export const EnergyHistoryView = () => {
       </ScrollView>
 
       {/* History Timeline Log Cards */}
-      <View style={[styles.sectionCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Transaction Timeline ({filteredLogs.length})</Text>
+      <View style={[styles.sectionCard, GLASS.card, SHADOWS.glass]}>
+        <Text style={styles.sectionTitle}>Transaction Timeline ({filteredLogs.length})</Text>
 
         <View style={styles.logsList}>
           {filteredLogs.map(log => (
-            <View key={log.id} style={[styles.logRow, { borderBottomColor: themeColors.border }]}>
-              <View style={[styles.iconBadge, { backgroundColor: 'rgba(148, 163, 184, 0.12)' }]}>
+            <View key={log.id} style={styles.logRow}>
+              <View style={styles.iconBadge}>
                 {getLogIcon(log.type)}
               </View>
 
               <View style={styles.logMain}>
                 <View style={styles.logTopLine}>
-                  <Text style={[styles.logTitle, { color: themeColors.text }]}>{log.title}</Text>
-                  <Text style={[styles.logAmount, { color: log.type === 'deficit' ? '#EF4444' : COLORS.primary }]}>{log.amount}</Text>
+                  <Text style={styles.logTitle}>{log.title}</Text>
+                  <Text style={[styles.logAmount, { color: log.type === 'deficit' ? COLORS.red : COLORS.tealLight }]}>{log.amount}</Text>
                 </View>
-                <Text style={[styles.logDetail, { color: themeColors.textSub }]}>{log.detail}</Text>
+                <Text style={styles.logDetail}>{log.detail}</Text>
                 <View style={styles.logMetaRow}>
                   <Text style={styles.logTime}>{log.time}</Text>
                   <Text style={styles.logCost}>{log.cost}</Text>
@@ -135,16 +131,16 @@ export const EnergyHistoryView = () => {
       {/* Export Preview Modal */}
       <Modal visible={exportModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-            <FileText size={40} color={COLORS.primary} />
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Generate Official Co-op Statement</Text>
-            <Text style={[styles.modalSub, { color: themeColors.textSub }]}>
+          <View style={[styles.modalCard, GLASS.card, SHADOWS.glass]}>
+            <FileText size={40} color={COLORS.amber} />
+            <Text style={styles.modalTitle}>Generate Official Co-op Statement</Text>
+            <Text style={styles.modalSub}>
               Includes total kWh generated, community P2P energy trades, grid draws, and carbon offsets for August 2026.
             </Text>
 
             {downloaded ? (
               <View style={styles.downloadDoneBox}>
-                <Check size={24} color="#10B981" />
+                <Check size={24} color={COLORS.tealLight} />
                 <Text style={styles.downloadDoneText}>Statement Downloaded to Device!</Text>
               </View>
             ) : (
@@ -167,46 +163,46 @@ export const EnergyHistoryView = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },
-  storyBadgeTag: { fontSize: 10, fontWeight: '800', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.8 },
-  storyBadgeTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  exportBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14, borderRadius: 16, borderWidth: 1 },
-  exportInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  exportTitle: { fontSize: 14, fontWeight: '800' },
-  exportSub: { fontSize: 11 },
-  exportBtn: { backgroundColor: COLORS.primary, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, ...SHADOWS.glowGreen },
+  storyBadgeTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, color: COLORS.textBright },
+  exportBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
+  exportInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  exportTitle: { fontSize: 14, fontWeight: '800', color: COLORS.textPrimary },
+  exportSub: { fontSize: 11, color: COLORS.textSecondary },
+  exportBtn: { backgroundColor: COLORS.amber, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, ...SHADOWS.glow },
   exportBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
   controlsRow: { flexDirection: 'row', gap: 10 },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, height: 42, borderRadius: 12, borderWidth: 1 },
-  searchInput: { flex: 1, fontSize: 13 },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, height: 42 },
+  searchInput: { flex: 1, fontSize: 13, color: COLORS.textPrimary },
   pillsScroll: { gap: 8 },
-  filterPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
-  filterPillText: { fontSize: 12, color: '#94A3B8' },
-  filterPillActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primaryDark },
-  sectionCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
+  filterPill: { paddingHorizontal: 14, paddingVertical: 7 },
+  filterPillText: { fontSize: 12, color: COLORS.textSecondary },
+  filterPillActive: { backgroundColor: COLORS.amber, borderColor: COLORS.amberDark },
+  filterPillTextActive: { color: '#FFFFFF', fontWeight: '800' },
+  sectionCard: { padding: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12, color: COLORS.textBright },
   logsList: { gap: 12 },
-  logRow: { flexDirection: 'row', gap: 12, paddingBottom: 12, borderBottomWidth: 1 },
-  iconBadge: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logRow: { flexDirection: 'row', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder },
+  iconBadge: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   logMain: { flex: 1, gap: 3 },
   logTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logTitle: { fontSize: 13, fontWeight: '700' },
+  logTitle: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary },
   logAmount: { fontSize: 13, fontWeight: '800' },
-  logDetail: { fontSize: 11 },
+  logDetail: { fontSize: 11, color: COLORS.textSecondary },
   logMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
-  logTime: { fontSize: 10, color: '#94A3B8' },
-  logCost: { fontSize: 10, fontWeight: '700', color: COLORS.secondary },
+  logTime: { fontSize: 10, color: COLORS.textMuted },
+  logCost: { fontSize: 10, fontWeight: '700', color: COLORS.amberLight },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', borderRadius: 20, padding: 24, borderWidth: 1, alignItems: 'center', gap: 14 },
-  modalTitle: { fontSize: 18, fontWeight: '800', textAlign: 'center' },
-  modalSub: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
-  downloadDoneBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(16, 185, 129, 0.15)', padding: 12, borderRadius: 12 },
-  downloadDoneText: { color: '#10B981', fontSize: 13, fontWeight: '700' },
+  modalCard: { width: '100%', padding: 24, alignItems: 'center', gap: 14 },
+  modalTitle: { fontSize: 18, fontWeight: '800', textAlign: 'center', color: COLORS.textBright },
+  modalSub: { fontSize: 12, textAlign: 'center', lineHeight: 18, color: COLORS.textSecondary },
+  downloadDoneBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.tealGlow, padding: 12, borderRadius: 12 },
+  downloadDoneText: { color: COLORS.tealLight, fontSize: 13, fontWeight: '700' },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  modalCancelBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#334155' },
-  modalCancelText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  modalConfirmBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10, backgroundColor: COLORS.primary },
+  modalCancelBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+  modalCancelText: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '700' },
+  modalConfirmBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 12, backgroundColor: COLORS.amber, ...SHADOWS.glow },
   modalConfirmText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });
