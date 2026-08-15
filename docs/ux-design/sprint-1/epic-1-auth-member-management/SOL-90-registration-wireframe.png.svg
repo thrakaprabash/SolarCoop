@@ -1,0 +1,56 @@
+<svg width="390" height="800" viewBox="0 0 390 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Screen Background -->
+  <rect width="390" height="800" fill="#FFFFFF"/>
+  <rect width="390" height="800" fill="none" stroke="#E5E5E5" stroke-width="2"/>
+
+  <!-- 1. Top Header -->
+  <!-- Back Arrow -->
+  <path d="M 32 50 L 22 60 L 32 70" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Title -->
+  <text x="195" y="65" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#000000">Create Account</text>
+
+  <!-- 2. Subtitle -->
+  <text x="24" y="110" font-family="Arial, sans-serif" font-size="15" fill="#333333">Join SolarShare and manage shared clean energy.</text>
+
+  <!-- 3. Full Name -->
+  <text x="24" y="155" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Full Name</text>
+  <rect x="24" y="165" width="342" height="48" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+
+  <!-- 4. Email Address -->
+  <text x="24" y="235" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Email Address</text>
+  <rect x="24" y="245" width="342" height="48" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+
+  <!-- 5. Password -->
+  <text x="24" y="315" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Password</text>
+  <rect x="24" y="325" width="342" height="48" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+  <!-- Eye Icon -->
+  <path d="M 332 349 C 336 343 348 343 352 349 C 348 355 336 355 332 349 Z" fill="none" stroke="#666666" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="342" cy="349" r="2.5" fill="#666666"/>
+
+  <!-- 6. Household Address -->
+  <text x="24" y="395" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Household Address</text>
+  <rect x="24" y="405" width="342" height="48" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+
+  <!-- 7. Grid Account Number -->
+  <text x="24" y="475" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Grid Account Number</text>
+  <rect x="24" y="485" width="342" height="48" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+
+  <!-- 8. Question -->
+  <text x="24" y="565" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">Do you own solar panels?</text>
+
+  <!-- 9. Radio Buttons -->
+  <!-- Yes Option -->
+  <circle cx="34" cy="595" r="9" fill="#FFFFFF" stroke="#666666" stroke-width="1.5"/>
+  <text x="52" y="600" font-family="Arial, sans-serif" font-size="15" fill="#000000">Yes</text>
+  
+  <!-- No Option -->
+  <circle cx="114" cy="595" r="9" fill="#FFFFFF" stroke="#666666" stroke-width="1.5"/>
+  <text x="132" y="600" font-family="Arial, sans-serif" font-size="15" fill="#000000">No</text>
+
+  <!-- 10. Primary Button -->
+  <rect x="24" y="645" width="342" height="52" rx="8" fill="#222222"/>
+  <text x="195" y="676" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#FFFFFF">Create Account</text>
+
+  <!-- 11. Bottom Text -->
+  <text x="195" y="730" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333333">Already have an account? <tspan font-weight="bold">Login</tspan></text>
+</svg>
