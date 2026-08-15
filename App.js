@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, ImageBackground, StatusBar, Platform } from 'react-native';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
+import { EnergyProvider as TradeEnergyProvider } from './src/trade/context/EnergyContext';
 import { Header } from './src/components/common/Header';
 import { SegmentedTabs } from './src/components/common/SegmentedTabs';
-import { BottomTaskBar } from './src/components/common/BottomTaskBar';
+import BottomTabBar from './src/components/common/BottomTabBar';
 import { HomeDashboard } from './src/components/dashboard/HomeDashboard';
 import { ProductionView } from './src/components/dashboard/ProductionView';
 import { ConsumptionView } from './src/components/dashboard/ConsumptionView';
@@ -12,12 +13,12 @@ import { DeficitView } from './src/components/dashboard/DeficitView';
 import { EnergyHistoryView } from './src/components/dashboard/EnergyHistoryView';
 import { ChartsView } from './src/components/dashboard/ChartsView';
 import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView';
-import { TradeRequestsPlaceholder } from './src/components/placeholders/TradeRequestsPlaceholder';
+import { TradeSection } from './src/components/trade/TradeSection';
 import { AlertsSupportPlaceholder } from './src/components/placeholders/AlertsSupportPlaceholder';
 import { ProfileAuthPlaceholder } from './src/components/placeholders/ProfileAuthPlaceholder';
 
 function MainApp() {
-  const { mainBottomTab, activeTab } = useEnergy();
+  const { mainBottomTab, setMainBottomTab, activeTab } = useEnergy();
 
   const renderDashboardView = () => {
     switch (activeTab) {
@@ -42,7 +43,8 @@ function MainApp() {
             <View style={styles.viewContainer}>{renderDashboardView()}</View>
           </View>
         );
-      case 'trade': return <TradeRequestsPlaceholder />;
+      case 'trade': return <TradeSection initialScreen="trade" />;
+      case 'energy': return <TradeSection initialScreen="insights" />;
       case 'alerts': return <AlertsSupportPlaceholder />;
       case 'profile': return <ProfileAuthPlaceholder />;
       default:
@@ -68,7 +70,7 @@ function MainApp() {
           <View style={styles.mainContentContainer}>
             {renderMainContent()}
           </View>
-          <BottomTaskBar />
+          <BottomTabBar activeKey={mainBottomTab} onSelect={setMainBottomTab} />
         </View>
       </View>
     </ImageBackground>
@@ -78,7 +80,9 @@ function MainApp() {
 export default function App() {
   return (
     <EnergyProvider>
-      <MainApp />
+      <TradeEnergyProvider>
+        <MainApp />
+      </TradeEnergyProvider>
     </EnergyProvider>
   );
 }
