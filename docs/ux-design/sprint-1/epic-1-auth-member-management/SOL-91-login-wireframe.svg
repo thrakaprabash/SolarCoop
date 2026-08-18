@@ -1,0 +1,61 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" style="background-color: #FFFFFF; font-family: system-ui, -apple-system, sans-serif;">
+  
+  <!-- Mobile Device Outline -->
+  <rect x="0" y="0" width="390" height="844" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+  
+  <!-- 1. Sun Icon (Top Center) -->
+  <g transform="translate(195, 100)">
+    <!-- Core -->
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#333333" stroke-width="2"/>
+    <!-- Rays -->
+    <line x1="0" y1="-20" x2="0" y2="-26" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="0" y1="20" x2="0" y2="26" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-20" y1="0" x2="-26" y2="0" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="0" x2="26" y2="0" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-14" y1="-14" x2="-18" y2="-18" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="14" y1="14" x2="18" y2="18" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-14" y1="14" x2="-18" y2="18" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="14" y1="-14" x2="18" y2="-18" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- 2. Main Heading -->
+  <text x="195" y="165" text-anchor="middle" font-size="28" font-weight="700" fill="#000000">Welcome Back</text>
+
+  <!-- 3. Subtitle -->
+  <text x="195" y="195" text-anchor="middle" font-size="15" fill="#333333">Sign in to manage your shared clean energy.</text>
+
+  <!-- 4. Email Label -->
+  <text x="24" y="260" font-size="15" font-weight="600" fill="#000000">Email Address</text>
+
+  <!-- 5. Email Input Field -->
+  <rect x="24" y="272" width="342" height="52" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+  <text x="40" y="303" font-size="15" fill="#999999">Enter your email</text>
+
+  <!-- 6. Password Label -->
+  <text x="24" y="360" font-size="15" font-weight="600" fill="#000000">Password</text>
+
+  <!-- 7. Password Input Field & Eye Icon -->
+  <rect x="24" y="372" width="342" height="52" rx="8" fill="#FFFFFF" stroke="#999999" stroke-width="1"/>
+  <text x="40" y="403" font-size="15" fill="#999999">Enter your password</text>
+  <!-- Eye Icon (Right Side) -->
+  <g transform="translate(340, 398)">
+    <path d="M -10 -6 Q 0 6 10 -6 Q 0 -18 -10 -6" fill="none" stroke="#666666" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="0" cy="-6" r="3" fill="none" stroke="#666666" stroke-width="1.5"/>
+  </g>
+
+  <!-- 8. Remember me & Forgot Password -->
+  <!-- Checkbox -->
+  <rect x="24" y="445" width="20" height="20" rx="4" fill="#FFFFFF" stroke="#666666" stroke-width="1.5"/>
+  <text x="54" y="460" font-size="14" fill="#333333">Remember me</text>
+  <!-- Forgot Password Link -->
+  <text x="366" y="460" text-anchor="end" font-size="14" font-weight="500" fill="#333333" text-decoration="underline">Forgot password?</text>
+
+  <!-- 9. Primary Button -->
+  <rect x="24" y="515" width="342" height="52" rx="26" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+  <text x="195" y="546" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Login</text>
+
+  <!-- 10. Bottom Text -->
+  <text x="195" y="610" text-anchor="middle" font-size="14" fill="#333333">
+    New to SolarShare? <tspan font-weight="600" text-decoration="underline" fill="#000000">Create Account</tspan>
+  </text>
+</svg>
