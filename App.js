@@ -16,21 +16,23 @@ import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView'
 import { TradeSection } from './src/components/trade/TradeSection';
 import { AlertsSupportPlaceholder } from './src/components/placeholders/AlertsSupportPlaceholder';
 import { ProfileAuthPlaceholder } from './src/components/placeholders/ProfileAuthPlaceholder';
+import AdminPortal from './src/admin/AdminPortal';
 
-function MainApp() {
+// ─── Member App Shell ─────────────────────────────────────────────────────────
+function MainAppWithAdminButton({ onOpenAdmin }) {
   const { mainBottomTab, setMainBottomTab, activeTab } = useEnergy();
 
   const renderDashboardView = () => {
     switch (activeTab) {
-      case 'dashboard': return <HomeDashboard />;
-      case 'production': return <ProductionView />;
+      case 'dashboard':   return <HomeDashboard onOpenAdmin={onOpenAdmin} />;
+      case 'production':  return <ProductionView />;
       case 'consumption': return <ConsumptionView />;
-      case 'surplus': return <SurplusView />;
-      case 'deficit': return <DeficitView />;
-      case 'history': return <EnergyHistoryView />;
-      case 'charts': return <ChartsView />;
-      case 'summary': return <EnergySummaryView />;
-      default: return <HomeDashboard />;
+      case 'surplus':     return <SurplusView />;
+      case 'deficit':     return <DeficitView />;
+      case 'history':     return <EnergyHistoryView />;
+      case 'charts':      return <ChartsView />;
+      case 'summary':     return <EnergySummaryView />;
+      default:            return <HomeDashboard onOpenAdmin={onOpenAdmin} />;
     }
   };
 
@@ -43,9 +45,9 @@ function MainApp() {
             <View style={styles.viewContainer}>{renderDashboardView()}</View>
           </View>
         );
-      case 'trade': return <TradeSection initialScreen="trade" />;
-      case 'energy': return <TradeSection initialScreen="insights" />;
-      case 'alerts': return <AlertsSupportPlaceholder />;
+      case 'trade':   return <TradeSection initialScreen="trade" />;
+      case 'energy':  return <TradeSection initialScreen="insights" />;
+      case 'alerts':  return <AlertsSupportPlaceholder />;
       case 'profile': return <ProfileAuthPlaceholder />;
       default:
         return (
@@ -58,6 +60,21 @@ function MainApp() {
   };
 
   return (
+    <View style={styles.mainApp}>
+      <Header />
+      <View style={styles.mainContentContainer}>
+        {renderMainContent()}
+      </View>
+      <BottomTabBar activeKey={mainBottomTab} onSelect={setMainBottomTab} />
+    </View>
+  );
+}
+
+// ─── Root App ─────────────────────────────────────────────────────────────────
+export default function App() {
+  const [isAdminMode, setIsAdminMode] = React.useState(false);
+
+  return (
     <ImageBackground
       source={require('./assets/bg.jpg')}
       style={styles.bgImage}
@@ -66,24 +83,18 @@ function MainApp() {
       <View style={styles.overlay}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <View style={styles.safeArea}>
-          <Header />
-          <View style={styles.mainContentContainer}>
-            {renderMainContent()}
-          </View>
-          <BottomTabBar activeKey={mainBottomTab} onSelect={setMainBottomTab} />
+          {isAdminMode ? (
+            <AdminPortal onExit={() => setIsAdminMode(false)} />
+          ) : (
+            <EnergyProvider>
+              <TradeEnergyProvider>
+                <MainAppWithAdminButton onOpenAdmin={() => setIsAdminMode(true)} />
+              </TradeEnergyProvider>
+            </EnergyProvider>
+          )}
         </View>
       </View>
     </ImageBackground>
-  );
-}
-
-export default function App() {
-  return (
-    <EnergyProvider>
-      <TradeEnergyProvider>
-        <MainApp />
-      </TradeEnergyProvider>
-    </EnergyProvider>
   );
 }
 
@@ -100,6 +111,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
+  },
+  mainApp: {
+    flex: 1,
   },
   mainContentContainer: {
     flex: 1,
