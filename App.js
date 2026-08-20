@@ -14,7 +14,7 @@ import { EnergyHistoryView } from './src/components/dashboard/EnergyHistoryView'
 import { ChartsView } from './src/components/dashboard/ChartsView';
 import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView';
 import { TradeSection } from './src/components/trade/TradeSection';
-import { AlertsSupportPlaceholder } from './src/components/placeholders/AlertsSupportPlaceholder';
+import { AlertsSection } from './src/components/alerts/AlertsSection';
 import { ProfileAuthPlaceholder } from './src/components/placeholders/ProfileAuthPlaceholder';
 import AdminPortal from './src/admin/AdminPortal';
 
@@ -47,7 +47,7 @@ function MainAppWithAdminButton({ onOpenAdmin }) {
         );
       case 'trade':   return <TradeSection initialScreen="trade" />;
       case 'energy':  return <TradeSection initialScreen="insights" />;
-      case 'alerts':  return <AlertsSupportPlaceholder />;
+      case 'alerts':  return <AlertsSection />;
       case 'profile': return <ProfileAuthPlaceholder />;
       default:
         return (
