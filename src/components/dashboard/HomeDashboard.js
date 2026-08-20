@@ -15,9 +15,10 @@ import {
   Maximize2,
   TrendingUp,
   TrendingDown,
+  ShieldCheck,
 } from 'lucide-react-native';
 
-export const HomeDashboard = () => {
+export const HomeDashboard = ({ onOpenAdmin }) => {
   const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
 
@@ -237,6 +238,17 @@ export const HomeDashboard = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Admin Panel Entry */}
+      <TouchableOpacity
+        style={styles.adminEntryBtn}
+        onPress={onOpenAdmin}
+        activeOpacity={0.8}
+      >
+        <ShieldCheck size={15} color={'#A78BFA'} />
+        <Text style={styles.adminEntryText}>Admin Panel</Text>
+        <Text style={styles.adminEntryArrow}>›</Text>
+      </TouchableOpacity>
+
       {/* Spacer */}
       <View style={{ height: 20 }} />
     </ScrollView>
@@ -344,4 +356,29 @@ const styles = StyleSheet.create({
     gap: 8, paddingVertical: 14,
   },
   actionBtnSecondaryText: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary },
+
+  // Admin Entry Button
+  adminEntryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: 'rgba(139, 92, 246, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.28)',
+  },
+  adminEntryText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#A78BFA',
+  },
+  adminEntryArrow: {
+    fontSize: 16,
+    color: '#A78BFA',
+    fontWeight: '800',
+    lineHeight: 18,
+  },
 });
