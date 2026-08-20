@@ -400,6 +400,8 @@ export const MOCK_COMPLAINTS = [
   },
 ];
 
+export const MOCK_MEMBER_COMPLAINTS = MOCK_COMPLAINTS.filter(c => c.memberId === 'm1');
+
 // ─── Computed Community Totals ────────────────────────────────────────────────
 export const COMMUNITY_STATS = {
   totalMembers: MOCK_MEMBERS.length,
