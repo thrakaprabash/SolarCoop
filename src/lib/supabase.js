@@ -51,14 +51,9 @@ const buildEnvMessage = () => {
 };
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  const message = buildEnvMessage();
-  if (__DEV__) {
-    // Clear development warning — the app can keep rendering but auth is off.
-    console.warn(message);
-  } else {
-    // Fail fast in production builds so the misconfiguration is never shipped.
-    throw new Error(message);
-  }
+  // Fail fast so misconfiguration is obvious and does not surface as confusing
+  // downstream auth/network errors.
+  throw new Error(buildEnvMessage());
 }
 
 /* ─── "Remember me" preference helpers ──────────────────────────────────── */
