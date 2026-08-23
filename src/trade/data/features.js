@@ -11,11 +11,13 @@ export const MODULE_FEATURES = [
   },
   {
     title: 'Request Approval / Rejection',
-    desc: 'Review incoming requests from neighboring households',
+    desc: 'Review incoming requests from neighbouring households',
+    screen: 'incoming',
   },
   {
     title: 'Transaction Ledger & History',
     desc: 'Immutable ledger of completed energy exchanges & token payouts',
+    screen: 'history',
   },
 ];
 
