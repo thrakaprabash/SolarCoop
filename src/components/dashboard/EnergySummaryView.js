@@ -4,6 +4,7 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Leaf, Award, DollarSign, ShieldCheck, TreePine, CloudOff, Flame, Zap, CheckCircle2 } from 'lucide-react-native';
 
+// SOL-103: Energy Summery (Summary) View Component
 export const EnergySummaryView = () => {
   const { metrics } = useEnergy();
 
