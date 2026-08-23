@@ -62,6 +62,7 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 };
 
 // ─── Main Dashboard Component ───
+// SOL-96: Home DashBoard View Component
 export const HomeDashboard = ({ onOpenAdmin }) => {
   const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
