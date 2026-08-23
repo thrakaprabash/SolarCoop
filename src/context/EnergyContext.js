@@ -47,7 +47,7 @@ export const EnergyProvider = ({ children }) => {
 
   // Core metrics
   const [metrics, setMetrics] = useState({
-    instantProduction: 8.4, // kW
+    instantProduction: 8.5, // kW
     dailyProduction: 42.6,  // kWh
     instantConsumption: 3.8, // kW
     dailyConsumption: 24.1,  // kWh
