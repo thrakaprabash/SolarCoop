@@ -4,6 +4,7 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { BatteryCharging, ArrowUpRight, Share2, Coins, CheckCircle2, ShieldCheck, Zap } from 'lucide-react-native';
 
+// SOL-99: Surplus View Component
 export const SurplusView = () => {
   const { 
     metrics, 
