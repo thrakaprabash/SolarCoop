@@ -5,6 +5,7 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
 
+// SOL-102: Charts View Component
 export const ChartsView = () => {
   const { chartData } = useEnergy();
   const [timeRange, setTimeRange] = useState('24h'); // '24h' | '7d' | '30d' | '1y'
