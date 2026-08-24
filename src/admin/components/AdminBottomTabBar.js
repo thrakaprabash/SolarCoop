@@ -9,17 +9,30 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../../theme/colors';
 import { colors } from '../../trade/theme';
-import { COMMUNITY_STATS } from '../data/mockAdminData';
+import { useAdmin } from '../context/AdminContext';
+import { MOCK_COMPLAINTS, MOCK_TRANSACTIONS } from '../data/mockAdminData';
 
-const TABS = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: null },
-  { key: 'members',   label: 'Members',   icon: Users,           badge: COMMUNITY_STATS.totalMembers },
-  { key: 'ledger',    label: 'Ledger',    icon: Receipt,         badge: COMMUNITY_STATS.pendingTransactions },
-  { key: 'reports',   label: 'Reports',   icon: MessageSquare,   badge: COMMUNITY_STATS.openComplaints },
-  { key: 'profile',   label: 'Profile',   icon: UserCog,         badge: null },
+const TAB_KEYS = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'members',   label: 'Members',   icon: Users },
+  { key: 'ledger',    label: 'Ledger',    icon: Receipt },
+  { key: 'reports',   label: 'Reports',   icon: MessageSquare },
+  { key: 'profile',   label: 'Profile',   icon: UserCog },
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const { communityStats } = useAdmin();
+
+  // Live badges: members count from Supabase; others from mock until wired
+  const TABS = TAB_KEYS.map(t => ({
+    ...t,
+    badge:
+      t.key === 'members' ? (communityStats?.totalMembers ?? null) :
+      t.key === 'ledger'  ? MOCK_TRANSACTIONS.filter(tx => tx.status === 'Pending').length :
+      t.key === 'reports' ? MOCK_COMPLAINTS.filter(c => c.status === 'Open').length :
+      null,
+  }));
+
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(bottomInset, 12) }]}>
       {TABS.map((tab) => {

@@ -1,5 +1,11 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+  ImageBackground,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { AdminProvider, useAdmin } from './context/AdminContext';
 import AdminHeader from './components/AdminHeader';
 import AdminMetricChips from './components/AdminMetricChips';
@@ -12,9 +18,17 @@ import AlertsScreen from './screens/AlertsScreen';
 import ComplaintsScreen from './screens/ComplaintsScreen';
 import AdminSettingsScreen from './screens/AdminSettingsScreen';
 
+// ─── Background image — same dark-glass theme used by Member & Technician shells
+const BG = require('../../assets/bg.jpg');
+
 // ─── Inner shell — consumes AdminContext ──────────────────────────────────────
 function AdminShell() {
-  const { adminBottomTab, setAdminBottomTab } = useAdmin();
+  const { adminBottomTab, setAdminBottomTab, loadMembers } = useAdmin();
+
+  // Kick off member data fetch as soon as the admin portal mounts
+  useEffect(() => {
+    loadMembers();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderScreen = () => {
     switch (adminBottomTab) {
@@ -37,17 +51,22 @@ function AdminShell() {
   const showChips = adminBottomTab === 'dashboard';
 
   return (
-    <View style={styles.shell}>
-      <AdminHeader />
-      {showChips && <AdminMetricChips />}
-      <View style={styles.screenContainer}>
-        {renderScreen()}
+    <ImageBackground source={BG} style={styles.bgImage} resizeMode="cover">
+      <View style={styles.overlay}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <View style={styles.safeArea}>
+          <AdminHeader />
+          {showChips && <AdminMetricChips />}
+          <View style={styles.screenContainer}>
+            {renderScreen()}
+          </View>
+          <AdminBottomTabBar
+            activeKey={activeTabKey}
+            onSelect={setAdminBottomTab}
+          />
+        </View>
       </View>
-      <AdminBottomTabBar
-        activeKey={activeTabKey}
-        onSelect={setAdminBottomTab}
-      />
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -61,8 +80,18 @@ export default function AdminPortal({ onExit }) {
 }
 
 const styles = StyleSheet.create({
-  shell: {
+  bgImage: {
     flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 8, 22, 0.55)',
+  },
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
   },
   screenContainer: {
     flex: 1,

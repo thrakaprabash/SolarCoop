@@ -6,10 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { MOCK_MEMBERS } from '../data/mockAdminData';
 import {
   Search,
   TrendingUp,
@@ -17,7 +17,7 @@ import {
   ChevronRight,
   Zap,
   Sun,
-  BatteryCharging,
+  AlertCircle,
   Users,
 } from 'lucide-react-native';
 
@@ -116,11 +116,18 @@ function MemberCard({ member, onPress }) {
 }
 
 export default function MemberMonitoringScreen() {
-  const { setSelectedMember, setAdminBottomTab } = useAdmin();
+  const {
+    setSelectedMember,
+    setAdminBottomTab,
+    members,
+    membersLoading,
+    membersError,
+    loadMembers,
+  } = useAdmin();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
-  const filtered = MOCK_MEMBERS.filter(m => {
+  const filtered = members.filter(m => {
     const matchSearch =
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.household.toLowerCase().includes(search.toLowerCase());
@@ -133,9 +140,48 @@ export default function MemberMonitoringScreen() {
     setAdminBottomTab('memberDetail');
   };
 
-  const activeCnt   = MOCK_MEMBERS.filter(m => m.status === 'Active').length;
-  const inactiveCnt = MOCK_MEMBERS.filter(m => m.status === 'Inactive').length;
-  const suspendCnt  = MOCK_MEMBERS.filter(m => m.status === 'Suspended').length;
+  const activeCnt   = members.filter(m => m.status === 'Active').length;
+  const inactiveCnt = members.filter(m => m.status === 'Inactive').length;
+  const suspendCnt  = members.filter(m => m.status === 'Suspended').length;
+
+  // ── Loading skeleton ────────────────────────────────────────────────────────
+  if (membersLoading) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.titleRow}>
+          <Users size={18} color={COLORS.amberLight} />
+          <Text style={styles.screenTitle}>Member Monitoring</Text>
+        </View>
+        {[1, 2, 3].map(i => (
+          <View key={i} style={[styles.memberCard, styles.skeletonCard]}>
+            <View style={[styles.skeletonBar, { width: '60%', marginBottom: 8 }]} />
+            <View style={[styles.skeletonBar, { width: '40%', marginBottom: 6 }]} />
+            <View style={[styles.skeletonBar, { width: '80%' }]} />
+          </View>
+        ))}
+      </ScrollView>
+    );
+  }
+
+  // ── Error state ─────────────────────────────────────────────────────────────
+  if (membersError) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.titleRow}>
+          <Users size={18} color={COLORS.amberLight} />
+          <Text style={styles.screenTitle}>Member Monitoring</Text>
+        </View>
+        <View style={[GLASS.card, styles.errorCard]}>
+          <AlertCircle size={28} color={COLORS.red} />
+          <Text style={styles.errorTitle}>Could not load members</Text>
+          <Text style={styles.errorMessage}>{membersError}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadMembers} activeOpacity={0.8}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -316,6 +362,49 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-  emptyCard: { padding: 24, alignItems: 'center' },
-  emptyText: { color: COLORS.textMuted, fontSize: 13, fontWeight: '600' },
+  skeletonCard: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    padding: 18,
+    minHeight: 80,
+    justifyContent: 'center',
+  },
+  skeletonBar: {
+    height: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+  },
+
+  errorCard: {
+    padding: 28,
+    alignItems: 'center',
+    gap: 10,
+  },
+  errorTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textBright,
+  },
+  errorMessage: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  retryBtn: {
+    marginTop: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(239,68,68,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.4)',
+    borderRadius: 14,
+  },
+  retryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.red,
+  },
 });
