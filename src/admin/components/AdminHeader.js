@@ -1,11 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
+import { ShieldCheck, LogOut } from 'lucide-react-native';
 
 export default function AdminHeader() {
-  const { adminHeaderToggle, setAdminHeaderToggle, onExit } = useAdmin();
+  const { adminHeaderToggle, setAdminHeaderToggle, setAdminBottomTab, onExit } = useAdmin();
+
+  const handleToggle = (toggleKey) => {
+    setAdminHeaderToggle(toggleKey);
+    setAdminBottomTab('dashboard');
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm
+        ? window.confirm('Are you sure you want to log out?')
+        : true;
+      if (confirmed) {
+        onExit();
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to log out of the Admin Panel?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: onExit },
+      ]
+    );
+  };
 
   return (
     <View style={styles.headerContainer}>
@@ -33,13 +59,13 @@ export default function AdminHeader() {
         </View>
       </View>
 
-      {/* Second Row — Toggle + Exit */}
+      {/* Second Row — Toggle + Logout */}
       <View style={styles.bottomRow}>
         {/* Overview / System Health Toggle */}
         <View style={styles.toggleContainer}>
           <TouchableOpacity
             style={[styles.toggleTab, adminHeaderToggle === 'overview' && styles.toggleTabActive]}
-            onPress={() => setAdminHeaderToggle('overview')}
+            onPress={() => handleToggle('overview')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'overview' && styles.toggleTextActive]}>
               Overview
@@ -47,7 +73,7 @@ export default function AdminHeader() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleTab, adminHeaderToggle === 'health' && styles.toggleTabActive]}
-            onPress={() => setAdminHeaderToggle('health')}
+            onPress={() => handleToggle('health')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'health' && styles.toggleTextActive]}>
               System Health
@@ -55,10 +81,10 @@ export default function AdminHeader() {
           </TouchableOpacity>
         </View>
 
-        {/* Exit Button */}
-        <TouchableOpacity style={styles.exitBtn} onPress={onExit} activeOpacity={0.7}>
-          <ArrowLeft size={13} color={COLORS.textSecondary} />
-          <Text style={styles.exitText}>Exit Admin</Text>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutHeaderBtn} onPress={handleLogout} activeOpacity={0.7}>
+          <LogOut size={13} color={COLORS.red} />
+          <Text style={styles.logoutHeaderText}>Logout</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,20 +201,20 @@ const styles = StyleSheet.create({
     color: COLORS.amberLight,
     fontWeight: '700',
   },
-  exitBtn: {
+  logoutHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.28)',
   },
-  exitText: {
+  logoutHeaderText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontWeight: '700',
+    color: COLORS.red,
   },
 });

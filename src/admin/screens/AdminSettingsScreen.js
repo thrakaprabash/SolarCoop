@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
@@ -22,12 +23,22 @@ export default function AdminSettingsScreen() {
   const { onExit } = useAdmin();
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm
+        ? window.confirm('Are you sure you want to sign out of the Admin Panel?')
+        : true;
+      if (confirmed) {
+        onExit();
+      }
+      return;
+    }
+
     Alert.alert(
       'Logout',
-      'Login has not been implemented yet. Exiting the Admin Panel instead.',
+      'Are you sure you want to sign out of the Admin Panel?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Exit Admin', onPress: onExit },
+        { text: 'Logout', style: 'destructive', onPress: onExit },
       ]
     );
   };
@@ -99,21 +110,11 @@ export default function AdminSettingsScreen() {
         })}
       </View>
 
-      {/* Exit Admin Panel */}
-      <TouchableOpacity style={styles.exitBtn} onPress={onExit} activeOpacity={0.8}>
-        <ArrowLeft size={18} color={COLORS.tealLight} />
-        <Text style={styles.exitBtnText}>Exit Admin Panel</Text>
-      </TouchableOpacity>
-
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <LogOut size={18} color={COLORS.red} />
         <Text style={styles.logoutBtnText}>Logout</Text>
       </TouchableOpacity>
-
-      <Text style={styles.footerNote}>
-        Login & role-based routing will be implemented in Sprint 2 (CES-40).
-      </Text>
 
       <View style={{ height: 24 }} />
     </ScrollView>
