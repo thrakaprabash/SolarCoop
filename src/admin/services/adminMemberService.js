@@ -227,8 +227,38 @@ export async function updateMemberStatus(userId, uiStatus) {
     throw error;
   }
 
+  return data[0];
+}
+
+/**
+ * Update the logged-in admin's profile details in Supabase.
+ *
+ * @param {string} userId   - profiles.id (uuid)
+ * @param {object} updates  - { name, mobileNumber, householdId }
+ * @returns {Promise<object>} Updated profiles row
+ * @throws {Error} On Supabase write failure
+ */
+export async function updateAdminProfileDetails(userId, { name, mobileNumber, householdId }) {
+  const payload = {
+    name:         name.trim(),
+    mobile_number: mobileNumber ? mobileNumber.trim() : null,
+    household_id: householdId ? householdId.trim() : null,
+    updated_at:   new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(payload)
+    .eq('id', userId)
+    .select();
+
+  if (error) {
+    console.error('[adminMemberService] updateAdminProfileDetails error:', error.message);
+    throw error;
+  }
+
   if (!data || data.length === 0) {
-    throw new Error('No profile updated. Check database RLS update policy for profiles table.');
+    throw new Error('Could not update admin profile. Check RLS policies for profiles table.');
   }
 
   return data[0];
