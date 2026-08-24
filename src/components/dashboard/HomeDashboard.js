@@ -416,17 +416,6 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Admin Panel Entry */}
-      <TouchableOpacity
-        style={styles.adminEntryBtn}
-        onPress={onOpenAdmin}
-        activeOpacity={0.8}
-      >
-        <ShieldCheck size={15} color={'#A78BFA'} />
-        <Text style={styles.adminEntryText}>Admin Panel</Text>
-        <Text style={styles.adminEntryArrow}>›</Text>
-      </TouchableOpacity>
-
       {/* Spacer */}
       <View style={{ height: 20 }} />
     </ScrollView>
