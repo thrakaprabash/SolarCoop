@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
@@ -16,7 +16,6 @@ import {
   Maximize2,
   TrendingUp,
   TrendingDown,
-  ShieldCheck,
   ChevronRight,
   Users,
   Coins,
@@ -62,8 +61,9 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 };
 
 // ─── Main Dashboard Component ───
-export const HomeDashboard = ({ onOpenAdmin }) => {
-  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
+// SOL-96: Home DashBoard View Component
+export const HomeDashboard = () => {
+  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy, loading } = useEnergy();
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
   const [actionSuccess, setActionSuccess] = useState(null); // null | 'share' | 'borrow'
 
@@ -71,10 +71,11 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const isNative = Platform.OS !== 'web';
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: isNative }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: isNative }),
       ])
     );
     animation.start();
@@ -118,6 +119,16 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {/* ═══ Loading Skeleton (first fetch) ═══ */}
+      {loading && (
+        <View style={styles.skeletonContainer}>
+          <View style={styles.skeletonLine} />
+          <View style={[styles.skeletonLine, { width: '60%' }]} />
+          <View style={[styles.skeletonBlock, { height: 120, marginTop: 8 }]} />
+          <View style={[styles.skeletonBlock, { height: 80, marginTop: 8 }]} />
+        </View>
+      )}
+
       {/* ═══ Title Header with Live Pulse (Issue #1) ═══ */}
       <View style={styles.headerRow}>
         <View>
@@ -426,6 +437,19 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
+
+  // ── Loading Skeleton ──
+  skeletonContainer: { gap: 8, marginBottom: 4 },
+  skeletonLine: {
+    height: 14, borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    width: '80%',
+  },
+  skeletonBlock: {
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: '100%',
+  },
 
   // ── Header ──
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
