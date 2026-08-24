@@ -10,7 +10,6 @@ import {
 import { COLORS } from '../../theme/colors';
 import { colors } from '../../trade/theme';
 import { useAdmin } from '../context/AdminContext';
-import { MOCK_COMPLAINTS, MOCK_TRANSACTIONS } from '../data/mockAdminData';
 
 const TAB_KEYS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,16 +20,14 @@ const TAB_KEYS = [
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
-  const { communityStats } = useAdmin();
+  const { complaints } = useAdmin();
 
-  // Live badges: members count from Supabase; others from mock until wired
+  // Count open complaints from live Supabase data
+  const openComplaintsCount = (complaints || []).filter(c => c.status === 'Open').length;
+
   const TABS = TAB_KEYS.map(t => ({
     ...t,
-    badge:
-      t.key === 'members' ? (communityStats?.totalMembers ?? null) :
-      t.key === 'ledger'  ? MOCK_TRANSACTIONS.filter(tx => tx.status === 'Pending').length :
-      t.key === 'reports' ? MOCK_COMPLAINTS.filter(c => c.status === 'Open').length :
-      null,
+    badge: t.key === 'reports' && openComplaintsCount > 0 ? openComplaintsCount : null,
   }));
 
   return (
@@ -54,7 +51,8 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               >
                 <Icon size={18} color={color} strokeWidth={2} />
               </View>
-              {/* Badge */}
+
+              {/* Red notification badge — only shows when open complaints exist */}
               {tab.badge != null && tab.badge > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{tab.badge > 99 ? '99+' : tab.badge}</Text>
