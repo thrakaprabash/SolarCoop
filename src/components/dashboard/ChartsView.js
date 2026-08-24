@@ -5,11 +5,24 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
 
+// Range config: maps display label → DB range key
+const RANGES = [
+  { label: 'Day',   key: 'day'   },
+  { label: 'Week',  key: 'week'  },
+  { label: 'Month', key: 'month' },
+];
+
 // SOL-102: Charts View Component
 export const ChartsView = () => {
-  const { chartData } = useEnergy();
-  const [timeRange, setTimeRange] = useState('24h'); // '24h' | '7d' | '30d' | '1y'
+  const { chartData, loadChartData } = useEnergy();
+  const [activeRange, setActiveRange] = useState('day');
   const [selectedIndex, setSelectedIndex] = useState(3); // Default point selected (12:00)
+
+  const handleRangeChange = (key) => {
+    setActiveRange(key);
+    setSelectedIndex(0);
+    loadChartData(key);
+  };
 
   // Calculate SVG line path points for Production & Consumption
   const width = 320;
@@ -30,9 +43,11 @@ export const ChartsView = () => {
   const prodPath = buildPath(chartData.production);
   const consPath = buildPath(chartData.consumption);
 
-  const selectedHour = chartData.hours[selectedIndex];
-  const selectedProd = chartData.production[selectedIndex];
-  const selectedCons = chartData.consumption[selectedIndex];
+  // Guard: clamp selectedIndex to valid range after data changes
+  const safeIndex = Math.min(selectedIndex, chartData.hours.length - 1);
+  const selectedHour = chartData.hours[safeIndex];
+  const selectedProd = chartData.production[safeIndex];
+  const selectedCons = chartData.consumption[safeIndex];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -43,20 +58,20 @@ export const ChartsView = () => {
 
       {/* Time range selector bar */}
       <View style={styles.timeRangeContainer}>
-        {['24h', '7d', '30d', '1y'].map(range => (
+        {RANGES.map(({ label, key }) => (
           <TouchableOpacity
-            key={range}
+            key={key}
             style={[
               styles.rangeTab,
-              timeRange === range ? styles.rangeTabActive : styles.rangeTabInactive,
+              activeRange === key ? styles.rangeTabActive : styles.rangeTabInactive,
             ]}
-            onPress={() => setTimeRange(range)}
+            onPress={() => handleRangeChange(key)}
           >
             <Text style={[
               styles.rangeTabText,
-              timeRange === range && styles.rangeTabTextActive,
+              activeRange === key && styles.rangeTabTextActive,
             ]}>
-              {range.toUpperCase()}
+              {label.toUpperCase()}
             </Text>
           </TouchableOpacity>
         ))}
@@ -106,7 +121,7 @@ export const ChartsView = () => {
                 <Circle 
                   cx={getX(i)} 
                   cy={getY(chartData.production[i])} 
-                  r={selectedIndex === i ? 6 : 4} 
+                  r={safeIndex === i ? 6 : 4} 
                   fill={COLORS.amber} 
                   stroke={COLORS.textBright} 
                   strokeWidth={1.5}
@@ -115,7 +130,7 @@ export const ChartsView = () => {
                 <Circle 
                   cx={getX(i)} 
                   cy={getY(chartData.consumption[i])} 
-                  r={selectedIndex === i ? 6 : 4} 
+                  r={safeIndex === i ? 6 : 4} 
                   fill={COLORS.teal} 
                   stroke={COLORS.textBright} 
                   strokeWidth={1.5}

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { History, Search, Download, Filter, Sun, Battery, Zap, ArrowUpRight, ArrowDownLeft, FileText, Check } from 'lucide-react-native';
 
 // SOL-101: Energy History Log View component
 export const EnergyHistoryView = () => {
-  const { historyLogs } = useEnergy();
+  const { historyLogs, loadMoreHistory, historyHasMore, loadingMore } = useEnergy();
   const [filterType, setFilterType] = useState('all'); // 'all' | 'surplus' | 'production' | 'consumption' | 'deficit'
   const [searchQuery, setSearchQuery] = useState('');
   const [exportModalVisible, setExportModalVisible] = useState(false);
@@ -129,6 +129,21 @@ export const EnergyHistoryView = () => {
         </View>
       </View>
 
+      {/* Load More */}
+      {historyHasMore && (
+        <TouchableOpacity
+          style={styles.loadMoreBtn}
+          onPress={loadMoreHistory}
+          disabled={loadingMore}
+          activeOpacity={0.7}
+        >
+          {loadingMore
+            ? <ActivityIndicator size="small" color={COLORS.amber} />
+            : <Text style={styles.loadMoreText}>Load More</Text>
+          }
+        </TouchableOpacity>
+      )}
+
       {/* Export Preview Modal */}
       <Modal visible={exportModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -195,6 +210,17 @@ const styles = StyleSheet.create({
   logMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
   logTime: { fontSize: 10, color: COLORS.textMuted },
   logCost: { fontSize: 10, fontWeight: '700', color: COLORS.amberLight },
+  loadMoreBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    minHeight: 46,
+  },
+  loadMoreText: { fontSize: 13, fontWeight: '700', color: COLORS.amberLight },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modalCard: { width: '100%', padding: 24, alignItems: 'center', gap: 14 },
   modalTitle: { fontSize: 18, fontWeight: '800', textAlign: 'center', color: COLORS.textBright },

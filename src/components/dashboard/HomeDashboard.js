@@ -16,7 +16,6 @@ import {
   Maximize2,
   TrendingUp,
   TrendingDown,
-  ShieldCheck,
   ChevronRight,
   Users,
   Coins,
@@ -63,8 +62,8 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 
 // ─── Main Dashboard Component ───
 // SOL-96: Home DashBoard View Component
-export const HomeDashboard = ({ onOpenAdmin }) => {
-  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
+export const HomeDashboard = () => {
+  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy, loading } = useEnergy();
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
   const [actionSuccess, setActionSuccess] = useState(null); // null | 'share' | 'borrow'
 
@@ -119,6 +118,16 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {/* ═══ Loading Skeleton (first fetch) ═══ */}
+      {loading && (
+        <View style={styles.skeletonContainer}>
+          <View style={styles.skeletonLine} />
+          <View style={[styles.skeletonLine, { width: '60%' }]} />
+          <View style={[styles.skeletonBlock, { height: 120, marginTop: 8 }]} />
+          <View style={[styles.skeletonBlock, { height: 80, marginTop: 8 }]} />
+        </View>
+      )}
+
       {/* ═══ Title Header with Live Pulse (Issue #1) ═══ */}
       <View style={styles.headerRow}>
         <View>
@@ -417,17 +426,6 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Admin Panel Entry */}
-      <TouchableOpacity
-        style={styles.adminEntryBtn}
-        onPress={onOpenAdmin}
-        activeOpacity={0.8}
-      >
-        <ShieldCheck size={15} color={'#A78BFA'} />
-        <Text style={styles.adminEntryText}>Admin Panel</Text>
-        <Text style={styles.adminEntryArrow}>›</Text>
-      </TouchableOpacity>
-
       {/* Spacer */}
       <View style={{ height: 20 }} />
     </ScrollView>
@@ -438,6 +436,19 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
+
+  // ── Loading Skeleton ──
+  skeletonContainer: { gap: 8, marginBottom: 4 },
+  skeletonLine: {
+    height: 14, borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    width: '80%',
+  },
+  skeletonBlock: {
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: '100%',
+  },
 
   // ── Header ──
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
