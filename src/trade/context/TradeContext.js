@@ -101,19 +101,51 @@ export function TradeProvider({ children }) {
     showToast._t = setTimeout(() => setToast(''), ms);
   }, []);
 
-  const submitRequest = useCallback((provider, amount) => {
-    const entry = {
-      id: 'r' + Date.now(),
-      name: provider.name,
-      kwh: amount,
-      rate: provider.rate,
-      date: today(),
-      status: 'Pending',
-    };
-    setRequests((prev) => [entry, ...prev]);
-    setRequestedIds((prev) => ({ ...prev, [provider.id]: true }));
-    return entry;
-  }, []);
+  /**
+   * Persists a new energy request to Supabase (SOL-105). The requester's own
+   * "My Requests" list (SOL-106) is still local/mock this sprint, so on
+   * success we also push an optimistic entry there for continuity — Sprint 3
+   * replaces that list with a real fetch and this optimistic push becomes
+   * redundant (safe to remove then).
+   */
+  const submitRequest = useCallback(
+    async (providerId, amountKwh) => {
+      if (!user?.id) {
+        return { data: null, error: new Error('You must be signed in to request energy.') };
+      }
+      if (!(amountKwh > 0)) {
+        return { data: null, error: new Error('Enter a valid amount greater than zero.') };
+      }
+
+      const { data, error } = await supabase
+        .from('energy_requests')
+        .insert({
+          requester_id: user.id,
+          provider_id: providerId,
+          requested_amount: amountKwh,
+          status: 'PENDING',
+        })
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      const provider = households.find((h) => h.id === providerId);
+      const entry = {
+        id: data.id,
+        name: provider?.name || 'Household',
+        kwh: amountKwh,
+        rate: provider?.rate,
+        date: today(),
+        status: 'Pending',
+      };
+      setRequests((prev) => [entry, ...prev]);
+      setRequestedIds((prev) => ({ ...prev, [providerId]: true }));
+
+      return { data, error: null };
+    },
+    [user, households],
+  );
 
   /**
    * Approves an incoming request: writes a ledger entry, debits the surplus and
