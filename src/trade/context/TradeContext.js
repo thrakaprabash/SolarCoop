@@ -20,11 +20,17 @@ export function TradeProvider({ children }) {
   const [providersError, setProvidersError] = useState(null);
 
   /**
-   * Loads today's available-energy providers: active solar owners with a
-   * positive surplus today. Two queries (profiles, then their energy_records)
+   * Loads available-energy providers: active solar owners with a positive
+   * current surplus. Two queries (profiles, then their energy_records)
    * because Postgres RLS + PostgREST embeds get fragile with computed
    * columns across two tables — a plain JS join keeps this easy to reason
-   * about, matching the "no overengineering" prototype boundary (SOL-104).
+   * about, matching the "no overengineering" prototype boundary (SOL-149).
+   *
+   * `energy_records` is shared with the dashboard/chart backend and its
+   * `recorded_at` is a timestamp (not a plain date), so there can be more
+   * than one row per user per day — we take each owner's most recent row
+   * as their current reading. `surplus_kwh` is already stored on that
+   * table, so we read it directly rather than recomputing it.
    */
   const refreshProviders = useCallback(async () => {
     setProvidersLoading(true);
@@ -42,24 +48,29 @@ export function TradeProvider({ children }) {
         return;
       }
 
-      const todayDate = new Date().toISOString().slice(0, 10);
       const ownerIds = owners.map((o) => o.id);
 
       const { data: records, error: recordsError } = await supabase
         .from('energy_records')
-        .select('user_id, production, consumption')
-        .eq('record_date', todayDate)
-        .in('user_id', ownerIds);
+        .select('user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at')
+        .in('user_id', ownerIds)
+        .order('recorded_at', { ascending: false });
 
       if (recordsError) throw recordsError;
 
-      const recordByUser = new Map((records || []).map((r) => [r.user_id, r]));
+      const recordByUser = new Map();
+      for (const record of records || []) {
+        if (!recordByUser.has(record.user_id)) recordByUser.set(record.user_id, record);
+      }
 
       const providers = owners
         .map((owner) => {
           const record = recordByUser.get(owner.id);
           if (!record) return null;
-          const surplus = Math.max(record.production - record.consumption, 0);
+          const surplus =
+            record.surplus_kwh != null
+              ? Number(record.surplus_kwh)
+              : Math.max(record.production_kwh - record.consumption_kwh, 0);
           if (surplus <= 0) return null;
           return {
             id: owner.id,
@@ -122,7 +133,7 @@ export function TradeProvider({ children }) {
         .insert({
           requester_id: user.id,
           provider_id: providerId,
-          requested_amount: amountKwh,
+          amount_requested_kwh: amountKwh,
           status: 'PENDING',
         })
         .select()
