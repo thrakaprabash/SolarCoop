@@ -329,7 +329,7 @@ function MemberApp() {
             <View style={styles.viewContainer}>{renderDashboardView()}</View>
           </View>
         );
-      case 'trade':   return <TradeModule initialScreen="trade" />;
+      case 'trade':   return <TradeModule initialScreen="list" />;
       case 'energy':  return <TradeModule initialScreen="insights" />;
       case 'alerts':  return <AlertsSection />;
       case 'profile': return <ProfileScreen />;
