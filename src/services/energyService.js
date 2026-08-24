@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/services/energyService.js
  * ---------------------------------------------------------------------------
  * All Supabase queries for energy data.
@@ -182,11 +182,12 @@ export const updateAppliance = async (applianceId, active) => {
 };
 
 // ---------------------------------------------------------------------------
-// Chart data
+// Chart data (SOL-153)
 // ---------------------------------------------------------------------------
 
 /**
  * Fetch chart data for a given range ('day' | 'week' | 'month').
+ * SOL-153: Backend retrieval from Supabase chart_data table.
  * Returns the row or null when none exists.
  */
 export const fetchChartData = async (userId, range = 'day') => {

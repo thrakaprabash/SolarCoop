@@ -12,7 +12,7 @@ const RANGES = [
   { label: 'Month', key: 'month' },
 ];
 
-// SOL-102: Charts View Component
+// SOL-102 / SOL-153: Interactive Energy Charts View Component & Backend Integration
 export const ChartsView = () => {
   const { chartData, loadChartData } = useEnergy();
   const [activeRange, setActiveRange] = useState('day');
