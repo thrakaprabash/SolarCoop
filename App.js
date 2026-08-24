@@ -43,7 +43,7 @@ import {
   View,
 } from 'react-native';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
-import { EnergyProvider as TradeEnergyProvider } from './src/trade/context/EnergyContext';
+import { TradeProvider } from './src/trade/context/TradeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Header } from './src/components/common/Header';
 import { SegmentedTabs } from './src/components/common/SegmentedTabs';
@@ -56,8 +56,8 @@ import { DeficitView } from './src/components/dashboard/DeficitView';
 import { EnergyHistoryView } from './src/components/dashboard/EnergyHistoryView';
 import { ChartsView } from './src/components/dashboard/ChartsView';
 import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView';
-import { TradeSection } from './src/components/trade/TradeSection';
-import { AlertsSupportPlaceholder } from './src/components/placeholders/AlertsSupportPlaceholder';
+import TradeModule from './src/trade/TradeModule';
+import { AlertsSection } from './src/components/alerts/AlertsSection';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegistrationScreen } from './src/screens/RegistrationScreen';
@@ -328,9 +328,9 @@ function MemberApp() {
             <View style={styles.viewContainer}>{renderDashboardView()}</View>
           </View>
         );
-      case 'trade':   return <TradeSection initialScreen="trade" />;
-      case 'energy':  return <TradeSection initialScreen="insights" />;
-      case 'alerts':  return <AlertsSupportPlaceholder />;
+      case 'trade':   return <TradeModule initialScreen="trade" />;
+      case 'energy':  return <TradeModule initialScreen="insights" />;
+      case 'alerts':  return <AlertsSection />;
       case 'profile': return <ProfileScreen />;
       default:
         return (
@@ -827,9 +827,9 @@ export default function App() {
   return (
     <AuthProvider>
       <EnergyProvider>
-        <TradeEnergyProvider>
+        <TradeProvider>
           <RoleRouter />
-        </TradeEnergyProvider>
+        </TradeProvider>
       </EnergyProvider>
     </AuthProvider>
   );

@@ -3,13 +3,13 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { CirclePlus } from 'lucide-react-native';
 
 import { REQUEST_FILTERS } from '../data/requests';
-import { useEnergy } from '../context/EnergyContext';
+import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { RequestRow } from '../components';
 import { Card, Chip, EmptyState, PrimaryButton, ScreenTitle } from '../components/ui';
 
 export default function MyRequestsScreen() {
-  const { requests } = useEnergy();
+  const { requests } = useTrade();
   const { navigate } = useNavigation();
   const [filter, setFilter] = useState('All');
 

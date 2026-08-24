@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { ArrowUpRight, Home, Minus, Plus } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../theme';
-import { useEnergy } from '../context/EnergyContext';
+import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh, money, rate as fmtRate } from '../utils/format';
 import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
@@ -11,7 +11,7 @@ import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } 
 const STEP = 0.5;
 
 export default function EnergyRequestScreen() {
-  const { getHousehold, submitRequest, showToast } = useEnergy();
+  const { getHousehold, submitRequest, showToast } = useTrade();
   const { params } = useNavigation();
   const provider = getHousehold(params.providerId);
 

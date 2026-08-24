@@ -1,5 +1,7 @@
 export { default as Card } from './Card';
 export { default as Chip } from './Chip';
+export { default as ConfirmModal } from './ConfirmModal';
+export { default as DetailRow } from './DetailRow';
 export { default as Divider } from './Divider';
 export { default as EmptyState } from './EmptyState';
 export { default as IconBadge } from './IconBadge';
