@@ -8,40 +8,48 @@
  *   • Hero card tinted by the member's role color (Admin red, Owner blue,
  *     Consumer orange, Technician green) with a modern initials avatar.
  *   • Role badge + "Status: Active / Pending Approval" badge (SOL-95).
- *   • Detail rows — Mobile Number, Household ID and "Solar Capacity: X kW"
- *     which renders ONLY for solar owners.
- *   • "Logout" button that triggers the SOL-92 native confirmation alert:
- *       Title    "Logout"
- *       Message  "Are you sure you want to log out of SolarCoop?"
- *       Buttons  Cancel (cancel) · Log Out (destructive → global signOut,
- *                which also clears the AsyncStorage session token).
+ *   • Detail rows — Name, Mobile Number, Household ID and "Solar Capacity:
+ *     X kW" which renders ONLY for solar owners.
+ *   • "Edit Profile" toggle → editable AuthFields for Name, Mobile Number and
+ *     Household ID, persisted to the Supabase `profiles` table in real time
+ *     via AuthContext `updateProfile`.
+ *   • "Logout" button that triggers the SOL-92 cross-platform confirmation
+ *     dialog ("Are you sure you want to log out of SolarCoop?"). On web it
+ *     uses `window.confirm`, on native a destructive Alert — so the prompt
+ *     is visible everywhere.
  *
  * The profile is re-fetched on mount so a status change made by an admin
  * (e.g. approving a pending owner) shows up immediately.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Activity,
+  Check,
   Home as HomeIcon,
   LogOut,
+  Pencil,
   Phone,
   Shield,
   Sun,
+  User as UserIcon,
+  X,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
+import { AuthField } from '../components/auth/AuthField';
+import { showAlert, showConfirm } from '../utils/alert';
 
 const ROLE_LABELS = {
   consumer: 'Consumer',
@@ -96,9 +104,18 @@ const getInitials = (name = '') => {
 };
 
 export const ProfileScreen = () => {
-  const { user, profile, signOut, loading, refreshProfile } = useAuth();
+  const { user, profile, signOut, loading, refreshProfile, updateProfile } =
+    useAuth();
   const theme = useTheme();
   const { colors } = theme;
+
+  // ── Edit-mode state ─────────────────────────────────────────────────────
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [householdId, setHouseholdId] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Live status: pull the freshest profile row (admin may have just approved
   // or blocked this account).
@@ -106,6 +123,15 @@ export const ProfileScreen = () => {
     refreshProfile().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Seed the edit form from the freshest profile/user values whenever they
+  // change, but never clobber the user's in-progress edits.
+  useEffect(() => {
+    if (editing) return;
+    setName(profile?.name || user?.user_metadata?.name || '');
+    setMobileNumber(profile?.mobile_number || '');
+    setHouseholdId(profile?.household_id || '');
+  }, [profile, user, editing]);
 
   const displayName =
     profile?.name || user?.user_metadata?.name || user?.email || 'Member';
@@ -126,22 +152,97 @@ export const ProfileScreen = () => {
       ? `${profile.solar_capacity_kw} kW`
       : null;
 
+  const clearError = (key) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const handleToggleEdit = () => {
+    if (saving) return;
+    if (editing) {
+      // Cancel: revert any unsaved changes and exit edit mode.
+      setEditing(false);
+      setFieldErrors({});
+      setName(profile?.name || user?.user_metadata?.name || '');
+      setMobileNumber(profile?.mobile_number || '');
+      setHouseholdId(profile?.household_id || '');
+    } else {
+      setEditing(true);
+      setFieldErrors({});
+    }
+  };
+
+  const handleSave = async () => {
+    if (saving) return; // prevent double submissions
+
+    const trimmedName = name.trim();
+    const trimmedMobile = mobileNumber.trim();
+    const trimmedHousehold = householdId.trim();
+
+    // ── Local validation ────────────────────────────────────────────────
+    const nextErrors = {};
+    if (!trimmedName) {
+      nextErrors.name = 'Full name is required.';
+    }
+    if (trimmedMobile) {
+      const digits = trimmedMobile.replace(/\D/g, '');
+      if (digits.length < 9 || digits.length > 12) {
+        nextErrors.mobileNumber = 'Enter a valid mobile number (9–12 digits).';
+      }
+    }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      showAlert('Check your details', Object.values(nextErrors).join('\n'));
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const result = await updateProfile({
+        name: trimmedName,
+        mobile_number: trimmedMobile || null,
+        household_id: trimmedHousehold || null,
+      });
+
+      if (result.error) {
+        showAlert(
+          'Update Failed',
+          result.error.message ||
+            'An unknown error occurred. Please try again.',
+        );
+        return;
+      }
+
+      showAlert('Success!', 'Your profile has been updated.', [
+        { text: 'OK' },
+      ]);
+      setEditing(false);
+      setFieldErrors({});
+    } catch (error) {
+      showAlert(
+        'Update Failed',
+        error?.message || 'An unknown error occurred. Please try again.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSignOut = () => {
-    Alert.alert('Logout', 'Are you sure you want to log out of SolarCoop?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            // Global signOut() — also clears the AsyncStorage session token.
-            await signOut();
-          } catch (error) {
-            Alert.alert('Sign out failed', error.message);
-          }
-        },
+    showConfirm('Logout', 'Are you sure you want to log out of SolarCoop?', {
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      destructive: true,
+      onConfirm: async () => {
+        // Global signOut() clears the Supabase session + AsyncStorage token
+        // and resets session/user/profile → the router returns to Login.
+        await signOut();
       },
-    ]);
+    });
   };
 
   const DetailRow = ({ icon: Icon, label, value }) => (
@@ -221,25 +322,103 @@ export const ProfileScreen = () => {
             },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Profile Details
-          </Text>
+          <View style={styles.detailsHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Profile Details
+            </Text>
+            <TouchableOpacity
+              onPress={handleToggleEdit}
+              disabled={saving}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={editing ? 'Cancel editing' : 'Edit profile'}
+            >
+              <View style={styles.editToggle}>
+                {editing ? (
+                  <X size={15} color={colors.primary} strokeWidth={2.4} />
+                ) : (
+                  <Pencil size={14} color={colors.primary} strokeWidth={2.4} />
+                )}
+                <Text style={[styles.editToggleText, { color: colors.primary }]}>
+                  {editing ? 'Cancel' : 'Edit'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
           <DetailRow
             icon={Shield}
             label="Registered Role"
             value={roleLabel}
           />
-          <DetailRow
-            icon={Phone}
-            label="Mobile Number"
-            value={profile?.mobile_number || '—'}
-          />
-          <DetailRow
-            icon={HomeIcon}
-            label="Household ID"
-            value={profile?.household_id || '—'}
-          />
+
+          {editing ? (
+            <AuthField
+              label="Full Name"
+              icon={UserIcon}
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                clearError('name');
+              }}
+              placeholder="e.g. Amara Perera"
+              autoCapitalize="words"
+              autoComplete="name"
+              textContentType="name"
+              error={fieldErrors.name}
+            />
+          ) : (
+            <DetailRow
+              icon={UserIcon}
+              label="Full Name"
+              value={displayName}
+            />
+          )}
+
+          {editing ? (
+            <AuthField
+              label="Mobile Number"
+              icon={Phone}
+              value={mobileNumber}
+              onChangeText={(text) => {
+                setMobileNumber(text);
+                clearError('mobileNumber');
+              }}
+              placeholder="e.g. +94 77 123 4567"
+              keyboardType="phone-pad"
+              autoComplete="tel"
+              textContentType="telephoneNumber"
+              error={fieldErrors.mobileNumber}
+            />
+          ) : (
+            <DetailRow
+              icon={Phone}
+              label="Mobile Number"
+              value={profile?.mobile_number || '—'}
+            />
+          )}
+
+          {editing ? (
+            <AuthField
+              label="Household ID"
+              icon={HomeIcon}
+              value={householdId}
+              onChangeText={(text) => {
+                setHouseholdId(text);
+                clearError('householdId');
+              }}
+              placeholder="e.g. H-0091"
+              autoCapitalize="characters"
+              autoComplete="off"
+              error={fieldErrors.householdId}
+            />
+          ) : (
+            <DetailRow
+              icon={HomeIcon}
+              label="Household ID"
+              value={profile?.household_id || '—'}
+            />
+          )}
 
           {/* Owner-only attribute (SOL-95) */}
           {isOwner ? (
@@ -257,7 +436,18 @@ export const ProfileScreen = () => {
           />
         </View>
 
-        {/* Logout (SOL-92 confirmation) */}
+        {/* Save button — visible only while editing */}
+        {editing ? (
+          <PrimaryButton
+            label="Save Changes"
+            icon={Check}
+            onPress={handleSave}
+            loading={saving}
+            disabled={saving}
+          />
+        ) : null}
+
+        {/* Logout (SOL-92 cross-platform confirmation) */}
         <PrimaryButton
           label="Logout"
           variant="danger"
@@ -370,12 +560,30 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     padding: 18,
-    gap: 4,
+    gap: 8,
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    marginBottom: 6,
+  },
+  editToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: 'rgba(237, 137, 54, 0.1)',
+  },
+  editToggleText: {
+    fontSize: 12,
+    fontWeight: '800',
   },
   row: {
     flexDirection: 'row',

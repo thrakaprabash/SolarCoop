@@ -62,6 +62,7 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegistrationScreen } from './src/screens/RegistrationScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
+import AdminPortal from './src/admin/AdminPortal';
 import { useTheme } from './src/theme/useTheme';
 import {
   BadgeCheck,
@@ -782,7 +783,7 @@ function TechnicianApp() {
 /* ─── Role router — the top-level authenticated gate ───────────────────────── */
 
 function RoleRouter() {
-  const { session, user, profile, loading, refreshProfile } = useAuth();
+  const { session, user, profile, loading, refreshProfile, signOut } = useAuth();
 
   // Auto-unlock: re-fetch the profile whenever the app returns to the
   // foreground, so an Admin status change to 'active' unlocks a pending
@@ -811,7 +812,7 @@ function RoleRouter() {
 
   switch (role) {
     case 'admin':
-      return <AdminApp />;
+      return <AdminPortal onExit={signOut} />;
     case 'technician':
       return <TechnicianApp />;
     case 'owner':

@@ -9,7 +9,6 @@ import {
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import {
-  COMMUNITY_STATS,
   MOCK_ALERTS,
   MOCK_COMPLAINTS,
   MOCK_TRANSACTIONS,
@@ -124,18 +123,20 @@ function getActivityFeed() {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function AdminDashboardScreen() {
-  const { adminHeaderToggle, adminMetricChip, setAdminBottomTab } = useAdmin();
+  const { adminHeaderToggle, adminMetricChip, setAdminBottomTab, communityStats } = useAdmin();
   const feed = getActivityFeed();
 
+  // Derive display values — fall back to '--' while data loads
+  const s = communityStats;
   const stats = [
     {
       icon: Users,
       iconColor: COLORS.amberLight,
       iconBg: 'rgba(245,158,11,0.15)',
       label: 'Members',
-      value: COMMUNITY_STATS.totalMembers,
+      value: s ? s.totalMembers : '--',
       unit: null,
-      trend: '+2 this month',
+      trend: null,
       trendUp: true,
       chips: ['all'],
     },
@@ -144,9 +145,9 @@ export default function AdminDashboardScreen() {
       iconColor: '#FBBF24',
       iconBg: 'rgba(251,191,36,0.12)',
       label: 'Production',
-      value: COMMUNITY_STATS.totalProduction,
-      unit: 'kWh',
-      trend: '+8.3%',
+      value: s ? s.totalProduction : '--',
+      unit: s ? 'kWh' : null,
+      trend: null,
       trendUp: true,
       chips: ['all', 'production'],
     },
@@ -155,9 +156,9 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.teal,
       iconBg: 'rgba(20,184,166,0.12)',
       label: 'Consumption',
-      value: COMMUNITY_STATS.totalConsumption,
-      unit: 'kWh',
-      trend: '+2.1%',
+      value: s ? s.totalConsumption : '--',
+      unit: s ? 'kWh' : null,
+      trend: null,
       trendUp: false,
       chips: ['all', 'consumption'],
     },
@@ -166,9 +167,9 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.tealLight,
       iconBg: 'rgba(45,212,191,0.12)',
       label: 'Surplus',
-      value: COMMUNITY_STATS.totalSurplus,
-      unit: 'kWh',
-      trend: '+15.4%',
+      value: s ? s.totalSurplus : '--',
+      unit: s ? 'kWh' : null,
+      trend: null,
       trendUp: true,
       chips: ['all', 'surplus'],
     },
@@ -177,7 +178,7 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.red,
       iconBg: 'rgba(239,68,68,0.12)',
       label: 'Open Alerts',
-      value: COMMUNITY_STATS.openAlerts,
+      value: MOCK_ALERTS.filter(a => a.status === 'Open').length,
       unit: null,
       trend: null,
       chips: ['all'],
@@ -187,7 +188,7 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.amber,
       iconBg: 'rgba(245,158,11,0.12)',
       label: 'Complaints',
-      value: COMMUNITY_STATS.openComplaints,
+      value: MOCK_COMPLAINTS.filter(c => c.status === 'Open').length,
       unit: null,
       trend: null,
       chips: ['all'],
@@ -229,17 +230,17 @@ export default function AdminDashboardScreen() {
         <Text style={styles.sectionTitle}>Member Status</Text>
         <View style={styles.memberBreakdownRow}>
           <View style={styles.breakdownItem}>
-            <Text style={[styles.breakdownNum, { color: COLORS.tealLight }]}>{COMMUNITY_STATS.activeMembers}</Text>
+            <Text style={[styles.breakdownNum, { color: COLORS.tealLight }]}>{s ? s.activeMembers : '--'}</Text>
             <Text style={styles.breakdownLabel}>Active</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
-            <Text style={[styles.breakdownNum, { color: COLORS.amberLight }]}>{COMMUNITY_STATS.inactiveMembers}</Text>
+            <Text style={[styles.breakdownNum, { color: COLORS.amberLight }]}>{s ? s.inactiveMembers : '--'}</Text>
             <Text style={styles.breakdownLabel}>Inactive</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
-            <Text style={[styles.breakdownNum, { color: COLORS.red }]}>{COMMUNITY_STATS.suspendedMembers}</Text>
+            <Text style={[styles.breakdownNum, { color: COLORS.red }]}>{s ? s.suspendedMembers : '--'}</Text>
             <Text style={styles.breakdownLabel}>Suspended</Text>
           </View>
         </View>
@@ -247,21 +248,22 @@ export default function AdminDashboardScreen() {
         {/* Progress bar */}
         <View style={styles.progressBarBg}>
           <View style={[styles.progressSegment, {
-            flex: COMMUNITY_STATS.activeMembers,
+            flex: s ? (s.activeMembers || 1) : 1,
             backgroundColor: COLORS.teal,
             borderTopLeftRadius: 4, borderBottomLeftRadius: 4,
           }]} />
           <View style={[styles.progressSegment, {
-            flex: COMMUNITY_STATS.inactiveMembers,
+            flex: s ? (s.inactiveMembers || 0) : 0,
             backgroundColor: COLORS.amber,
           }]} />
           <View style={[styles.progressSegment, {
-            flex: COMMUNITY_STATS.suspendedMembers,
+            flex: s ? (s.suspendedMembers || 0) : 0,
             backgroundColor: COLORS.red,
             borderTopRightRadius: 4, borderBottomRightRadius: 4,
           }]} />
         </View>
       </View>
+
 
       {/* Energy Flow Visualization */}
       <View style={[GLASS.card, styles.sectionCard]}>
@@ -295,11 +297,11 @@ export default function AdminDashboardScreen() {
         <View style={styles.flowLegendRow}>
           <View style={styles.flowLegend}>
             <View style={[styles.flowDot, { backgroundColor: COLORS.amber }]} />
-            <Text style={styles.flowLegendText}>Production {COMMUNITY_STATS.totalProduction} kWh</Text>
+            <Text style={styles.flowLegendText}>Production {s ? s.totalProduction : '--'} kWh</Text>
           </View>
           <View style={styles.flowLegend}>
             <View style={[styles.flowDot, { backgroundColor: COLORS.tealLight }]} />
-            <Text style={styles.flowLegendText}>Consumption {COMMUNITY_STATS.totalConsumption} kWh</Text>
+            <Text style={styles.flowLegendText}>Consumption {s ? s.totalConsumption : '--'} kWh</Text>
           </View>
         </View>
       </View>

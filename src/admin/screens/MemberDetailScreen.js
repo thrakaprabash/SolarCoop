@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
@@ -35,14 +37,16 @@ const STATUS_COLORS = {
 };
 
 export default function MemberDetailScreen() {
-  const { selectedMember, setSelectedMember, setAdminBottomTab } = useAdmin();
-  const [memberStatus, setMemberStatus] = useState(selectedMember?.status ?? 'Active');
+  const { selectedMember, setSelectedMember, setAdminBottomTab, updateMemberStatus } = useAdmin();
+  const [updating, setUpdating] = useState(false);
 
   if (!selectedMember) return null;
 
-  const member = { ...selectedMember, status: memberStatus };
-  const accentColor = STATUS_COLORS[memberStatus];
-  const hasSurplus = member.todaySurplus > 0;
+  // Status comes from selectedMember — kept in sync by AdminContext's optimistic update
+  const memberStatus = selectedMember.status ?? 'Active';
+  const member       = selectedMember;
+  const accentColor  = STATUS_COLORS[memberStatus];
+  const hasSurplus   = member.todaySurplus > 0;
 
   // Related transactions (mock: sender or receiver matches household)
   const relatedTx = MOCK_TRANSACTIONS.filter(
@@ -54,13 +58,47 @@ export default function MemberDetailScreen() {
     setAdminBottomTab('members');
   };
 
+  const performStatusChange = async (newStatus) => {
+    setUpdating(true);
+    try {
+      await updateMemberStatus(member.id, newStatus);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`Member ${member.name} status updated to ${newStatus}.`);
+      } else {
+        Alert.alert('Status Updated', `Member ${member.name} is now ${newStatus}.`);
+      }
+    } catch (err) {
+      const errMsg = err?.message || 'Failed to update member status.';
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`Update failed: ${errMsg}`);
+      } else {
+        Alert.alert('Update failed', errMsg);
+      }
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const handleStatusChange = (newStatus) => {
+    if (updating) return;
+
+    if (Platform.OS === 'web') {
+      const confirmText = `Are you sure you want to set ${member.name} to "${newStatus}"?`;
+      if (typeof window !== 'undefined' && window.confirm ? window.confirm(confirmText) : true) {
+        performStatusChange(newStatus);
+      }
+      return;
+    }
+
     Alert.alert(
       `${newStatus} Member`,
       `Are you sure you want to set ${member.name} to "${newStatus}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm', onPress: () => setMemberStatus(newStatus) },
+        {
+          text: 'Confirm',
+          onPress: () => performStatusChange(newStatus),
+        },
       ]
     );
   };
@@ -162,32 +200,41 @@ export default function MemberDetailScreen() {
         <Text style={styles.sectionSubtext}>Change this member's account status</Text>
         <View style={styles.actionBtnsCol}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.15)', borderColor: 'rgba(45,212,191,0.3)' }]}
+            style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.15)', borderColor: 'rgba(45,212,191,0.3)' }, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Active')}
-            disabled={memberStatus === 'Active'}
+            disabled={memberStatus === 'Active' || updating}
             activeOpacity={0.8}
           >
-            <UserCheck size={16} color={COLORS.tealLight} />
+            {updating && memberStatus !== 'Active'
+              ? <ActivityIndicator size="small" color={COLORS.tealLight} />
+              : <UserCheck size={16} color={COLORS.tealLight} />
+            }
             <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>Activate Account</Text>
             {memberStatus === 'Active' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }]}
+            style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Inactive')}
-            disabled={memberStatus === 'Inactive'}
+            disabled={memberStatus === 'Inactive' || updating}
             activeOpacity={0.8}
           >
-            <UserX size={16} color={COLORS.amberLight} />
+            {updating && memberStatus !== 'Inactive'
+              ? <ActivityIndicator size="small" color={COLORS.amberLight} />
+              : <UserX size={16} color={COLORS.amberLight} />
+            }
             <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>Deactivate Account</Text>
             {memberStatus === 'Inactive' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.3)' }]}
+            style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.3)' }, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Suspended')}
-            disabled={memberStatus === 'Suspended'}
+            disabled={memberStatus === 'Suspended' || updating}
             activeOpacity={0.8}
           >
-            <ShieldOff size={16} color={COLORS.red} />
+            {updating && memberStatus !== 'Suspended'
+              ? <ActivityIndicator size="small" color={COLORS.red} />
+              : <ShieldOff size={16} color={COLORS.red} />
+            }
             <Text style={[styles.actionBtnText, { color: COLORS.red }]}>Suspend Account</Text>
             {memberStatus === 'Suspended' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
           </TouchableOpacity>
@@ -315,6 +362,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   actionBtnText: { flex: 1, fontSize: 13, fontWeight: '700' },
+  actionBtnDisabled: { opacity: 0.5 },
   currentBadge: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   currentText: { fontSize: 9, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5 },
 
