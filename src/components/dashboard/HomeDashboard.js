@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
@@ -71,10 +71,11 @@ export const HomeDashboard = () => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const isNative = Platform.OS !== 'web';
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: isNative }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: isNative }),
       ])
     );
     animation.start();

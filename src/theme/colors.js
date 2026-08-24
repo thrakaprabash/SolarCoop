@@ -21,6 +21,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+import { Platform } from 'react-native';
+
 /* ─── Brand palette tokens ──────────────────────────────────────────────── */
 export const PALETTE = {
   // Solar Orange family (primary brand)
@@ -201,18 +203,28 @@ export const GLASS = {
 };
 
 export const SHADOWS = {
-  glass: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  glow: {
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-  },
+  glass: Platform.select({
+    web: {
+      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
+    },
+    default: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.15,
+      shadowRadius: 24,
+      elevation: 8,
+    },
+  }),
+  glow: Platform.select({
+    web: {
+      boxShadow: '0px 4px 16px rgba(245, 158, 11, 0.4)',
+    },
+    default: {
+      shadowColor: '#F59E0B',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      elevation: 10,
+    },
+  }),
 };
