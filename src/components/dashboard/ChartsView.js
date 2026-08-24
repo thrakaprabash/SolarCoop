@@ -163,7 +163,6 @@ export const ChartsView = () => {
                     fill={COLORS.amber} 
                     stroke={COLORS.textBright} 
                     strokeWidth={1.5}
-                    onPress={() => setSelectedIndex(i)}
                   />
                   <Circle 
                     cx={cx} 
@@ -172,7 +171,6 @@ export const ChartsView = () => {
                     fill={COLORS.teal} 
                     stroke={COLORS.textBright} 
                     strokeWidth={1.5}
-                    onPress={() => setSelectedIndex(i)}
                   />
                   <SvgText 
                     x={cx} 
@@ -181,7 +179,6 @@ export const ChartsView = () => {
                     fontSize={8} 
                     fontWeight={isSelected ? 'bold' : 'normal'}
                     textAnchor="middle"
-                    onPress={() => setSelectedIndex(i)}
                   >
                     {h}
                   </SvgText>
@@ -190,6 +187,28 @@ export const ChartsView = () => {
             })}
           </Svg>
         </View>
+
+        {/* Interactive Point Selector Strip */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timePillsScroll}>
+          {hours.map((h, i) => {
+            const isSelected = safeIndex === i;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.timePill,
+                  isSelected ? styles.timePillActive : styles.timePillInactive,
+                ]}
+                onPress={() => setSelectedIndex(i)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.timePillText, isSelected && styles.timePillTextActive]}>
+                  {h}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         {/* Point Inspection Details Banner */}
         <View style={styles.inspectionBanner}>
@@ -270,6 +289,12 @@ const styles = StyleSheet.create({
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { fontSize: 11, color: COLORS.textSecondary },
   svgContainer: { marginVertical: 4 },
+  timePillsScroll: { gap: 6, paddingVertical: 4 },
+  timePill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
+  timePillInactive: { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  timePillActive: { backgroundColor: 'rgba(245, 158, 11, 0.25)', borderWidth: 1, borderColor: COLORS.amber },
+  timePillText: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
+  timePillTextActive: { color: COLORS.amberLight, fontWeight: '800' },
   inspectionBanner: { backgroundColor: COLORS.glassBg, padding: 12, borderRadius: 16, gap: 8, borderWidth: 1, borderColor: COLORS.glassBorder },
   inspectionTime: { fontSize: 12, fontWeight: '800', color: COLORS.amberLight },
   inspectionGrid: { flexDirection: 'row', justifyContent: 'space-between' },
