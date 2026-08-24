@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import {
   fetchMetrics,
@@ -34,13 +34,31 @@ export const initialApplianceLoads = [
   { id: 'app6', name: 'Home Entertainment & IT', power: '0.45 kW', active: true, icon: 'tv', category: 'Electronics' },
 ];
 
-export const initialChartData = {
-  hours:       ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
-  production:  [0.5, 2.8, 6.4, 8.8, 8.2, 5.1, 1.2, 0.0],
-  consumption: [1.8, 3.2, 3.8, 4.1, 3.5, 4.8, 6.2, 4.5],
-  surplus:     [0.0, 0.0, 2.6, 4.7, 4.7, 0.3, 0.0, 0.0],
-  deficit:     [1.3, 0.4, 0.0, 0.0, 0.0, 0.0, 5.0, 4.5],
+export const mockChartDataByRange = {
+  day: {
+    hours:       ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+    production:  [0.5, 2.8, 6.4, 8.8, 8.2, 5.1, 1.2, 0.0],
+    consumption: [1.8, 3.2, 3.8, 4.1, 3.5, 4.8, 6.2, 4.5],
+    surplus:     [0.0, 0.0, 2.6, 4.7, 4.7, 0.3, 0.0, 0.0],
+    deficit:     [1.3, 0.4, 0.0, 0.0, 0.0, 0.0, 5.0, 4.5],
+  },
+  week: {
+    hours:       ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    production:  [38.2, 41.5, 44.1, 48.6, 42.3, 36.8, 39.4],
+    consumption: [22.1, 24.8, 23.5, 25.2, 26.1, 20.3, 21.7],
+    surplus:     [16.1, 16.7, 20.6, 23.4, 16.2, 16.5, 17.7],
+    deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  },
+  month: {
+    hours:       ['W1', 'W2', 'W3', 'W4'],
+    production:  [280.5, 302.1, 315.8, 290.3],
+    consumption: [168.2, 175.6, 182.1, 170.4],
+    surplus:     [112.3, 126.5, 133.7, 119.9],
+    deficit:     [0.0, 0.0, 0.0, 0.0],
+  },
 };
+
+export const initialChartData = mockChartDataByRange.day;
 
 const initialMetrics = {
   instantProduction:    8.5,
@@ -313,12 +331,20 @@ export const EnergyProvider = ({ children }) => {
 
   // ── Chart range fetch ─────────────────────────────────────────────────────
   const loadChartData = useCallback(async (range) => {
-    if (!user?.id) return;
-    try {
-      const row = await fetchChartData(user.id, range);
-      if (row) setChartData(mapChartRow(row));
-    } catch (err) {
-      console.warn('[EnergyContext] loadChartData failed:', err.message);
+    if (user?.id) {
+      try {
+        const row = await fetchChartData(user.id, range);
+        if (row && row.hours && row.hours.length > 0) {
+          setChartData(mapChartRow(row));
+          return;
+        }
+      } catch (err) {
+        console.warn('[EnergyContext] loadChartData failed, using fallback:', err.message);
+      }
+    }
+    // Fallback if offline or table not found
+    if (mockChartDataByRange[range]) {
+      setChartData(mockChartDataByRange[range]);
     }
   }, [user?.id]);
 
