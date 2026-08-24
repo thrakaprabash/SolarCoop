@@ -11,7 +11,6 @@
 
 import React, { useState } from 'react';
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,6 +18,7 @@ import {
 } from 'react-native';
 import { KeyRound, Mail } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { showAlert } from '../utils/alert';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
@@ -51,14 +51,14 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
     try {
       await resetPasswordForEmail(trimmedEmail);
       setSent(true);
-      Alert.alert(
+      showAlert(
         'Reset link sent ☀️',
         `We've emailed a password reset link to ${trimmedEmail}. ` +
           'Check your inbox (and spam folder) and follow the link to choose a new password.',
         [{ text: 'Back to Login', onPress: onBackToLogin }],
       );
     } catch (err) {
-      Alert.alert('Could not send link', err.message);
+      showAlert('Could not send link', err.message);
     }
   };
 

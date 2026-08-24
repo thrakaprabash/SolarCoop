@@ -12,9 +12,14 @@
  *   • `profile`  — the matching `public.profiles` row (fetched from the
  *                  database, not from metadata, so admin role/status changes
  *                  always show up in the UI).
- *   • `loading`  — true while restoring the session or during an auth action.
+ *   • `loading`  — true while restoring the session, signing out, or sending
+ *                  a password-reset email. `signUp` / `signIn` deliberately
+ *                  do NOT toggle it: the auth screens own their busy state
+ *                  (local `loading` + in-button spinner) so the form stays
+ *                  mounted and can surface Supabase errors with native Alerts.
  *
- *   • `signUp({ email, password, name, role, mobileNumber, solarCapacity })`
+ *   • `signUp(email, password, metadata)` — `metadata` is
+ *       `{ name, role, mobileNumber, solarCapacity }`.
  *       Registration status mapping (SOL-90 / SOL-95):
  *         consumer    → status 'active'  (immediate full access)
  *         technician  → status 'active'  (immediate full access)
@@ -26,8 +31,12 @@
  *       when a session is available.
  *   • `signIn(email, password)`
  *   • `resetPasswordForEmail(email)` — Supabase password recovery workflow.
- *   • `signOut()` — clears the Supabase session AND the AsyncStorage token.
+ *   • `signOut()` — clears the Supabase session, wipes the AsyncStorage
+ *     token, and resets `session` / `user` / `profile` to `null` so the app
+ *     router immediately returns to the login stack.
  *   • `refreshProfile()`
+ *   • `updateProfile(updates)` — writes column updates to the logged-in
+ *     member's `public.profiles` row and refreshes the in-memory profile.
  *   • `adminUpdateProfileStatus(userId, status)` — used by the Admin member
  *     management dashboard to approve / block members.
  *   • `fetchAllProfiles()` — member directory for the Admin dashboard.
@@ -42,7 +51,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase, AUTH_STORAGE_KEY } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -126,9 +136,29 @@ export const AuthProvider = ({ children }) => {
    * `null` otherwise.
    */
   const signUp = useCallback(
-    async ({ email, password, name, role, mobileNumber, solarCapacity }) => {
-      setLoading(true);
+    async (email, password, metadata = {}) => {
+      const { name, role, mobileNumber, solarCapacity } = metadata || {};
       try {
+        // Best-effort duplicate mobile-number check. Anon RLS may block the
+        // lookup — in that case `checkError` is set and we simply proceed,
+        // because the database remains the source of truth.
+        if (mobileNumber) {
+          const { data: existing, error: checkError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('mobile_number', mobileNumber)
+            .maybeSingle();
+
+          if (!checkError && existing) {
+            return {
+              data: null,
+              error: new Error(
+                'This mobile number is already registered. Please sign in or use a different number.',
+              ),
+            };
+          }
+        }
+
         const status = resolveRegistrationStatus(role);
 
         const { data, error } = await supabase.auth.signUp({
@@ -148,7 +178,9 @@ export const AuthProvider = ({ children }) => {
           },
         });
 
-        if (error) throw error;
+        // Pass the raw Supabase error through (e.g. "User already
+        // registered") so the Registration screen can show it to the user.
+        if (error) return { data: null, error };
 
         // Supabase may return a user without a session when email
         // confirmation is enabled — that is still a successful sign-up.
@@ -165,9 +197,12 @@ export const AuthProvider = ({ children }) => {
           setUser(data.user);
         }
 
-        return data;
-      } finally {
-        setLoading(false);
+        return { data, error: null };
+      } catch (error) {
+        // Never swallow failures — hand them back to the calling screen so
+        // the user always sees what went wrong.
+        console.error('[AuthContext] signUp failed:', error?.message || error);
+        return { data: null, error };
       }
     },
     [enforceProfileStatus, fetchProfile],
@@ -178,22 +213,25 @@ export const AuthProvider = ({ children }) => {
    */
   const signIn = useCallback(
     async (email, password) => {
-      setLoading(true);
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        // Pass the raw Supabase error through (e.g. "Email not confirmed",
+        // "Invalid login credentials") so the Login screen can show it.
+        if (error) return { data: null, error };
 
         setSession(data.session);
         setUser(data.user);
         await fetchProfile(data.user.id).catch(() => {});
 
-        return data;
-      } finally {
-        setLoading(false);
+        return { data, error: null };
+      } catch (error) {
+        // Never swallow failures — hand them back to the calling screen.
+        console.error('[AuthContext] signIn failed:', error?.message || error);
+        return { data: null, error };
       }
     },
     [fetchProfile],
@@ -222,15 +260,69 @@ export const AuthProvider = ({ children }) => {
   const signOut = useCallback(async () => {
     setLoading(true);
     try {
+      // End the Supabase session (its storage adapter removes the persisted
+      // token). A network failure here must not strand the user, so we log
+      // it and still clear local state below.
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+    } catch (error) {
+      console.error('[AuthContext] signOut failed:', error?.message || error);
     } finally {
+      // Wipe the persisted token explicitly (belt-and-suspenders).
+      await AsyncStorage.removeItem(AUTH_STORAGE_KEY).catch(() => {});
+      // Crucially reset session/user/profile so the app router immediately
+      // navigates back to the login stack.
       setSession(null);
       setUser(null);
       setProfile(null);
       setLoading(false);
     }
   }, []);
+
+  /**
+   * Update the logged-in member's `public.profiles` row in real time.
+   * Accepts a partial object of column → value (e.g. `{ name, mobile_number,
+   * household_id }`) and refreshes the in-memory profile so the UI updates
+   * immediately. Requires an RLS UPDATE policy (e.g. `auth.uid() = id`).
+   */
+  const updateProfile = useCallback(
+    async (updates) => {
+      const userId = user?.id || session?.user?.id;
+      if (!userId) {
+        return {
+          data: null,
+          error: new Error('You must be signed in to update your profile.'),
+        };
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', userId)
+          .select();
+
+        if (error) return { data: null, error };
+
+        // Re-read the authoritative row so `profile` reflects the edit now.
+        const freshProfile = await fetchProfile(userId).catch(
+          () => (Array.isArray(data) ? data[0] : null),
+        );
+
+        return {
+          data: freshProfile ?? (Array.isArray(data) ? data[0] : null),
+          error: null,
+        };
+      } catch (error) {
+        console.error(
+          '[AuthContext] updateProfile failed:',
+          error?.message || error,
+        );
+        return { data: null, error };
+      }
+    },
+    [user, session, fetchProfile],
+  );
 
   /**
    * Admin: update a member's profile status (e.g. approve a pending solar
@@ -317,6 +409,7 @@ export const AuthProvider = ({ children }) => {
       resetPasswordForEmail,
       refreshProfile: () =>
         user ? fetchProfile(user.id) : Promise.resolve(null),
+      updateProfile,
       adminUpdateProfileStatus,
       fetchAllProfiles,
     }),
@@ -330,6 +423,7 @@ export const AuthProvider = ({ children }) => {
       signOut,
       resetPasswordForEmail,
       fetchProfile,
+      updateProfile,
       adminUpdateProfileStatus,
       fetchAllProfiles,
     ],

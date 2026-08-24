@@ -14,7 +14,6 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Animated,
   StyleSheet,
   Text,
@@ -23,6 +22,7 @@ import {
 } from 'react-native';
 import { Mail, Lock, Check } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { showAlert } from '../utils/alert';
 import { getRememberMe, setRememberMe as persistRememberMe } from '../lib/supabase';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
@@ -32,7 +32,7 @@ import { useTheme } from '../theme/useTheme';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
-  const { signIn, loading } = useAuth();
+  const { signIn } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
 
@@ -40,6 +40,9 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
+  // Local busy flag: keeps the Login button disabled + spinner visible while
+  // the request is in flight and prevents double submissions.
+  const [loading, setLoading] = useState(false);
 
   // Animated check mark for the "Remember me" toggle.
   const checkAnim = React.useRef(new Animated.Value(1)).current;
@@ -63,6 +66,8 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
   };
 
   const handleSubmit = async () => {
+    if (loading) return; // prevent double submissions
+
     const trimmedEmail = email.trim();
     const nextErrors = {};
 
@@ -77,19 +82,36 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      Alert.alert(
+      showAlert(
         'Check your details',
         Object.values(nextErrors).join('\n'),
       );
       return;
     }
 
+    setLoading(true);
     try {
-      await signIn(trimmedEmail, password);
-      // On success the AuthProvider sets `user`, which the app shell uses to
-      // move past the auth gate — no manual navigation is required here.
+      const result = await signIn(trimmedEmail, password);
+
+      // Show the exact Supabase error (e.g. "Email not confirmed",
+      // "Invalid login credentials") instead of failing silently.
+      if (result.error) {
+        showAlert(
+          'Login Failed',
+          result.error.message || 'An unexpected error occurred. Please try again.',
+        );
+        return;
+      }
+
+      // On success the AuthProvider sets `session`/`user`, which the app
+      // shell uses to move past the auth gate — no manual navigation here.
     } catch (error) {
-      Alert.alert('Login failed', error.message);
+      showAlert(
+        'Login Failed',
+        error?.message || 'An unexpected error occurred. Please try again.',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 

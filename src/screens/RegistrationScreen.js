@@ -23,7 +23,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Animated,
   Easing,
   StyleSheet,
@@ -44,6 +43,7 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { showAlert } from '../utils/alert';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
@@ -58,8 +58,8 @@ const ROLES = [
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SEGMENT_GAP = 6;
 
-export const RegistrationScreen = ({ onBackToLogin, onSuccess }) => {
-  const { signUp, loading } = useAuth();
+export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => {
+  const { signUp } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
 
@@ -74,6 +74,11 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess }) => {
   const [role, setRole] = useState('consumer');
   const [solarCapacity, setSolarCapacity] = useState('');
   const [errors, setErrors] = useState({});
+
+  // ── Submission state ────────────────────────────────────────────────────
+  // Local busy flag: keeps the CTA disabled + spinner visible while the
+  // network request is in flight and prevents double submissions.
+  const [loading, setLoading] = useState(false);
 
   // ── Step-slide animation ────────────────────────────────────────────────
   const [trackWidth, setTrackWidth] = useState(
@@ -184,12 +189,13 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess }) => {
     setErrors(next);
     const messages = Object.values(next).filter(Boolean);
     if (messages.length > 0) {
-      Alert.alert('Check your details', messages.join('\n'));
+      showAlert('Check your details', messages.join('\n'));
     }
   };
 
   // ── Actions ─────────────────────────────────────────────────────────────
   const handleContinue = () => {
+    if (loading) return; // block navigation while a request is in flight
     const next = validateStep1();
     if (Object.keys(next).length > 0) {
       failWith(next);
@@ -200,11 +206,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess }) => {
   };
 
   const handleBack = () => {
+    if (loading) return; // block navigation while a request is in flight
     setErrors({});
     goToStep(1);
   };
 
   const handleComplete = async () => {
+    if (loading) return; // prevent double submissions
+
     const next = validateStep2();
     if (Object.keys(next).length > 0) {
       failWith(next);
@@ -212,24 +221,53 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess }) => {
     }
     setErrors({});
 
+    setLoading(true);
     try {
-      await signUp({
-        email: email.trim(),
-        password,
+      const result = await signUp(email.trim(), password, {
         name: name.trim(),
         role,
         mobileNumber: mobile.trim(),
-        solarCapacity:
-          role === 'owner' ? parseFloat(solarCapacity) : null,
+        solarCapacity: role === 'owner' ? parseFloat(solarCapacity) : null,
       });
 
-      Alert.alert(
-        'Registration successful',
-        'Your SolarCoop account has been created. Check your inbox to confirm your email if required, then sign in.',
-        [{ text: 'Continue', onPress: onSuccess ?? onBackToLogin }],
+      // Surface the exact Supabase error (e.g. "User already registered",
+      // "This mobile number is already registered.") instead of failing
+      // silently.
+      if (result.error) {
+        showAlert(
+          'Registration Failed',
+          result.error.message || 'An unknown error occurred. Please try again.',
+        );
+        return;
+      }
+
+      showAlert(
+        'Success!',
+        'Your account has been created successfully. Please check your inbox if email verification is required.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // react-navigation compatibility — this shell routes via
+              // callbacks, so fall back to them when no navigator exists.
+              if (navigation?.navigate) {
+                navigation.navigate('Login');
+                return;
+              }
+              (onSuccess ?? onBackToLogin)?.();
+            },
+          },
+        ],
       );
     } catch (error) {
-      Alert.alert('Registration failed', error.message);
+      // Defensive: AuthContext returns { data, error } and never throws, but
+      // an unexpected crash here must still surface to the user.
+      showAlert(
+        'Registration Failed',
+        error?.message || 'An unknown error occurred. Please try again.',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
