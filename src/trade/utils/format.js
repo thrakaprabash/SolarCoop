@@ -17,3 +17,21 @@ export const greeting = (name, now = new Date()) => {
 
 export const today = () =>
   new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+/* --- transaction ledger formatting --- */
+
+export const clock = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+export const longDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+export const shortDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
+export const monthLabel = (d) => d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+export const stamp = (d) => longDate(d) + ' • ' + clock(d);
+
+const pad = (n, len) => String(n).padStart(len, '0');
+
+/** TXN-YYYYMMDD-NNN */
+export const txnRef = (d, seq) =>
+  'TXN-' + d.getFullYear() + pad(d.getMonth() + 1, 2) + pad(d.getDate(), 2) + '-' + pad(seq, 3);
