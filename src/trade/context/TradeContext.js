@@ -1,18 +1,92 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { HOUSEHOLDS } from '../data/households';
 import { INITIAL_REQUESTS } from '../data/requests';
 import { INCOMING_REQUESTS } from '../data/incoming';
 import { TRANSACTIONS, TXN_SEQ_START } from '../data/transactions';
 import { ENERGY, IMPACT } from '../data/energy';
 import { sum, today, txnRef } from '../utils/format';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 const INITIAL_SURPLUS = +(ENERGY.todayProduction - ENERGY.todayConsumption).toFixed(1);
 
 const TradeContext = createContext(null);
 
 export function TradeProvider({ children }) {
-  const [households] = useState(HOUSEHOLDS);
+  const { user } = useAuth();
+
+  const [households, setHouseholds] = useState([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
+  const [providersError, setProvidersError] = useState(null);
+
+  /**
+   * Loads today's available-energy providers: active solar owners with a
+   * positive surplus today. Two queries (profiles, then their energy_records)
+   * because Postgres RLS + PostgREST embeds get fragile with computed
+   * columns across two tables — a plain JS join keeps this easy to reason
+   * about, matching the "no overengineering" prototype boundary (SOL-104).
+   */
+  const refreshProviders = useCallback(async () => {
+    setProvidersLoading(true);
+    setProvidersError(null);
+    try {
+      const { data: owners, error: ownersError } = await supabase
+        .from('profiles')
+        .select('id, name, household_id, rate_per_kwh, battery_soc, distance_label')
+        .eq('role', 'owner')
+        .eq('status', 'active');
+
+      if (ownersError) throw ownersError;
+      if (!owners?.length) {
+        setHouseholds([]);
+        return;
+      }
+
+      const todayDate = new Date().toISOString().slice(0, 10);
+      const ownerIds = owners.map((o) => o.id);
+
+      const { data: records, error: recordsError } = await supabase
+        .from('energy_records')
+        .select('user_id, production, consumption')
+        .eq('record_date', todayDate)
+        .in('user_id', ownerIds);
+
+      if (recordsError) throw recordsError;
+
+      const recordByUser = new Map((records || []).map((r) => [r.user_id, r]));
+
+      const providers = owners
+        .map((owner) => {
+          const record = recordByUser.get(owner.id);
+          if (!record) return null;
+          const surplus = Math.max(record.production - record.consumption, 0);
+          if (surplus <= 0) return null;
+          return {
+            id: owner.id,
+            name: owner.name,
+            house: owner.household_id || 'House',
+            dist: owner.distance_label || '—',
+            kwh: +surplus.toFixed(1),
+            rate: owner.rate_per_kwh ?? 0.22,
+            soc: owner.battery_soc ?? 0,
+            online: true,
+          };
+        })
+        .filter(Boolean);
+
+      setHouseholds(providers);
+    } catch (error) {
+      console.error('[TradeContext] refreshProviders failed:', error?.message || error);
+      setProvidersError(error?.message || 'Failed to load available energy.');
+    } finally {
+      setProvidersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
+
   const [requests, setRequests] = useState(INITIAL_REQUESTS);
   const [requestedIds, setRequestedIds] = useState({});
   const [incoming, setIncoming] = useState(INCOMING_REQUESTS);
@@ -27,19 +101,51 @@ export function TradeProvider({ children }) {
     showToast._t = setTimeout(() => setToast(''), ms);
   }, []);
 
-  const submitRequest = useCallback((provider, amount) => {
-    const entry = {
-      id: 'r' + Date.now(),
-      name: provider.name,
-      kwh: amount,
-      rate: provider.rate,
-      date: today(),
-      status: 'Pending',
-    };
-    setRequests((prev) => [entry, ...prev]);
-    setRequestedIds((prev) => ({ ...prev, [provider.id]: true }));
-    return entry;
-  }, []);
+  /**
+   * Persists a new energy request to Supabase (SOL-105). The requester's own
+   * "My Requests" list (SOL-106) is still local/mock this sprint, so on
+   * success we also push an optimistic entry there for continuity — Sprint 3
+   * replaces that list with a real fetch and this optimistic push becomes
+   * redundant (safe to remove then).
+   */
+  const submitRequest = useCallback(
+    async (providerId, amountKwh) => {
+      if (!user?.id) {
+        return { data: null, error: new Error('You must be signed in to request energy.') };
+      }
+      if (!(amountKwh > 0)) {
+        return { data: null, error: new Error('Enter a valid amount greater than zero.') };
+      }
+
+      const { data, error } = await supabase
+        .from('energy_requests')
+        .insert({
+          requester_id: user.id,
+          provider_id: providerId,
+          requested_amount: amountKwh,
+          status: 'PENDING',
+        })
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      const provider = households.find((h) => h.id === providerId);
+      const entry = {
+        id: data.id,
+        name: provider?.name || 'Household',
+        kwh: amountKwh,
+        rate: provider?.rate,
+        date: today(),
+        status: 'Pending',
+      };
+      setRequests((prev) => [entry, ...prev]);
+      setRequestedIds((prev) => ({ ...prev, [providerId]: true }));
+
+      return { data, error: null };
+    },
+    [user, households],
+  );
 
   /**
    * Approves an incoming request: writes a ledger entry, debits the surplus and
@@ -109,6 +215,9 @@ export function TradeProvider({ children }) {
   const value = useMemo(
     () => ({
       households,
+      providersLoading,
+      providersError,
+      refreshProviders,
       requests,
       requestedIds,
       pendingCount,
@@ -130,6 +239,9 @@ export function TradeProvider({ children }) {
     }),
     [
       households,
+      providersLoading,
+      providersError,
+      refreshProviders,
       requests,
       requestedIds,
       pendingCount,
