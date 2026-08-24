@@ -9,9 +9,12 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
-import { MOCK_COMPLAINTS, timeAgo } from '../data/mockAdminData';
+import { useAdmin } from '../context/AdminContext';
+import { timeAgo } from '../data/mockAdminData';
 import {
   MessageSquare,
   ChevronDown,
@@ -21,6 +24,10 @@ import {
   Clock,
   Eye,
   Receipt,
+  Save,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react-native';
 
 if (Platform.OS === 'android') {
@@ -91,11 +98,13 @@ function StatusStepper({ currentStatus }) {
 }
 
 // ─── Complaint Card ───────────────────────────────────────────────────────────
-function ComplaintCard({ complaint, onUpdateStatus }) {
-  const [expanded, setExpanded]     = useState(false);
-  const [note, setNote]             = useState(complaint.resolutionNote);
-  const [status, setStatus]         = useState(complaint.status);
-  const accentColor = STATUS_COLOR[status];
+function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote }) {
+  const [expanded, setExpanded] = useState(false);
+  const [noteText, setNoteText] = useState(complaint.resolutionNote || '');
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  const status = complaint.status;
+  const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
   const canAct = status === 'Open' || status === 'Under Review';
 
   const handleToggle = () => {
@@ -103,10 +112,48 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
     setExpanded(e => !e);
   };
 
-  const changeStatus = (newStatus) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setStatus(newStatus);
-    onUpdateStatus && onUpdateStatus(complaint.id, newStatus);
+  const handleSaveNote = async () => {
+    try {
+      setIsSavingNote(true);
+      await onSaveNote(complaint.id, noteText);
+    } catch (err) {
+      const msg = err?.message || 'Could not save resolution note.';
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert('Error', msg);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleClearNote = () => {
+    const confirmAction = async () => {
+      try {
+        setIsSavingNote(true);
+        await onClearNote(complaint.id);
+        setNoteText('');
+      } catch (err) {
+        const msg = err?.message || 'Could not clear resolution note.';
+        if (Platform.OS === 'web') window.alert(msg);
+        else Alert.alert('Error', msg);
+      } finally {
+        setIsSavingNote(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this resolution note?')) {
+        confirmAction();
+      }
+    } else {
+      Alert.alert(
+        'Clear Resolution Note',
+        'Are you sure you want to delete this resolution note?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear', style: 'destructive', onPress: confirmAction },
+        ]
+      );
+    }
   };
 
   return (
@@ -154,7 +201,7 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
               <View style={styles.txRefRow}>
                 <Receipt size={13} color={COLORS.amberLight} />
                 <Text style={styles.txRefText}>
-                  {complaint.relatedTransaction.toUpperCase()} · {complaint.relatedAmount} kWh
+                  {complaint.relatedTransaction.toUpperCase()} {complaint.relatedAmount ? `· ${complaint.relatedAmount} kWh` : ''}
                 </Text>
               </View>
             </View>
@@ -166,27 +213,56 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
             <StatusStepper currentStatus={status} />
           </View>
 
-          {/* Resolution Note */}
+          {/* Resolution Note Editor */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Resolution Note</Text>
+            <Text style={styles.expandSectionTitle}>Admin Resolution Note</Text>
             <TextInput
               style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Add resolution note…"
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder="Add or update resolution note…"
               placeholderTextColor={COLORS.textMuted}
               multiline
               numberOfLines={3}
             />
+            <View style={styles.noteBtnRow}>
+              <TouchableOpacity
+                style={[styles.noteSaveBtn, isSavingNote && { opacity: 0.6 }]}
+                onPress={handleSaveNote}
+                disabled={isSavingNote}
+                activeOpacity={0.8}
+              >
+                {isSavingNote ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Save size={13} color="#FFFFFF" />
+                    <Text style={styles.noteSaveBtnText}>Save Note</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              {complaint.resolutionNote ? (
+                <TouchableOpacity
+                  style={[styles.noteClearBtn, isSavingNote && { opacity: 0.6 }]}
+                  onPress={handleClearNote}
+                  disabled={isSavingNote}
+                  activeOpacity={0.8}
+                >
+                  <Trash2 size={13} color={COLORS.red} />
+                  <Text style={styles.noteClearBtnText}>Clear Note</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
 
-          {/* Action Buttons */}
+          {/* Status Action Buttons */}
           {canAct && (
             <View style={styles.actionBtnsRow}>
               {status === 'Open' && (
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }]}
-                  onPress={() => changeStatus('Under Review')}
+                  onPress={() => onUpdateStatus(complaint.id, 'Under Review')}
                   activeOpacity={0.8}
                 >
                   <Eye size={14} color={COLORS.amberLight} />
@@ -195,7 +271,7 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.12)', borderColor: 'rgba(45,212,191,0.3)' }]}
-                onPress={() => changeStatus('Resolved')}
+                onPress={() => onUpdateStatus(complaint.id, 'Resolved')}
                 activeOpacity={0.8}
               >
                 <CheckCircle size={14} color={COLORS.tealLight} />
@@ -203,7 +279,7 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }]}
-                onPress={() => changeStatus('Rejected')}
+                onPress={() => onUpdateStatus(complaint.id, 'Rejected')}
                 activeOpacity={0.8}
               >
                 <XCircle size={14} color={COLORS.red} />
@@ -211,14 +287,6 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
               </TouchableOpacity>
             </View>
           )}
-
-          {/* Already resolved/rejected note */}
-          {!canAct && complaint.resolutionNote ? (
-            <View style={styles.expandSection}>
-              <Text style={styles.expandSectionTitle}>Admin Note</Text>
-              <Text style={styles.expandBody}>{complaint.resolutionNote}</Text>
-            </View>
-          ) : null}
         </View>
       )}
     </View>
@@ -228,19 +296,32 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function ComplaintsScreen() {
   const [filter, setFilter] = useState('All');
-  const [complaints, setComplaints] = useState(MOCK_COMPLAINTS);
+  const {
+    complaints,
+    complaintsLoading,
+    complaintsError,
+    loadComplaints,
+    updateComplaintStatus,
+    saveResolutionNote,
+    clearResolutionNote,
+  } = useAdmin();
 
   const filtered = filter === 'All'
     ? complaints
     : complaints.filter(c => c.status === filter);
 
-  const openCnt       = complaints.filter(c => c.status === 'Open').length;
-  const reviewCnt     = complaints.filter(c => c.status === 'Under Review').length;
-  const resolvedCnt   = complaints.filter(c => c.status === 'Resolved').length;
+  const openCnt     = complaints.filter(c => c.status === 'Open').length;
+  const reviewCnt   = complaints.filter(c => c.status === 'Under Review').length;
+  const resolvedCnt = complaints.filter(c => c.status === 'Resolved').length;
 
-  const handleUpdate = (id, newStatus) => {
-    setComplaints(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
-  };
+  if (complaintsLoading && complaints.length === 0) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.amberLight} />
+        <Text style={styles.loadingText}>Loading complaints...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -248,8 +329,20 @@ export default function ComplaintsScreen() {
       {/* Title */}
       <View style={styles.titleRow}>
         <MessageSquare size={18} color={COLORS.amberLight} />
-        <Text style={styles.screenTitle}>Complaints</Text>
+        <Text style={styles.screenTitle}>Complaints & Resolutions</Text>
       </View>
+
+      {/* Error Card if fetch failed */}
+      {complaintsError ? (
+        <View style={[GLASS.card, styles.errorCard]}>
+          <AlertTriangle size={24} color={COLORS.red} />
+          <Text style={styles.errorText}>{complaintsError}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadComplaints} activeOpacity={0.8}>
+            <RefreshCw size={14} color="#FFFFFF" />
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* Stats Strip */}
       <View style={styles.statsStrip}>
@@ -290,7 +383,13 @@ export default function ComplaintsScreen() {
         </View>
       ) : (
         filtered.map(c => (
-          <ComplaintCard key={c.id} complaint={c} onUpdateStatus={handleUpdate} />
+          <ComplaintCard
+            key={c.id}
+            complaint={c}
+            onUpdateStatus={updateComplaintStatus}
+            onSaveNote={saveResolutionNote}
+            onClearNote={clearResolutionNote}
+          />
         ))
       )}
 
@@ -303,8 +402,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 32 },
+  loadingText: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
+
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   screenTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textBright },
+
+  errorCard: { padding: 16, alignItems: 'center', gap: 10, backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.2)' },
+  errorText: { fontSize: 13, color: COLORS.red, textAlign: 'center', fontWeight: '500' },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.red, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  retryBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 
   statsStrip: { flexDirection: 'row', gap: 10 },
   statPill: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 14, gap: 3 },
@@ -405,8 +512,32 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
 
+  noteBtnRow: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end', marginTop: 4 },
+  noteSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.teal,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  noteSaveBtnText: { fontSize: 12, fontWeight: '700', color: '#000000' },
+  noteClearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  noteClearBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.red },
+
   // Action Buttons
-  actionBtnsRow: { flexDirection: 'row', gap: 8 },
+  actionBtnsRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',

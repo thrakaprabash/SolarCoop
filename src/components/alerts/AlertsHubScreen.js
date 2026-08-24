@@ -8,18 +8,20 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { timeAgo } from '../../admin/data/mockAdminData';
 import {
   Bell,
-  MessageSquare,
   ChevronDown,
   ChevronUp,
   CheckCircle,
-  Clock,
   Receipt,
-  PlusCircle
+  PlusCircle,
+  Pencil,
+  Trash2,
 } from 'lucide-react-native';
 
 if (Platform.OS === 'android') {
@@ -88,14 +90,46 @@ function StatusStepper({ currentStatus }) {
 }
 
 // ─── Complaint Card (Member View) ─────────────────────────────────────────────
-function MemberComplaintCard({ complaint }) {
+function MemberComplaintCard({ complaint, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const status = complaint.status;
-  const accentColor = STATUS_COLOR[status];
+  const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
+  const canEditOrDelete = complaint.canEdit || complaint.canDelete || status === 'Open';
 
   const handleToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(e => !e);
+  };
+
+  const handleDelete = () => {
+    const confirmDelete = async () => {
+      try {
+        setIsDeleting(true);
+        await onDelete(complaint.id);
+      } catch (err) {
+        const msg = err?.message || 'Could not delete complaint.';
+        if (Platform.OS === 'web') window.alert(msg);
+        else Alert.alert('Error', msg);
+        setIsDeleting(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this open complaint?')) {
+        confirmDelete();
+      }
+    } else {
+      Alert.alert(
+        'Delete Complaint',
+        'Are you sure you want to delete this open complaint?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: confirmDelete },
+        ]
+      );
+    }
   };
 
   return (
@@ -161,6 +195,36 @@ function MemberComplaintCard({ complaint }) {
               </View>
             </View>
           ) : null}
+
+          {/* Member Action Row (Edit & Delete for Open status) */}
+          {canEditOrDelete && (
+            <View style={styles.memberActionsRow}>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => onEdit(complaint)}
+                activeOpacity={0.8}
+              >
+                <Pencil size={13} color={COLORS.amberLight} />
+                <Text style={styles.editBtnText}>Edit Complaint</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.deleteBtn, isDeleting && { opacity: 0.6 }]}
+                onPress={handleDelete}
+                disabled={isDeleting}
+                activeOpacity={0.8}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={COLORS.red} />
+                ) : (
+                  <>
+                    <Trash2 size={13} color={COLORS.red} />
+                    <Text style={styles.deleteBtnText}>Delete</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -168,7 +232,7 @@ function MemberComplaintCard({ complaint }) {
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
-export const AlertsHubScreen = ({ onNavigate, complaints }) => {
+export const AlertsHubScreen = ({ onNavigate, complaints, loading = false, onEdit, onDelete }) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       
@@ -194,7 +258,12 @@ export const AlertsHubScreen = ({ onNavigate, complaints }) => {
       {/* Complaints List */}
       <Text style={styles.sectionTitle}>My Complaints</Text>
 
-      {complaints.length === 0 ? (
+      {loading && complaints.length === 0 ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="large" color={COLORS.amberLight} />
+          <Text style={styles.loadingText}>Loading your complaints...</Text>
+        </View>
+      ) : complaints.length === 0 ? (
         <View style={[GLASS.card, styles.emptyCard]}>
           <CheckCircle size={28} color={COLORS.tealLight} />
           <Text style={styles.emptyTitle}>No Complaints</Text>
@@ -203,7 +272,12 @@ export const AlertsHubScreen = ({ onNavigate, complaints }) => {
       ) : (
         <View style={styles.list}>
           {complaints.map(c => (
-            <MemberComplaintCard key={c.id} complaint={c} />
+            <MemberComplaintCard
+              key={c.id}
+              complaint={c}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </View>
       )}
@@ -237,6 +311,9 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 16, fontWeight: '800', color: COLORS.textBright, marginTop: 8 },
   list: { gap: 12 },
+
+  loadingBox: { padding: 32, alignItems: 'center', gap: 12 },
+  loadingText: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
 
   emptyCard: { padding: 32, alignItems: 'center', gap: 10 },
   emptyTitle: { fontSize: 16, fontWeight: '800', color: COLORS.textBright },
@@ -297,6 +374,32 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   adminNoteText: { fontSize: 13, color: COLORS.tealLight, lineHeight: 19, fontWeight: '500' },
+
+  memberActionsRow: { flexDirection: 'row', gap: 10, marginTop: 4, justifyContent: 'flex-end' },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  editBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.amberLight },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  deleteBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.red },
 
   // Stepper
   stepperRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },

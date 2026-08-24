@@ -5,6 +5,12 @@ import {
   updateMemberStatus as serviceUpdateStatus,
   toUIStatus,
 } from '../services/adminMemberService';
+import {
+  fetchAllComplaints,
+  updateComplaintStatus as serviceUpdateComplaintStatus,
+  saveResolutionNote as serviceSaveResolutionNote,
+  clearResolutionNote as serviceClearResolutionNote,
+} from '../../services/complaintService';
 
 const AdminContext = createContext(null);
 
@@ -21,6 +27,11 @@ export const AdminProvider = ({ children, onExit }) => {
   const [membersLoading, setMembersLoading] = useState(false);
   const [membersError, setMembersError]     = useState(null);
   const [communityStats, setCommunityStats] = useState(null);
+
+  // ─── Live complaints data state ──────────────────────────────────────────────
+  const [complaints, setComplaints]               = useState([]);
+  const [complaintsLoading, setComplaintsLoading] = useState(false);
+  const [complaintsError, setComplaintsError]     = useState(null);
 
   // ─── loadMembers ────────────────────────────────────────────────────────────
   /**
@@ -47,23 +58,31 @@ export const AdminProvider = ({ children, onExit }) => {
     }
   }, []);
 
-  // ─── updateMemberStatus ─────────────────────────────────────────────────────
+  // ─── loadComplaints ─────────────────────────────────────────────────────────
   /**
-   * Write a new status for a member to Supabase, then apply an optimistic
-   * in-place update to the `members` array so the UI reflects the change
-   * immediately — no full refetch required.
-   *
-   * Also updates `selectedMember` if it is the same profile, so
-   * MemberDetailScreen's status badge updates without navigating away.
-   *
-   * @param {string} userId   - profiles.id (uuid)
-   * @param {string} uiStatus - 'Active' | 'Inactive' | 'Suspended'
+   * Fetch all complaints from Supabase.
    */
+  const loadComplaints = useCallback(async () => {
+    setComplaintsLoading(true);
+    setComplaintsError(null);
+    try {
+      const data = await fetchAllComplaints();
+      setComplaints(data);
+    } catch (err) {
+      console.error('[AdminContext] loadComplaints failed:', err.message);
+      setComplaintsError(
+        err.message ||
+        'Could not load complaints. Check your Supabase RLS policies.'
+      );
+    } finally {
+      setComplaintsLoading(false);
+    }
+  }, []);
+
+  // ─── updateMemberStatus ─────────────────────────────────────────────────────
   const updateMemberStatus = useCallback(async (userId, uiStatus) => {
-    // Write to Supabase — throws on failure so callers can handle error
     await serviceUpdateStatus(userId, uiStatus);
 
-    // Optimistic in-place update of members array
     setMembers(prev => {
       const updated = prev.map(m => (m.id === userId ? { ...m, status: uiStatus } : m));
       const nextStats = computeCommunityStats(updated);
@@ -71,10 +90,36 @@ export const AdminProvider = ({ children, onExit }) => {
       return updated;
     });
 
-    // Keep selectedMember in sync (MemberDetailScreen reads it directly)
     setSelectedMember(prev =>
       prev?.id === userId ? { ...prev, status: uiStatus } : prev
     );
+  }, []);
+
+  // ─── updateComplaintStatus ──────────────────────────────────────────────────
+  const updateComplaintStatus = useCallback(async (complaintId, uiStatus) => {
+    const updatedRecord = await serviceUpdateComplaintStatus(complaintId, uiStatus);
+    setComplaints(prev =>
+      prev.map(c => (c.id === complaintId ? updatedRecord : c))
+    );
+    setSelectedComplaint(prev => (prev?.id === complaintId ? updatedRecord : prev));
+  }, []);
+
+  // ─── saveResolutionNote ──────────────────────────────────────────────────────
+  const saveResolutionNote = useCallback(async (complaintId, note) => {
+    const updatedRecord = await serviceSaveResolutionNote(complaintId, note);
+    setComplaints(prev =>
+      prev.map(c => (c.id === complaintId ? updatedRecord : c))
+    );
+    setSelectedComplaint(prev => (prev?.id === complaintId ? updatedRecord : prev));
+  }, []);
+
+  // ─── clearResolutionNote ─────────────────────────────────────────────────────
+  const clearResolutionNote = useCallback(async (complaintId) => {
+    const updatedRecord = await serviceClearResolutionNote(complaintId);
+    setComplaints(prev =>
+      prev.map(c => (c.id === complaintId ? updatedRecord : c))
+    );
+    setSelectedComplaint(prev => (prev?.id === complaintId ? updatedRecord : prev));
   }, []);
 
   return (
@@ -99,6 +144,14 @@ export const AdminProvider = ({ children, onExit }) => {
         communityStats,
         loadMembers,
         updateMemberStatus,
+        // Live complaints data
+        complaints,
+        complaintsLoading,
+        complaintsError,
+        loadComplaints,
+        updateComplaintStatus,
+        saveResolutionNote,
+        clearResolutionNote,
       }}
     >
       {children}
