@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
@@ -126,6 +127,13 @@ export default function MemberMonitoringScreen() {
   } = useAdmin();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMembers();
+    setRefreshing(false);
+  };
 
   const filtered = members.filter(m => {
     const matchSearch =
@@ -184,7 +192,14 @@ export default function MemberMonitoringScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.amberLight} />
+      }
+    >
 
       {/* Title */}
       <View style={styles.titleRow}>

@@ -39,7 +39,12 @@ const DB_TO_UI_STATUS = {
 
 const UI_TO_DB_STATUS = {
   Active:    'active',
-  Inactive:  'pending_approval',
+  // 'pending_approval' is a distinct state (a brand-new signup awaiting its
+  // first approval — see AuthContext.js's STATUS_BY_ROLE), not the same
+  // thing as an admin deactivating a previously-active member, so
+  // deactivating writes 'inactive' — the value this mapper already reads
+  // back as 'Inactive' on the other side.
+  Inactive:  'inactive',
   Suspended: 'blocked',
 };
 
@@ -134,8 +139,6 @@ export async function fetchAllMembers() {
   if (profileErr) throw profileErr;
   if (!profiles || profiles.length === 0) return [];
 
-  console.log('[adminMemberService] Raw DB profile statuses:', profiles.map(p => ({ id: p.id, status: p.status })));
-
   const userIds = profiles.map(p => p.id);
 
   // ── 2. Energy records ──────────────────────────────────────────────────────
@@ -210,8 +213,6 @@ export function computeCommunityStats(members) {
  */
 export async function updateMemberStatus(userId, uiStatus) {
   const dbStatus = toDBStatus(uiStatus);
-
-  console.log('[adminMemberService] Attempting updateMemberStatus:', { userId, uiStatus, dbStatus });
 
   const { data, error } = await supabase
     .from('profiles')
