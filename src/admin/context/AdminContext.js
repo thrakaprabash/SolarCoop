@@ -3,6 +3,7 @@ import {
   fetchAllMembers,
   computeCommunityStats,
   updateMemberStatus as serviceUpdateStatus,
+  createInvitedMember as serviceCreateInvitedMember,
   toUIStatus,
 } from '../services/adminMemberService';
 import {
@@ -87,6 +88,20 @@ export const AdminProvider = ({ children, onExit }) => {
       setComplaintsLoading(false);
     }
   }, []);
+
+  // ─── createMember ───────────────────────────────────────────────────────────
+  /**
+   * Admin-invite a new member account, then refresh the member list so it
+   * appears immediately without a manual pull-to-refresh.
+   *
+   * @returns {Promise<{userId, email, name, tempPassword}>} passed straight
+   *   through so the UI can show the one-time temporary password.
+   */
+  const createMember = useCallback(async (memberData) => {
+    const result = await serviceCreateInvitedMember(memberData);
+    await loadMembers();
+    return result;
+  }, [loadMembers]);
 
   // ─── loadTransactions ───────────────────────────────────────────────────────
   /**
@@ -181,6 +196,7 @@ export const AdminProvider = ({ children, onExit }) => {
         membersError,
         communityStats,
         loadMembers,
+        createMember,
         updateMemberStatus,
         // Live complaints data
         complaints,

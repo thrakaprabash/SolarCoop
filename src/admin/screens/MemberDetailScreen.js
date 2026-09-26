@@ -33,6 +33,7 @@ import {
 
 const STATUS_COLORS = {
   Active:    COLORS.tealLight,
+  Pending:   COLORS.blueLight,
   Inactive:  COLORS.amberLight,
   Suspended: COLORS.red,
 };
