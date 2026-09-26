@@ -269,6 +269,12 @@ function generateTempPassword() {
  * generated here is returned once so the UI can show it to the admin to
  * pass along — it is never stored or shown again after this call returns.
  *
+ * Role is 'owner', not a literal 'member' — this app's actual role
+ * vocabulary is consumer/technician/owner/admin (see AuthContext.js's
+ * STATUS_BY_ROLE); there is no 'member' role, and 'owner' is both the one
+ * that already maps to 'pending_approval' status and the one associated
+ * with household/solar-capacity data, which is what this form collects.
+ *
  * @param {object} params
  * @param {string} params.email
  * @param {string} params.name
@@ -287,7 +293,7 @@ export async function createInvitedMember({ email, name, mobileNumber, household
     options: {
       data: {
         name,
-        role: 'member',
+        role: 'owner',
         mobile_number: mobileNumber || null,
         household_id: householdId || null,
         solar_capacity_kw: solarCapacityKw != null ? Number(solarCapacityKw) : null,
