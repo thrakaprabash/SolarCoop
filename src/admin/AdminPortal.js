@@ -23,12 +23,13 @@ const BG = require('../../assets/bg.jpg');
 
 // ─── Inner shell — consumes AdminContext ──────────────────────────────────────
 function AdminShell() {
-  const { adminBottomTab, setAdminBottomTab, loadMembers, loadComplaints } = useAdmin();
+  const { adminBottomTab, setAdminBottomTab, loadMembers, loadComplaints, loadTransactions } = useAdmin();
 
-  // Kick off member & complaint data fetch as soon as the admin portal mounts
+  // Kick off member, complaint & transaction data fetch as soon as the admin portal mounts
   useEffect(() => {
     loadMembers();
     loadComplaints();
+    loadTransactions();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderScreen = () => {

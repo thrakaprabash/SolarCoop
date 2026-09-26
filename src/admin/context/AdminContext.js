@@ -11,6 +11,10 @@ import {
   saveResolutionNote as serviceSaveResolutionNote,
   clearResolutionNote as serviceClearResolutionNote,
 } from '../../services/complaintService';
+import {
+  fetchAllTransactions,
+  reverseTransaction as serviceReverseTransaction,
+} from '../services/adminTransactionService';
 
 const AdminContext = createContext(null);
 
@@ -32,6 +36,11 @@ export const AdminProvider = ({ children, onExit }) => {
   const [complaints, setComplaints]               = useState([]);
   const [complaintsLoading, setComplaintsLoading] = useState(false);
   const [complaintsError, setComplaintsError]     = useState(null);
+
+  // ─── Live transaction data state ─────────────────────────────────────────────
+  const [transactions, setTransactions]               = useState([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsError, setTransactionsError]     = useState(null);
 
   // ─── loadMembers ────────────────────────────────────────────────────────────
   /**
@@ -79,6 +88,27 @@ export const AdminProvider = ({ children, onExit }) => {
     }
   }, []);
 
+  // ─── loadTransactions ───────────────────────────────────────────────────────
+  /**
+   * Fetch all transactions (with sender/receiver names resolved) from Supabase.
+   */
+  const loadTransactions = useCallback(async () => {
+    setTransactionsLoading(true);
+    setTransactionsError(null);
+    try {
+      const data = await fetchAllTransactions();
+      setTransactions(data);
+    } catch (err) {
+      console.error('[AdminContext] loadTransactions failed:', err.message);
+      setTransactionsError(
+        err.message ||
+        'Could not load transactions. Check your Supabase RLS policies.'
+      );
+    } finally {
+      setTransactionsLoading(false);
+    }
+  }, []);
+
   // ─── updateMemberStatus ─────────────────────────────────────────────────────
   const updateMemberStatus = useCallback(async (userId, uiStatus) => {
     await serviceUpdateStatus(userId, uiStatus);
@@ -122,6 +152,14 @@ export const AdminProvider = ({ children, onExit }) => {
     setSelectedComplaint(prev => (prev?.id === complaintId ? updatedRecord : prev));
   }, []);
 
+  // ─── reverseTransaction ─────────────────────────────────────────────────────
+  const reverseTransaction = useCallback(async (transactionId) => {
+    const updatedRecord = await serviceReverseTransaction(transactionId);
+    setTransactions(prev =>
+      prev.map(t => (t.id === transactionId ? updatedRecord : t))
+    );
+  }, []);
+
   return (
     <AdminContext.Provider
       value={{
@@ -152,6 +190,12 @@ export const AdminProvider = ({ children, onExit }) => {
         updateComplaintStatus,
         saveResolutionNote,
         clearResolutionNote,
+        // Live transaction data
+        transactions,
+        transactionsLoading,
+        transactionsError,
+        loadTransactions,
+        reverseTransaction,
       }}
     >
       {children}
