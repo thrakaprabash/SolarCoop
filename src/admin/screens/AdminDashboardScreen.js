@@ -235,6 +235,11 @@ export default function AdminDashboardScreen() {
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
+            <Text style={[styles.breakdownNum, { color: COLORS.blueLight }]}>{s ? s.pendingMembers : '--'}</Text>
+            <Text style={styles.breakdownLabel}>Pending</Text>
+          </View>
+          <View style={styles.breakdownDivider} />
+          <View style={styles.breakdownItem}>
             <Text style={[styles.breakdownNum, { color: COLORS.amberLight }]}>{s ? s.inactiveMembers : '--'}</Text>
             <Text style={styles.breakdownLabel}>Inactive</Text>
           </View>
@@ -251,6 +256,10 @@ export default function AdminDashboardScreen() {
             flex: s ? (s.activeMembers || 1) : 1,
             backgroundColor: COLORS.teal,
             borderTopLeftRadius: 4, borderBottomLeftRadius: 4,
+          }]} />
+          <View style={[styles.progressSegment, {
+            flex: s ? (s.pendingMembers || 0) : 0,
+            backgroundColor: COLORS.blue,
           }]} />
           <View style={[styles.progressSegment, {
             flex: s ? (s.inactiveMembers || 0) : 0,

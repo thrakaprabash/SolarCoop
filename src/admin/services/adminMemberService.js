@@ -18,12 +18,19 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAdminInvite } from '../../lib/supabase';
 
 // ─── Status Vocabulary Mapper ─────────────────────────────────────────────────
 //
-// The Admin UI uses:   'Active' | 'Inactive' | 'Suspended'
+// The Admin UI uses:   'Active' | 'Pending' | 'Inactive' | 'Suspended'
 // The database uses:   'active' | 'inactive' | 'blocked' | 'pending_approval'
+//
+// 'Pending' is kept distinct from 'Inactive': pending_approval/pending mean
+// "never yet approved" (a brand-new signup or an admin-invited account with
+// no login yet — see AuthContext.js's STATUS_BY_ROLE), which is a different
+// situation from an admin deactivating a previously-active member. Collapsing
+// them into one label made a freshly invited member indistinguishable from a
+// deactivated one.
 //
 // This mapper is the ONLY place where this translation lives.
 // Never hard-code status strings in screens or context.
@@ -33,8 +40,8 @@ const DB_TO_UI_STATUS = {
   inactive:         'Inactive',
   blocked:          'Suspended',
   suspended:        'Suspended',
-  pending_approval: 'Inactive',  // treated as inactive in admin view
-  pending:          'Inactive',
+  pending_approval: 'Pending',
+  pending:          'Pending',
 };
 
 const UI_TO_DB_STATUS = {
@@ -53,14 +60,17 @@ const UI_TO_DB_STATUS = {
  * Falls back to 'Inactive' for any unknown or null value.
  *
  * @param {string|null} dbStatus - Value from profiles.status
- * @returns {'Active'|'Inactive'|'Suspended'}
+ * @returns {'Active'|'Pending'|'Inactive'|'Suspended'}
  */
 export const toUIStatus = (dbStatus) =>
   DB_TO_UI_STATUS[dbStatus] ?? 'Inactive';
 
 /**
  * Convert a UI label back to the database status value for writes.
- * Falls back to 'inactive' for any unknown value.
+ * Falls back to 'inactive' for any unknown value. There is no admin action
+ * that sets a member to 'Pending' directly — it's a state a member arrives
+ * at (new signup or admin invite), never one an admin assigns — so it isn't
+ * a key here.
  *
  * @param {'Active'|'Inactive'|'Suspended'} uiStatus
  * @returns {string} - Value to write to profiles.status
@@ -181,6 +191,7 @@ export async function fetchAllMembers() {
  */
 export function computeCommunityStats(members) {
   const activeMembers    = members.filter(m => m.status === 'Active').length;
+  const pendingMembers   = members.filter(m => m.status === 'Pending').length;
   const inactiveMembers  = members.filter(m => m.status === 'Inactive').length;
   const suspendedMembers = members.filter(m => m.status === 'Suspended').length;
 
@@ -192,6 +203,7 @@ export function computeCommunityStats(members) {
   return {
     totalMembers:      members.length,
     activeMembers,
+    pendingMembers,
     inactiveMembers,
     suspendedMembers,
     totalProduction:   parseFloat(totalProduction.toFixed(1)),
@@ -229,6 +241,92 @@ export async function updateMemberStatus(userId, uiStatus) {
   }
 
   return data[0];
+}
+
+/**
+ * Generate a random temporary password for an admin-invited account.
+ * Comfortably meets Supabase's default minimum length. The member is
+ * expected to use "Forgot password" (or be given this value directly) the
+ * first time they sign in.
+ */
+function generateTempPassword() {
+  const random = Math.random().toString(36).slice(-8);
+  return `Solar-${random}-${Math.floor(Math.random() * 900 + 100)}`;
+}
+
+/**
+ * Admin-invite a new member account.
+ *
+ * `profiles.id` is a foreign key to `auth.users.id`, populated by the same
+ * `auth.users → public.profiles` database trigger every self-registration
+ * goes through (see AuthContext.js) — there is no way to create a bare
+ * `profiles` row directly. This calls `supabase.auth.signUp()` on
+ * `supabaseAdminInvite` (a second, session-isolated client — see
+ * src/lib/supabase.js) specifically so the currently logged-in admin's own
+ * session is never overwritten by the new member's session.
+ *
+ * The account has no password the member knows yet. The temporary one
+ * generated here is returned once so the UI can show it to the admin to
+ * pass along — it is never stored or shown again after this call returns.
+ *
+ * @param {object} params
+ * @param {string} params.email
+ * @param {string} params.name
+ * @param {string} [params.mobileNumber]
+ * @param {string} [params.householdId]
+ * @param {number} [params.solarCapacityKw]
+ * @returns {Promise<{userId: string, email: string, name: string, tempPassword: string}>}
+ * @throws {Error} On Supabase signup failure
+ */
+export async function createInvitedMember({ email, name, mobileNumber, householdId, solarCapacityKw }) {
+  const tempPassword = generateTempPassword();
+
+  const { data, error } = await supabaseAdminInvite.auth.signUp({
+    email,
+    password: tempPassword,
+    options: {
+      data: {
+        name,
+        role: 'member',
+        mobile_number: mobileNumber || null,
+        household_id: householdId || null,
+        solar_capacity_kw: solarCapacityKw != null ? Number(solarCapacityKw) : null,
+        status: 'pending_approval',
+      },
+    },
+  });
+
+  if (error) throw error;
+  if (!data?.user) {
+    throw new Error(
+      'Supabase did not return a new user. Check whether email confirmation is required in your Auth settings.'
+    );
+  }
+
+  // Belt-and-suspenders, same reasoning as AuthContext's enforceProfileStatus:
+  // the metadata trigger is the primary path, this covers setups where it
+  // doesn't copy every field. Runs on the same isolated client, whose
+  // in-memory session is momentarily the new member's, never the admin's.
+  const { error: profileErr } = await supabaseAdminInvite
+    .from('profiles')
+    .update({
+      household_id: householdId || null,
+      solar_capacity_kw: solarCapacityKw != null ? Number(solarCapacityKw) : null,
+      status: 'pending_approval',
+    })
+    .eq('id', data.user.id);
+
+  if (profileErr) {
+    console.warn(
+      '[adminMemberService] createInvitedMember: profile follow-up update failed (non-fatal):',
+      profileErr.message
+    );
+  }
+
+  // Leave the isolated client signed out before it's reused for the next invite.
+  await supabaseAdminInvite.auth.signOut().catch(() => {});
+
+  return { userId: data.user.id, email, name, tempPassword };
 }
 
 /**

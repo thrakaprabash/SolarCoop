@@ -168,6 +168,11 @@ export const COLORS = {
   red: '#EF4444',
   redGlow: 'rgba(239, 68, 68, 0.3)',
 
+  // Pending Blue
+  blue: '#3B82F6',
+  blueLight: '#60A5FA',
+  blueGlow: 'rgba(59, 130, 246, 0.3)',
+
   // White Text Hierarchy
   textBright: '#FFFFFF',
   textPrimary: 'rgba(255, 255, 255, 0.95)',
