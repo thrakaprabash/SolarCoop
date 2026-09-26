@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { MOCK_TRANSACTIONS, timeAgo } from '../data/mockAdminData';
+import { timeAgo } from '../data/mockAdminData';
+import { fetchTransactionsForMember } from '../services/adminTransactionService';
 import {
   ArrowLeft,
   Sun,
@@ -39,6 +40,28 @@ const STATUS_COLORS = {
 export default function MemberDetailScreen() {
   const { selectedMember, setSelectedMember, setAdminBottomTab, updateMemberStatus } = useAdmin();
   const [updating, setUpdating] = useState(false);
+  const [relatedTx, setRelatedTx] = useState([]);
+  const [relatedTxLoading, setRelatedTxLoading] = useState(true);
+  const [relatedTxError, setRelatedTxError] = useState(null);
+
+  const memberId = selectedMember?.id;
+
+  // Fetched independently of TransactionMonitoringScreen's list, so this
+  // section works correctly even if the admin opens a member's detail page
+  // without having visited the Ledger tab first.
+  useEffect(() => {
+    if (!memberId) return;
+    let cancelled = false;
+
+    setRelatedTxLoading(true);
+    setRelatedTxError(null);
+    fetchTransactionsForMember(memberId, 5)
+      .then(data => { if (!cancelled) setRelatedTx(data); })
+      .catch(err => { if (!cancelled) setRelatedTxError(err.message || 'Could not load transactions.'); })
+      .finally(() => { if (!cancelled) setRelatedTxLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [memberId]);
 
   if (!selectedMember) return null;
 
@@ -47,11 +70,6 @@ export default function MemberDetailScreen() {
   const member       = selectedMember;
   const accentColor  = STATUS_COLORS[memberStatus];
   const hasSurplus   = member.todaySurplus > 0;
-
-  // Related transactions (mock: sender or receiver matches household)
-  const relatedTx = MOCK_TRANSACTIONS.filter(
-    t => t.sender === member.household || t.receiver === member.household
-  ).slice(0, 5);
 
   const handleBack = () => {
     setSelectedMember(null);
@@ -244,12 +262,16 @@ export default function MemberDetailScreen() {
       {/* Recent Transactions */}
       <View style={[GLASS.card, styles.sectionCard]}>
         <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        {relatedTx.length === 0 ? (
+        {relatedTxLoading ? (
+          <ActivityIndicator size="small" color={COLORS.amberLight} />
+        ) : relatedTxError ? (
+          <Text style={styles.emptyText}>{relatedTxError}</Text>
+        ) : relatedTx.length === 0 ? (
           <Text style={styles.emptyText}>No transactions found.</Text>
         ) : (
           relatedTx.map(tx => {
-            const isSender   = tx.sender === member.household;
-            const txColor    = tx.status === 'Completed' ? COLORS.tealLight : tx.status === 'Pending' ? COLORS.amberLight : COLORS.red;
+            const isSender   = tx.senderId === member.id;
+            const txColor    = tx.status === 'Completed' ? COLORS.tealLight : COLORS.red;
             return (
               <View key={tx.id} style={styles.txRow}>
                 <View style={[styles.txIcon, { backgroundColor: `${txColor}18` }]}>
