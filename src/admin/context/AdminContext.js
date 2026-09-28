@@ -214,7 +214,10 @@ export const AdminProvider = ({ children, onExit }) => {
     setTransactions(prev =>
       prev.map(t => (t.id === transactionId ? updatedRecord : t))
     );
-  }, []);
+    // A reversal raises alerts server-side (database trigger, 0004), which this
+    // app can't see until it asks — pull them in so the header pill reacts now.
+    loadAlerts();
+  }, [loadAlerts]);
 
   // ─── createAlert ────────────────────────────────────────────────────────────
   const createAlert = useCallback(async (alertData) => {
