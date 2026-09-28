@@ -5,7 +5,29 @@ import { useAdmin } from '../context/AdminContext';
 import { ShieldCheck, LogOut } from 'lucide-react-native';
 
 export default function AdminHeader() {
-  const { adminHeaderToggle, setAdminHeaderToggle, setAdminBottomTab, onExit } = useAdmin();
+  const {
+    adminHeaderToggle,
+    setAdminHeaderToggle,
+    setAdminBottomTab,
+    onExit,
+    alerts,
+    alertsError,
+    openAlertCount,
+    urgentAlertCount,
+  } = useAdmin();
+
+  // The pill reflects real alert state instead of a hardcoded "System OK":
+  // red for open Critical/High alerts, amber for lesser open ones, teal only
+  // when nothing needs attention. If alerts couldn't load at all we say so
+  // rather than claim everything is fine.
+  const pill =
+    alertsError && alerts.length === 0
+      ? { text: 'Alerts unavailable', color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+      : urgentAlertCount > 0
+        ? { text: `${urgentAlertCount} Urgent`, color: COLORS.red, bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' }
+        : openAlertCount > 0
+          ? { text: `${openAlertCount} Open Alert${openAlertCount === 1 ? '' : 's'}`, color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+          : { text: 'System OK', color: COLORS.tealLight, bg: 'rgba(20,184,166,0.12)', border: 'rgba(20,184,166,0.25)' };
 
   const handleToggle = (toggleKey) => {
     setAdminHeaderToggle(toggleKey);
@@ -52,11 +74,15 @@ export default function AdminHeader() {
           </View>
         </View>
 
-        {/* System Status Pill */}
-        <View style={styles.statusPill}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>System OK</Text>
-        </View>
+        {/* System Status Pill — links to the alerts inbox */}
+        <TouchableOpacity
+          style={[styles.statusPill, { backgroundColor: pill.bg, borderColor: pill.border }]}
+          onPress={() => setAdminBottomTab('alerts')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.statusDot, { backgroundColor: pill.color }]} />
+          <Text style={[styles.statusText, { color: pill.color }]}>{pill.text}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Second Row — Toggle + Logout */}

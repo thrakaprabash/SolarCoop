@@ -173,6 +173,10 @@ export const COLORS = {
   blueLight: '#60A5FA',
   blueGlow: 'rgba(59, 130, 246, 0.3)',
 
+  // High-severity Orange
+  orange: '#F97316',
+  orangeLight: '#FB923C',
+
   // White Text Hierarchy
   textBright: '#FFFFFF',
   textPrimary: 'rgba(255, 255, 255, 0.95)',
