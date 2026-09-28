@@ -16,6 +16,14 @@ import {
   fetchAllTransactions,
   reverseTransaction as serviceReverseTransaction,
 } from '../services/adminTransactionService';
+import {
+  fetchAllAlerts,
+  createAlert as serviceCreateAlert,
+  updateAlert as serviceUpdateAlert,
+  resolveAlert as serviceResolveAlert,
+  reopenAlert as serviceReopenAlert,
+  deleteAlert as serviceDeleteAlert,
+} from '../services/adminAlertService';
 
 const AdminContext = createContext(null);
 
@@ -42,6 +50,18 @@ export const AdminProvider = ({ children, onExit }) => {
   const [transactions, setTransactions]               = useState([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [transactionsError, setTransactionsError]     = useState(null);
+
+  // ─── Live alert data state ───────────────────────────────────────────────────
+  const [alerts, setAlerts]               = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError]     = useState(null);
+
+  // Shared by the header status pill, the dashboard stat and the alerts screen,
+  // so the "what needs attention" definition lives in exactly one place.
+  const openAlertCount = alerts.filter(a => a.status === 'Open').length;
+  const urgentAlertCount = alerts.filter(
+    a => a.status === 'Open' && (a.severity === 'Critical' || a.severity === 'High')
+  ).length;
 
   // ─── loadMembers ────────────────────────────────────────────────────────────
   /**
@@ -124,6 +144,27 @@ export const AdminProvider = ({ children, onExit }) => {
     }
   }, []);
 
+  // ─── loadAlerts ─────────────────────────────────────────────────────────────
+  /**
+   * Fetch all alerts (with targeted member names resolved) from Supabase.
+   */
+  const loadAlerts = useCallback(async () => {
+    setAlertsLoading(true);
+    setAlertsError(null);
+    try {
+      const data = await fetchAllAlerts();
+      setAlerts(data);
+    } catch (err) {
+      console.error('[AdminContext] loadAlerts failed:', err.message);
+      setAlertsError(
+        err.message ||
+        'Could not load alerts. Check your Supabase RLS policies.'
+      );
+    } finally {
+      setAlertsLoading(false);
+    }
+  }, []);
+
   // ─── updateMemberStatus ─────────────────────────────────────────────────────
   const updateMemberStatus = useCallback(async (userId, uiStatus) => {
     await serviceUpdateStatus(userId, uiStatus);
@@ -175,6 +216,37 @@ export const AdminProvider = ({ children, onExit }) => {
     );
   }, []);
 
+  // ─── createAlert ────────────────────────────────────────────────────────────
+  const createAlert = useCallback(async (alertData) => {
+    const created = await serviceCreateAlert(alertData);
+    setAlerts(prev => [created, ...prev]);
+    return created;
+  }, []);
+
+  // ─── updateAlert ────────────────────────────────────────────────────────────
+  // Only admin-created alerts can be edited; the service enforces it.
+  const updateAlert = useCallback(async (alertId, changes) => {
+    const updated = await serviceUpdateAlert(alertId, changes);
+    setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, ...updated } : a)));
+  }, []);
+
+  // ─── resolveAlert / reopenAlert ─────────────────────────────────────────────
+  const resolveAlert = useCallback(async (alertId) => {
+    const { status } = await serviceResolveAlert(alertId);
+    setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, status } : a)));
+  }, []);
+
+  const reopenAlert = useCallback(async (alertId) => {
+    const { status } = await serviceReopenAlert(alertId);
+    setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, status } : a)));
+  }, []);
+
+  // ─── deleteAlert ────────────────────────────────────────────────────────────
+  const deleteAlert = useCallback(async (alertId) => {
+    await serviceDeleteAlert(alertId);
+    setAlerts(prev => prev.filter(a => a.id !== alertId));
+  }, []);
+
   return (
     <AdminContext.Provider
       value={{
@@ -212,6 +284,18 @@ export const AdminProvider = ({ children, onExit }) => {
         transactionsError,
         loadTransactions,
         reverseTransaction,
+        // Live alert data
+        alerts,
+        alertsLoading,
+        alertsError,
+        openAlertCount,
+        urgentAlertCount,
+        loadAlerts,
+        createAlert,
+        updateAlert,
+        resolveAlert,
+        reopenAlert,
+        deleteAlert,
       }}
     >
       {children}

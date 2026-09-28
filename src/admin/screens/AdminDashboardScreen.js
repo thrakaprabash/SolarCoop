@@ -8,12 +8,7 @@ import {
 } from 'react-native';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import {
-  MOCK_ALERTS,
-  MOCK_COMPLAINTS,
-  MOCK_TRANSACTIONS,
-  timeAgo,
-} from '../data/mockAdminData';
+import { timeAgo } from '../data/mockAdminData';
 import {
   Users,
   Sun,
@@ -85,20 +80,20 @@ function SystemHealthPanel() {
 }
 
 // ─── Recent Activity Feed ────────────────────────────────────────────────────
-function getActivityFeed() {
+function getActivityFeed({ alerts, complaints, transactions }) {
   const events = [];
 
-  MOCK_ALERTS.filter(a => a.status === 'Open').slice(0, 2).forEach(a => {
+  alerts.filter(a => a.status === 'Open').slice(0, 2).forEach(a => {
     events.push({
       id: `alert-${a.id}`,
-      color: a.severity === 'Critical' ? COLORS.red : COLORS.amberLight,
+      color: a.severity === 'Critical' || a.severity === 'High' ? COLORS.red : COLORS.amberLight,
       icon: AlertTriangle,
-      label: `${a.type} — ${a.member}`,
+      label: `${a.typeLabel} — ${a.member}`,
       time: a.timestamp,
     });
   });
 
-  MOCK_COMPLAINTS.filter(c => c.status === 'Open').slice(0, 2).forEach(c => {
+  complaints.filter(c => c.status === 'Open').slice(0, 2).forEach(c => {
     events.push({
       id: `complaint-${c.id}`,
       color: COLORS.amber,
@@ -108,12 +103,15 @@ function getActivityFeed() {
     });
   });
 
-  MOCK_TRANSACTIONS.filter(t => t.status === 'Pending').slice(0, 2).forEach(t => {
+  // A transaction row only exists once a trade completed (or was reversed by
+  // an admin), so there's no "pending" transfer to surface — show the latest.
+  transactions.slice(0, 2).forEach(t => {
+    const reversed = t.status === 'Reversed';
     events.push({
       id: `tx-${t.id}`,
-      color: COLORS.tealLight,
+      color: reversed ? COLORS.red : COLORS.tealLight,
       icon: ArrowUpRight,
-      label: `Pending Transfer: ${t.sender} → ${t.receiver} · ${t.amount} kWh`,
+      label: `${reversed ? 'Reversed Transfer' : 'Transfer'}: ${t.sender} → ${t.receiver} · ${t.amount} kWh`,
       time: t.timestamp,
     });
   });
@@ -123,8 +121,17 @@ function getActivityFeed() {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function AdminDashboardScreen() {
-  const { adminHeaderToggle, adminMetricChip, setAdminBottomTab, communityStats } = useAdmin();
-  const feed = getActivityFeed();
+  const {
+    adminHeaderToggle,
+    adminMetricChip,
+    setAdminBottomTab,
+    communityStats,
+    alerts,
+    complaints,
+    transactions,
+    openAlertCount,
+  } = useAdmin();
+  const feed = getActivityFeed({ alerts, complaints, transactions });
 
   // Derive display values — fall back to '--' while data loads
   const s = communityStats;
@@ -178,7 +185,7 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.red,
       iconBg: 'rgba(239,68,68,0.12)',
       label: 'Open Alerts',
-      value: MOCK_ALERTS.filter(a => a.status === 'Open').length,
+      value: openAlertCount,
       unit: null,
       trend: null,
       chips: ['all'],
@@ -188,7 +195,7 @@ export default function AdminDashboardScreen() {
       iconColor: COLORS.amber,
       iconBg: 'rgba(245,158,11,0.12)',
       label: 'Complaints',
-      value: MOCK_COMPLAINTS.filter(c => c.status === 'Open').length,
+      value: complaints.filter(c => c.status === 'Open').length,
       unit: null,
       trend: null,
       chips: ['all'],
@@ -318,6 +325,9 @@ export default function AdminDashboardScreen() {
       {/* Recent Activity Feed */}
       <View style={[GLASS.card, styles.sectionCard]}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
+        {feed.length === 0 && (
+          <Text style={styles.feedEmpty}>No recent activity yet.</Text>
+        )}
         {feed.map(event => {
           const Icon = event.icon;
           return (
@@ -436,6 +446,7 @@ const styles = StyleSheet.create({
   feedContent: { flex: 1, gap: 2 },
   feedLabel: { fontSize: 12, fontWeight: '600', color: COLORS.textPrimary },
   feedTime: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
+  feedEmpty: { fontSize: 12, color: COLORS.textMuted, fontWeight: '500', paddingVertical: 6 },
 
   // Actions
   actionsRow: { flexDirection: 'row', gap: 10 },
