@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
 import {
   fetchAllMembers,
   computeCommunityStats,
@@ -24,6 +24,7 @@ import {
   reopenAlert as serviceReopenAlert,
   deleteAlert as serviceDeleteAlert,
 } from '../services/adminAlertService';
+import { scanForSystemAlerts } from '../services/alertScanService';
 
 const AdminContext = createContext(null);
 
@@ -55,6 +56,12 @@ export const AdminProvider = ({ children, onExit }) => {
   const [alerts, setAlerts]               = useState([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError]     = useState(null);
+
+  // Automatic-alert scan: whether one is running, what the last one found, and
+  // the in-flight run itself so concurrent triggers share it.
+  const [scanning, setScanning] = useState(false);
+  const [lastScan, setLastScan] = useState(null);
+  const scanInFlight = useRef(null);
 
   // Shared by the header status pill, the dashboard stat and the alerts screen,
   // so the "what needs attention" definition lives in exactly one place.
@@ -164,6 +171,43 @@ export const AdminProvider = ({ children, onExit }) => {
       setAlertsLoading(false);
     }
   }, []);
+
+  // ─── scanAlerts ─────────────────────────────────────────────────────────────
+  /**
+   * Run the automatic-alert scan, then reload alerts so anything it raised
+   * appears. Triggered on portal mount, by the Scan button and by
+   * pull-to-refresh; concurrent calls share a single run.
+   */
+  const scanAlerts = useCallback(() => {
+    if (scanInFlight.current) return scanInFlight.current;
+
+    const run = (async () => {
+      setScanning(true);
+      try {
+        const result = await scanForSystemAlerts();
+        result.failedChecks.forEach(f =>
+          console.warn(`[AdminContext] alert check "${f.check}" could not run: ${f.reason}`)
+        );
+        setLastScan({ at: new Date().toISOString(), ...result, error: null });
+      } catch (err) {
+        console.error('[AdminContext] scanAlerts failed:', err?.message);
+        setLastScan({
+          at: new Date().toISOString(),
+          raised: 0,
+          evaluated: 0,
+          failedChecks: [],
+          error: err?.message || 'The scan could not run.',
+        });
+      } finally {
+        await loadAlerts();
+        setScanning(false);
+        scanInFlight.current = null;
+      }
+    })();
+
+    scanInFlight.current = run;
+    return run;
+  }, [loadAlerts]);
 
   // ─── updateMemberStatus ─────────────────────────────────────────────────────
   const updateMemberStatus = useCallback(async (userId, uiStatus) => {
@@ -293,6 +337,9 @@ export const AdminProvider = ({ children, onExit }) => {
         alertsError,
         openAlertCount,
         urgentAlertCount,
+        scanning,
+        lastScan,
+        scanAlerts,
         loadAlerts,
         createAlert,
         updateAlert,

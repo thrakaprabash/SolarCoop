@@ -30,6 +30,7 @@ import {
   User,
   Pencil,
   RotateCcw,
+  ScanSearch,
 } from 'lucide-react-native';
 
 const STATUS_FILTERS = ['All', 'Open', 'Resolved'];
@@ -74,6 +75,19 @@ const confirmAction = (title, message, confirmLabel, onConfirm) => {
 const recipientLabel = (alert) => {
   if (!alert.userId) return 'Community-wide';
   return alert.household ? `${alert.member} · ${alert.household}` : alert.member;
+};
+
+// One line summing up the last automatic scan, e.g.
+// "Last scan 12s ago — 2 new alerts · 1 check couldn't run (pending_requests)".
+const describeScan = (scan) => {
+  if (scan.error) return `Last scan failed: ${scan.error}`;
+
+  const parts = [scan.raised === 0 ? 'nothing new' : `${scan.raised} new alert${scan.raised === 1 ? '' : 's'}`];
+  if (scan.failedChecks.length > 0) {
+    const names = scan.failedChecks.map(f => f.check).join(', ');
+    parts.push(`${scan.failedChecks.length} check${scan.failedChecks.length === 1 ? '' : 's'} couldn't run (${names})`);
+  }
+  return `Last scan ${timeAgo(scan.at)} — ${parts.join(' · ')}`;
 };
 
 function Chip({ label, active, onPress, color }) {
@@ -483,6 +497,9 @@ export default function AlertsScreen() {
     resolveAlert,
     reopenAlert,
     deleteAlert,
+    scanAlerts,
+    scanning,
+    lastScan,
     members,
     setSelectedMember,
     setAdminBottomTab,
@@ -494,9 +511,10 @@ export default function AlertsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [form, setForm] = useState({ open: false, editing: null });
 
+  // Pulling to refresh re-runs the scan (which reloads alerts when it finishes).
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadAlerts();
+    await scanAlerts();
     setRefreshing(false);
   };
 
@@ -592,6 +610,18 @@ export default function AlertsScreen() {
           <Bell size={18} color={COLORS.amberLight} />
           <Text style={styles.screenTitle}>System Alerts</Text>
           <TouchableOpacity
+            style={[styles.scanBtn, scanning && styles.scanBtnDisabled]}
+            onPress={() => scanAlerts()}
+            disabled={scanning}
+            activeOpacity={0.8}
+          >
+            {scanning
+              ? <ActivityIndicator size="small" color={COLORS.tealLight} />
+              : <ScanSearch size={14} color={COLORS.tealLight} />
+            }
+            <Text style={styles.scanBtnText}>{scanning ? 'Scanning…' : 'Scan'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.newBtn}
             onPress={() => setForm({ open: true, editing: null })}
             activeOpacity={0.8}
@@ -609,6 +639,18 @@ export default function AlertsScreen() {
               <Text style={styles.staleBannerRetry}>Retry</Text>
             </TouchableOpacity>
           </View>
+        ) : null}
+
+        {/* What the last automatic scan found (or why it couldn't run) */}
+        {lastScan ? (
+          <Text
+            style={[
+              styles.scanNote,
+              (lastScan.error || lastScan.failedChecks.length > 0) && { color: COLORS.amberLight },
+            ]}
+          >
+            {describeScan(lastScan)}
+          </Text>
         ) : null}
 
         {/* Open-alert count per severity — tap one to filter by it */}
@@ -718,6 +760,21 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245,158,11,0.35)',
   },
   newBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.amberLight },
+
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    backgroundColor: 'rgba(45,212,191,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(45,212,191,0.3)',
+  },
+  scanBtnDisabled: { opacity: 0.6 },
+  scanBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.tealLight },
+  scanNote: { fontSize: 11, color: COLORS.textMuted, fontWeight: '500', marginTop: -4 },
 
   staleBanner: {
     flexDirection: 'row',
