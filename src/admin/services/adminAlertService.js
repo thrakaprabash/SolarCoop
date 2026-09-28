@@ -34,6 +34,9 @@ const ALERT_COLUMNS = 'id, alert_type, user_id, message, severity, status, sourc
 // default severity. Anything the registry doesn't know still renders (label
 // falls back to a humanised key, category to 'Other') so an unrecognised row
 // never breaks the inbox.
+//
+// Raised by database triggers, not app code (0004_event_alerts.sql):
+// transaction_reversed and complaint_new.
 
 export const ALERT_CATEGORIES = ['Energy', 'Transactions', 'Members', 'Complaints', 'System', 'Notice'];
 
