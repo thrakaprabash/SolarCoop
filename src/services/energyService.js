@@ -186,17 +186,18 @@ export const updateAppliance = async (applianceId, active) => {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch chart data for a given range ('day' | 'week' | 'month').
- * SOL-153: Backend retrieval from Supabase chart_data table.
+ * Fetch chart data for a given range ('day' | 'week' | 'month' | 'today' | '7d' | '30d' | 'custom').
+ * SOL-153 / SOL-186: Backend retrieval from Supabase chart_data table with multi-range & granularity support.
  * Returns the row or null when none exists.
  */
-export const fetchChartData = async (userId, range = 'day') => {
-  const { data, error } = await supabase
+export const fetchChartData = async (userId, range = 'day', granularity = null) => {
+  let query = supabase
     .from('chart_data')
     .select('*')
     .eq('user_id', userId)
-    .eq('range', range)
-    .maybeSingle();
+    .eq('range', range);
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) throw error;
   return data;

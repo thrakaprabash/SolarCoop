@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 import {
   fetchMetrics,
@@ -11,6 +12,17 @@ import {
 } from '../services/energyService';
 
 const EnergyContext = createContext();
+
+// ─── SOL-185: Default Dashboard Widget Layout ────────────────────────────────
+export const DEFAULT_WIDGET_LAYOUT = [
+  { id: 'telemetry', label: 'Live Real-Time Telemetry', visible: true, locked: false },
+  { id: 'powerGrid', label: 'Current Power Grid (2×2)', visible: true, locked: true },
+  { id: 'environmental', label: 'Environmental Benefits', visible: true, locked: false },
+  { id: 'sitePower', label: 'Site Power & Flow Diagram', visible: true, locked: false },
+  { id: 'coopActivity', label: 'Co-op Community Activity', visible: true, locked: false },
+  { id: 'quickActions', label: 'Quick Actions (Share & Borrow)', visible: true, locked: false },
+];
+export const WIDGET_STORAGE_KEY = '@solarcoop_widget_layout_v1';
 
 // ─── Offline / fallback mock data ────────────────────────────────────────────
 // Kept as defaults so the dashboard renders even when Supabase is unreachable.
@@ -42,6 +54,38 @@ export const mockChartDataByRange = {
     surplus:     [0.0, 0.0, 2.6, 4.7, 4.7, 0.3, 0.0, 0.0],
     deficit:     [1.3, 0.4, 0.0, 0.0, 0.0, 0.0, 5.0, 4.5],
   },
+  today: {
+    '1h': {
+      hours:       ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+      production:  [0.5, 2.8, 6.4, 8.8, 8.2, 5.1, 1.2, 0.0],
+      consumption: [1.8, 3.2, 3.8, 4.1, 3.5, 4.8, 6.2, 4.5],
+      surplus:     [0.0, 0.0, 2.6, 4.7, 4.7, 0.3, 0.0, 0.0],
+      deficit:     [1.3, 0.4, 0.0, 0.0, 0.0, 0.0, 5.0, 4.5],
+    },
+    '30m': {
+      hours:       ['06:00', '07:30', '09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'],
+      production:  [0.4, 1.6, 4.8, 7.5, 8.8, 8.5, 6.8, 4.2, 1.1, 0.1],
+      consumption: [1.6, 2.4, 3.5, 3.7, 4.1, 3.8, 3.6, 5.0, 6.0, 4.8],
+      surplus:     [0.0, 0.0, 1.3, 3.8, 4.7, 4.7, 3.2, 0.0, 0.0, 0.0],
+      deficit:     [1.2, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 4.9, 4.7],
+    },
+  },
+  yesterday: {
+    '1h': {
+      hours:       ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+      production:  [0.3, 2.4, 5.8, 8.1, 7.6, 4.8, 0.9, 0.0],
+      consumption: [2.1, 3.4, 3.6, 4.0, 3.7, 4.6, 5.8, 4.2],
+      surplus:     [0.0, 0.0, 2.2, 4.1, 3.9, 0.2, 0.0, 0.0],
+      deficit:     [1.8, 1.0, 0.0, 0.0, 0.0, 0.0, 4.9, 4.2],
+    },
+    '30m': {
+      hours:       ['06:00', '07:30', '09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'],
+      production:  [0.2, 1.4, 4.2, 6.9, 8.1, 7.9, 6.1, 3.9, 0.8, 0.0],
+      consumption: [1.9, 2.8, 3.4, 3.8, 4.0, 3.9, 3.8, 4.8, 5.6, 4.4],
+      surplus:     [0.0, 0.0, 0.8, 3.1, 4.1, 4.0, 2.3, 0.0, 0.0, 0.0],
+      deficit:     [1.7, 1.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9, 4.8, 4.4],
+    },
+  },
   week: {
     hours:       ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     production:  [38.2, 41.5, 44.1, 48.6, 42.3, 36.8, 39.4],
@@ -49,12 +93,60 @@ export const mockChartDataByRange = {
     surplus:     [16.1, 16.7, 20.6, 23.4, 16.2, 16.5, 17.7],
     deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   },
+  '7d': {
+    '1d': {
+      hours:       ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      production:  [38.2, 41.5, 44.1, 48.6, 42.3, 36.8, 39.4],
+      consumption: [22.1, 24.8, 23.5, 25.2, 26.1, 20.3, 21.7],
+      surplus:     [16.1, 16.7, 20.6, 23.4, 16.2, 16.5, 17.7],
+      deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+    '6h': {
+      hours:       ['Mon AM', 'Mon PM', 'Wed AM', 'Wed PM', 'Fri AM', 'Fri PM', 'Sun AM', 'Sun PM'],
+      production:  [18.5, 19.7, 21.2, 22.9, 20.5, 21.8, 19.1, 20.3],
+      consumption: [10.4, 11.7, 11.2, 12.3, 12.8, 13.3, 10.2, 11.5],
+      surplus:     [8.1, 8.0, 10.0, 10.6, 7.7, 8.5, 8.9, 8.8],
+      deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+  },
   month: {
     hours:       ['W1', 'W2', 'W3', 'W4'],
     production:  [280.5, 302.1, 315.8, 290.3],
     consumption: [168.2, 175.6, 182.1, 170.4],
     surplus:     [112.3, 126.5, 133.7, 119.9],
     deficit:     [0.0, 0.0, 0.0, 0.0],
+  },
+  '30d': {
+    '1w': {
+      hours:       ['W1', 'W2', 'W3', 'W4'],
+      production:  [280.5, 302.1, 315.8, 290.3],
+      consumption: [168.2, 175.6, 182.1, 170.4],
+      surplus:     [112.3, 126.5, 133.7, 119.9],
+      deficit:     [0.0, 0.0, 0.0, 0.0],
+    },
+    '1d': {
+      hours:       ['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30'],
+      production:  [40.2, 42.1, 45.3, 44.8, 39.5, 41.2, 43.6],
+      consumption: [24.1, 25.0, 23.8, 26.2, 25.4, 23.9, 24.5],
+      surplus:     [16.1, 17.1, 21.5, 18.6, 14.1, 17.3, 19.1],
+      deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+  },
+  custom: {
+    '1d': {
+      hours:       ['09/01', '09/05', '09/10', '09/15', '09/20', '09/25', '09/29'],
+      production:  [39.5, 41.2, 43.8, 46.1, 42.0, 40.5, 44.2],
+      consumption: [23.5, 24.2, 23.9, 25.1, 25.8, 22.6, 23.4],
+      surplus:     [16.0, 17.0, 19.9, 21.0, 16.2, 17.9, 20.8],
+      deficit:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+    '1w': {
+      hours:       ['Sep W1', 'Sep W2', 'Sep W3', 'Sep W4'],
+      production:  [275.4, 298.2, 310.5, 288.6],
+      consumption: [165.0, 172.4, 180.2, 168.9],
+      surplus:     [110.4, 125.8, 130.3, 119.7],
+      deficit:     [0.0, 0.0, 0.0, 0.0],
+    },
   },
 };
 
@@ -142,6 +234,24 @@ export const EnergyProvider = ({ children }) => {
   const [historyLogs, setHistoryLogs] = useState(initialHistoryLogs);
   const [chartData, setChartData]   = useState(initialChartData);
 
+  // ── SOL-187: Live Telemetry State ──
+  const [telemetryStatus, setTelemetryStatus] = useState('live'); // 'live' | 'polling' | 'offline'
+  const [lastFetchedAt, setLastFetchedAt]     = useState(new Date().toISOString());
+  const [telemetryHealth, setTelemetryHealth] = useState({
+    inverterStatus: 'Optimal',
+    gridFrequency: '50.0 Hz',
+    pingMs: 38,
+    efficiency: 99.2,
+  });
+
+  // ── SOL-185: Widget Customization Layout State ──
+  const [widgetLayout, setWidgetLayout] = useState(DEFAULT_WIDGET_LAYOUT);
+
+  // ── SOL-186: Date-Range & Granularity State ──
+  const [dateRange, setDateRange]               = useState('today');
+  const [customDateRange, setCustomDateRange]   = useState({ startDate: '2026-09-01', endDate: '2026-09-29' });
+  const [granularity, setGranularity]           = useState('1h');
+
   // ── Loading / error / pagination ──
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
@@ -155,6 +265,52 @@ export const EnergyProvider = ({ children }) => {
 
   // Polling interval ref
   const pollRef = useRef(null);
+
+  // ── SOL-185: Load saved widget layout from AsyncStorage on mount ──
+  useEffect(() => {
+    const loadSavedLayout = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(WIDGET_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Merge with default to guarantee new widgets are present
+            const merged = parsed.map(item => {
+              const def = DEFAULT_WIDGET_LAYOUT.find(d => d.id === item.id);
+              return def ? { ...def, ...item } : item;
+            });
+            DEFAULT_WIDGET_LAYOUT.forEach(def => {
+              if (!merged.some(m => m.id === def.id)) {
+                merged.push(def);
+              }
+            });
+            setWidgetLayout(merged);
+          }
+        }
+      } catch (e) {
+        console.warn('[EnergyContext] Failed to load widget layout:', e);
+      }
+    };
+    loadSavedLayout();
+  }, []);
+
+  const updateWidgetLayout = useCallback(async (newLayout) => {
+    setWidgetLayout(newLayout);
+    try {
+      await AsyncStorage.setItem(WIDGET_STORAGE_KEY, JSON.stringify(newLayout));
+    } catch (e) {
+      console.warn('[EnergyContext] Failed to save widget layout:', e);
+    }
+  }, []);
+
+  const resetWidgetLayout = useCallback(async () => {
+    setWidgetLayout(DEFAULT_WIDGET_LAYOUT);
+    try {
+      await AsyncStorage.removeItem(WIDGET_STORAGE_KEY);
+    } catch (e) {
+      console.warn('[EnergyContext] Failed to reset widget layout:', e);
+    }
+  }, []);
 
   // ── Initial data load ──────────────────────────────────────────────────────
   const loadAllData = useCallback(async () => {
@@ -190,14 +346,49 @@ export const EnergyProvider = ({ children }) => {
 
   // ── Metrics-only refresh (for polling) ────────────────────────────────────
   const refreshMetrics = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLastFetchedAt(new Date().toISOString());
+      return;
+    }
     try {
       const row = await fetchMetrics(user.id);
-      if (row) setMetrics(mapMetricsRow(row));
+      if (row) {
+        setMetrics(mapMetricsRow(row));
+        setLastFetchedAt(new Date().toISOString());
+        setTelemetryStatus('live');
+      }
     } catch (err) {
       console.warn('[EnergyContext] Metrics poll failed:', err.message);
+      setTelemetryStatus('offline');
     }
   }, [user?.id]);
+
+  // ── SOL-187: Manual Telemetry Refresh Trigger ─────────────────────────────
+  const refreshMetricsNow = useCallback(async () => {
+    setLastFetchedAt(new Date().toISOString());
+    // Simulate slight natural ping/latency variance
+    const simulatedPing = Math.floor(32 + Math.random() * 12);
+    setTelemetryHealth(prev => ({
+      ...prev,
+      pingMs: simulatedPing,
+      efficiency: Number((99.1 + Math.random() * 0.5).toFixed(1)),
+    }));
+
+    if (user?.id) {
+      try {
+        await refreshMetrics();
+        setTelemetryStatus('live');
+        return true;
+      } catch (err) {
+        setTelemetryStatus('offline');
+        return false;
+      }
+    } else {
+      // Offline / dev mode simulation
+      setTelemetryStatus('live');
+      return true;
+    }
+  }, [user?.id, refreshMetrics]);
 
   // ── Load data when user signs in ──────────────────────────────────────────
   useEffect(() => {
@@ -209,10 +400,12 @@ export const EnergyProvider = ({ children }) => {
       setChartData(initialChartData);
       setHistoryPage(1);
       setHistoryHasMore(false);
+      setLastFetchedAt(new Date().toISOString());
       return;
     }
 
     loadAllData();
+    setLastFetchedAt(new Date().toISOString());
 
     // Poll metrics every 30 seconds
     pollRef.current = setInterval(refreshMetrics, 30_000);
@@ -329,11 +522,14 @@ export const EnergyProvider = ({ children }) => {
     }
   }, [user?.id, loadingMore, historyHasMore, historyPage]);
 
-  // ── Chart range fetch ─────────────────────────────────────────────────────
-  const loadChartData = useCallback(async (range) => {
+  // ── SOL-186: Chart range & granularity fetch ──────────────────────────────
+  const loadChartData = useCallback(async (range = 'today', gran = '1h') => {
+    // Map legacy keys
+    const normalizedRange = range === 'day' ? 'today' : range === 'week' ? '7d' : range === 'month' ? '30d' : range;
+
     if (user?.id) {
       try {
-        const row = await fetchChartData(user.id, range);
+        const row = await fetchChartData(user.id, normalizedRange);
         if (row && row.hours && row.hours.length > 0) {
           setChartData(mapChartRow(row));
           return;
@@ -342,9 +538,20 @@ export const EnergyProvider = ({ children }) => {
         console.warn('[EnergyContext] loadChartData failed, using fallback:', err.message);
       }
     }
-    // Fallback if offline or table not found
-    if (mockChartDataByRange[range]) {
-      setChartData(mockChartDataByRange[range]);
+
+    // Fallback if offline or table not populated: check granular structure
+    const rangeObj = mockChartDataByRange[normalizedRange] || mockChartDataByRange[range];
+    if (rangeObj) {
+      if (rangeObj[gran]) {
+        setChartData(rangeObj[gran]);
+      } else if (rangeObj.hours) {
+        setChartData(rangeObj);
+      } else {
+        const firstKey = Object.keys(rangeObj)[0];
+        setChartData(rangeObj[firstKey] || initialChartData);
+      }
+    } else {
+      setChartData(initialChartData);
     }
   }, [user?.id]);
 
@@ -384,8 +591,26 @@ export const EnergyProvider = ({ children }) => {
         historyHasMore,
         loadingMore,
 
-        // Chart range
+        // Chart range & granularity (SOL-186)
         loadChartData,
+        dateRange,
+        setDateRange,
+        customDateRange,
+        setCustomDateRange,
+        granularity,
+        setGranularity,
+
+        // Live Telemetry (SOL-187)
+        telemetryStatus,
+        setTelemetryStatus,
+        lastFetchedAt,
+        telemetryHealth,
+        refreshMetricsNow,
+
+        // Widget Customization (SOL-185)
+        widgetLayout,
+        updateWidgetLayout,
+        resetWidgetLayout,
 
         // Auto-share settings
         autoShareEnabled,

@@ -4,25 +4,21 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
+import { DateRangeFilter } from './DateRangeFilter';
 
-// Range config: maps display label → DB range key
-const RANGES = [
-  { label: 'Day',   key: 'day'   },
-  { label: 'Week',  key: 'week'  },
-  { label: 'Month', key: 'month' },
-];
-
-// SOL-102 / SOL-153: Interactive Energy Charts View Component & Backend Integration
+// SOL-102 / SOL-153 / SOL-186: Interactive Energy Charts View Component & Multi-Range Filter
 export const ChartsView = () => {
-  const { chartData, loadChartData } = useEnergy();
-  const [activeRange, setActiveRange] = useState('day');
-  const [selectedIndex, setSelectedIndex] = useState(3); // Default point selected
-
-  const handleRangeChange = (key) => {
-    setActiveRange(key);
-    setSelectedIndex(0);
-    loadChartData(key);
-  };
+  const { 
+    chartData, 
+    loadChartData,
+    dateRange,
+    setDateRange,
+    customDateRange,
+    setCustomDateRange,
+    granularity,
+    setGranularity,
+  } = useEnergy();
+  const [selectedIndex, setSelectedIndex] = useState(0); // Default point selected
 
   // Safe data extraction
   const hours = chartData?.hours || [];
@@ -76,6 +72,9 @@ export const ChartsView = () => {
   const deltas = hours.map((_, i) => (Number(prod[i]) || 0) - (Number(cons[i]) || 0));
   const maxDelta = Math.max(1, ...deltas.map(Math.abs));
 
+  // Dynamic unit: kW for live/hourly day charts, kWh for cumulative multi-day windows
+  const metricUnit = (dateRange === 'today' || dateRange === 'yesterday') ? 'kW' : 'kWh';
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -83,26 +82,26 @@ export const ChartsView = () => {
         <Text style={styles.storyBadgeTitle}>Interactive Energy Charts</Text>
       </View>
 
-      {/* Time range selector bar */}
-      <View style={styles.timeRangeContainer}>
-        {RANGES.map(({ label, key }) => (
-          <TouchableOpacity
-            key={key}
-            style={[
-              styles.rangeTab,
-              activeRange === key ? styles.rangeTabActive : styles.rangeTabInactive,
-            ]}
-            onPress={() => handleRangeChange(key)}
-          >
-            <Text style={[
-              styles.rangeTabText,
-              activeRange === key && styles.rangeTabTextActive,
-            ]}>
-              {label.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Date Range & Granularity Filter (SOL-186) */}
+      <DateRangeFilter
+        activeRange={dateRange}
+        onSelectRange={(range) => {
+          setDateRange(range);
+          setSelectedIndex(0);
+          loadChartData(range, granularity);
+        }}
+        activeGranularity={granularity}
+        onSelectGranularity={(gran) => {
+          setGranularity(gran);
+          loadChartData(dateRange, gran);
+        }}
+        customRange={customDateRange}
+        onSelectCustomRange={(cr) => {
+          setCustomDateRange(cr);
+          setSelectedIndex(0);
+          loadChartData('custom', granularity);
+        }}
+      />
 
       {/* Main Dual Line Chart: Solar Production vs Household Consumption */}
       <View style={styles.chartCard}>
@@ -217,19 +216,19 @@ export const ChartsView = () => {
             <View style={styles.inspectionCol}>
               <Text style={styles.inspectionLabel}>Production</Text>
               <Text style={[styles.inspectionVal, { color: COLORS.amber }]}>
-                {selectedProd.toFixed(1)} {activeRange === 'day' ? 'kW' : 'kWh'}
+                {selectedProd.toFixed(1)} {metricUnit}
               </Text>
             </View>
             <View style={styles.inspectionCol}>
               <Text style={styles.inspectionLabel}>Consumption</Text>
               <Text style={[styles.inspectionVal, { color: COLORS.teal }]}>
-                {selectedCons.toFixed(1)} {activeRange === 'day' ? 'kW' : 'kWh'}
+                {selectedCons.toFixed(1)} {metricUnit}
               </Text>
             </View>
             <View style={styles.inspectionCol}>
               <Text style={styles.inspectionLabel}>Net Delta</Text>
               <Text style={[styles.inspectionVal, { color: selectedProd >= selectedCons ? COLORS.tealLight : COLORS.red }]}>
-                {(selectedProd - selectedCons >= 0 ? '+' : '') + (selectedProd - selectedCons).toFixed(1)} {activeRange === 'day' ? 'kW' : 'kWh'}
+                {(selectedProd - selectedCons >= 0 ? '+' : '') + (selectedProd - selectedCons).toFixed(1)} {metricUnit}
               </Text>
             </View>
           </View>
