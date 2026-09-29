@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "SolarCoop",
+    "ok": "හරි",
+    "cancel": "අවලංගු කරන්න",
+    "loading": "පූරණය වෙමින්…",
+    "welcomeMessage": "SolarCoop වෙත සාදරයෙන් පිළිගනිමු"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "පරිපාලක උපකරණ පුවරුව"
+    }
+  }
+}

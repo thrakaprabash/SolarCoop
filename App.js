@@ -42,6 +42,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './src/i18n';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
 import { TradeProvider } from './src/trade/context/TradeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -826,13 +828,15 @@ function RoleRouter() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <EnergyProvider>
-        <TradeProvider>
-          <RoleRouter />
-        </TradeProvider>
-      </EnergyProvider>
-    </AuthProvider>
+    <I18nextProvider i18n={i18n}>
+      <AuthProvider>
+        <EnergyProvider>
+          <TradeProvider>
+            <RoleRouter />
+          </TradeProvider>
+        </EnergyProvider>
+      </AuthProvider>
+    </I18nextProvider>
   );
 }
 
