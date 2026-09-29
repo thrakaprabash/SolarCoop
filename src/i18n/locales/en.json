@@ -328,6 +328,10 @@
       }
     }
   },
+  "faultAlert": {
+    "title": "Routine Maintenance Scheduled",
+    "defaultMessage": "Your system is safe. A technician will check on it soon — there is nothing you need to do."
+  },
   "technician": {
     "header": {
       "appName": "SolarCoop Tech",

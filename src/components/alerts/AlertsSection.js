@@ -9,6 +9,7 @@ import {
   editComplaint,
   deleteComplaint,
 } from '../../services/complaintService';
+import { fetchMyFaultAlerts } from '../../services/faultAlertService';
 
 export const AlertsSection = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export const AlertsSection = () => {
   const [editingComplaint, setEditingComplaint] = useState(null);
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [faultAlerts, setFaultAlerts] = useState([]);
 
   const loadComplaints = useCallback(async () => {
     if (!user?.id) {
@@ -33,14 +35,28 @@ export const AlertsSection = () => {
     }
   }, [user?.id]);
 
+  // Maintenance jobs at this household (SOL-199). Secondary to complaints,
+  // so a failure here is logged and the card simply isn't shown.
+  const loadFaultAlerts = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setFaultAlerts(await fetchMyFaultAlerts(user.id));
+    } catch (err) {
+      console.warn('[AlertsSection] loadFaultAlerts failed:', err?.message);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     loadComplaints();
-  }, [loadComplaints]);
+    loadFaultAlerts();
+  }, [loadComplaints, loadFaultAlerts]);
 
   const handleCreateSubmit = async (formData) => {
     if (!user?.id) throw new Error('User not authenticated.');
     const newRecord = await submitComplaint(user.id, formData);
     setComplaints(prev => [newRecord, ...prev]);
+    // A 'System Fault' complaint raises a job server-side (0006 trigger).
+    loadFaultAlerts();
   };
 
   const handleEditSubmit = async (formData) => {
@@ -90,6 +106,7 @@ export const AlertsSection = () => {
           <AlertsHubScreen
             onNavigate={(newScreen) => setScreen(newScreen)}
             complaints={complaints}
+            faultAlerts={faultAlerts}
             loading={loading}
             onEdit={handleStartEdit}
             onDelete={handleDeleteComplaint}
