@@ -10,6 +10,7 @@ import {
   Platform,
   UIManager,
   ActivityIndicator,
+  RefreshControl,
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -321,6 +322,7 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
 export default function ComplaintsScreen() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
   const {
     complaints,
     complaintsLoading,
@@ -330,6 +332,12 @@ export default function ComplaintsScreen() {
     saveResolutionNote,
     clearResolutionNote,
   } = useAdmin();
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadComplaints();
+    setRefreshing(false);
+  };
 
   const filtered = filter === 'All'
     ? complaints
@@ -349,7 +357,14 @@ export default function ComplaintsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.amberLight} />
+      }
+    >
 
       {/* Title */}
       <View style={styles.titleRow}>
