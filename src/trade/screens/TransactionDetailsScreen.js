@@ -1,11 +1,12 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ArrowDown, ArrowUp, Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ArrowDown, ArrowUp, Check, X } from 'lucide-react-native';
 
 import { colors, weight } from '../theme';
-import { SELF_LABEL } from '../data/transactions';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../../context/AuthContext';
+import { fetchTransactionById } from '../services/transactionService';
 import { kwh, stamp } from '../utils/format';
 import {
   Card,
@@ -21,8 +22,49 @@ import {
 export default function TransactionDetailsScreen() {
   const { params, navigate } = useNavigation();
   const { getTransaction, showToast } = useTrade();
+  const { user } = useAuth();
+  const [txn, setTxn] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reload, setReload] = useState(0);
 
-  const txn = getTransaction(params.txnId);
+  useEffect(() => {
+    let active = true;
+    setTxn(null);
+    setError('');
+    setLoading(true);
+    // History still shows its original sample entries until the history phase.
+    // Approval passes a real UUID and always reads the saved transaction.
+    if (params.source === 'history' && /^x[1-6]$/.test(String(params.txnId))) {
+      const sample = getTransaction(params.txnId);
+      setTxn(sample ? {
+        ...sample,
+        sender: sample.dir === 'sent' ? 'You' : sample.party,
+        receiver: sample.dir === 'sent' ? sample.party : 'You',
+        status: 'COMPLETED',
+      } : null);
+      setLoading(false);
+      return () => { active = false; };
+    }
+    fetchTransactionById(params.txnId, user?.id)
+      .then((data) => { if (active) setTxn(data); })
+      .catch((reason) => { if (active) setError(reason?.message || 'Could not load transaction details.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [params.txnId, params.source, user?.id, reload, getTransaction]);
+
+  if (loading) {
+    return <View style={styles.missing}><ActivityIndicator color={colors.tealLight} /></View>;
+  }
+
+  if (error) {
+    return (
+      <View style={styles.missing}>
+        <EmptyState title="Could not load transaction" body={error} />
+        <PrimaryButton label="Try Again" variant="ghost" onPress={() => setReload((value) => value + 1)} />
+      </View>
+    );
+  }
 
   if (!txn) {
     return (
@@ -33,16 +75,18 @@ export default function TransactionDetailsScreen() {
   }
 
   const sent = txn.dir === 'sent';
-  const showSummary = sent && txn.before != null;
+  const reversed = txn.status === 'REVERSED';
   const fromHistory = params.source === 'history';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <IconBadge size={66} borderColor={colors.tealBorder} style={styles.heroIcon}>
-          <Check size={32} color={colors.tealLight} strokeWidth={2.4} />
+          {reversed
+            ? <X size={32} color={colors.danger} strokeWidth={2.4} />
+            : <Check size={32} color={colors.tealLight} strokeWidth={2.4} />}
         </IconBadge>
-        <Text style={styles.heroTitle}>Transaction Complete</Text>
+        <Text style={styles.heroTitle}>{reversed ? 'Transaction Reversed' : 'Transaction Complete'}</Text>
         <Text style={styles.heroAmount}>
           {kwh(txn.kwh)}
           <Text style={styles.heroUnit}>{' kWh'}</Text>
@@ -59,7 +103,7 @@ export default function TransactionDetailsScreen() {
           </IconBadge>
           <View style={styles.partyBody}>
             <Text style={styles.partyLabel}>From</Text>
-            <Text style={styles.partyName}>{sent ? SELF_LABEL : txn.party}</Text>
+            <Text style={styles.partyName}>{sent ? 'You' : txn.sender}</Text>
           </View>
         </View>
 
@@ -69,7 +113,7 @@ export default function TransactionDetailsScreen() {
           </IconBadge>
           <View style={styles.partyBody}>
             <Text style={styles.partyLabel}>To</Text>
-            <Text style={styles.partyName}>{sent ? txn.party : SELF_LABEL}</Text>
+            <Text style={styles.partyName}>{sent ? txn.receiver : 'You'}</Text>
           </View>
         </View>
 
@@ -79,42 +123,20 @@ export default function TransactionDetailsScreen() {
 
         <DetailRow label="Status">
           <Pill
-            label="COMPLETED"
-            color={colors.tealLight}
-            background={colors.tealTintSoft}
-            dotColor={colors.teal}
-            style={styles.statusPill}
+            label={reversed ? 'REVERSED' : 'COMPLETED'}
+            color={reversed ? colors.danger : colors.tealLight}
+            background={reversed ? colors.dangerTint : colors.tealTintSoft}
+            dotColor={reversed ? colors.danger : colors.teal}
+            style={[styles.statusPill, { borderColor: reversed ? 'rgba(239,68,68,0.35)' : 'rgba(20,184,166,0.35)' }]}
           />
         </DetailRow>
 
         <DetailRow label="Transaction ID" value={txn.ref} />
       </Card>
 
-      {showSummary ? (
-        <>
-          <SectionLabel style={styles.summaryLabel}>Energy summary</SectionLabel>
-          <Card padding={18} style={styles.summaryCard}>
-            <DetailRow label="Available before" value={kwh(txn.before) + ' kWh'} valueSize={14} />
-            <DetailRow
-              label="Energy shared"
-              value={'−' + kwh(txn.kwh) + ' kWh'}
-              valueColor={colors.amberLight}
-              valueSize={14}
-            />
-            <Divider />
-            <DetailRow
-              label="Remaining surplus"
-              value={kwh(txn.after) + ' kWh'}
-              valueColor={colors.tealLight}
-              valueSize={18}
-            />
-          </Card>
-        </>
-      ) : null}
-
       <PrimaryButton
         label={fromHistory ? 'Back to History' : 'Done'}
-        onPress={() => navigate('history')}
+        onPress={() => navigate(fromHistory ? 'history' : 'incoming')}
         style={styles.done}
       />
 
@@ -157,10 +179,7 @@ const styles = StyleSheet.create({
     color: colors.textFaint,
   },
   partyName: { fontSize: 15, fontWeight: weight.heavy, color: colors.text },
-  statusPill: { paddingVertical: 4, borderColor: 'rgba(20,184,166,0.35)' },
-
-  summaryLabel: { marginTop: 2 },
-  summaryCard: { gap: 12 },
+  statusPill: { paddingVertical: 4 },
   done: { marginTop: 2 },
   report: { alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 10 },
   reportLabel: { fontSize: 12, fontWeight: weight.medium, color: colors.textFaint },

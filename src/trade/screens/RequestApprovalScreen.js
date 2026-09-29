@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Check, TriangleAlert, X } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../theme';
@@ -21,9 +21,16 @@ import {
 
 export default function RequestApprovalScreen() {
   const { params, navigate } = useNavigation();
-  const { getIncoming, surplus, approveIncoming, rejectIncoming } = useTrade();
+  const { getIncoming, surplus, providersLoading, providersError, refreshProviders, approveIncoming, rejectIncoming } = useTrade();
   const [modal, setModal] = useState('');
   const [rejected, setRejected] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const pendingAction = useRef(false);
+
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
 
   const request = getIncoming(params.incomingId);
 
@@ -36,20 +43,44 @@ export default function RequestApprovalScreen() {
   }
 
   const pending = request.status === 'Pending';
-  const canApprove = request.kwh <= surplus;
+  const canApprove = !providersLoading && !providersError && request.kwh <= surplus;
   const remaining = Math.max(0, +(surplus - request.kwh).toFixed(1));
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
-  const onApprove = () => {
-    const txn = approveIncoming(request);
-    setModal('');
-    if (txn) navigate('transaction', { txnId: txn.id, source: 'approval' });
+  const onApprove = async () => {
+    if (pendingAction.current) return;
+    pendingAction.current = true;
+    setBusy(true);
+    setActionError('');
+    try {
+      const { data, error } = await approveIncoming(request);
+      if (error) throw error;
+      navigate('transaction', { txnId: data.id, source: 'approval' });
+    } catch (error) {
+      setActionError(error?.message || 'Could not approve this request.');
+    } finally {
+      pendingAction.current = false;
+      setBusy(false);
+      setModal('');
+    }
   };
 
-  const onReject = () => {
-    rejectIncoming(request);
-    setModal('');
-    setRejected(true);
+  const onReject = async () => {
+    if (pendingAction.current) return;
+    pendingAction.current = true;
+    setBusy(true);
+    setActionError('');
+    try {
+      const { error } = await rejectIncoming(request);
+      if (error) throw error;
+      setRejected(true);
+    } catch (error) {
+      setActionError(error?.message || 'Could not reject this request.');
+    } finally {
+      pendingAction.current = false;
+      setBusy(false);
+      setModal('');
+    }
   };
 
   if (rejected) {
@@ -101,18 +132,33 @@ export default function RequestApprovalScreen() {
 
       <SectionLabel>Your energy status</SectionLabel>
 
-      <SurplusCard
-        surplus={surplus}
-        large
-        afterText={pending ? (canApprove ? kwh(remaining) + ' kWh remaining' : 'Not possible') : null}
-        afterColor={canApprove ? colors.tealLight : colors.danger}
-      />
+      <Notice tone="error" message={actionError} />
+
+      {providersError ? (
+        <View style={styles.balanceError}>
+          <Notice tone="error" message={'Could not load available surplus: ' + providersError} />
+          <Pressable onPress={refreshProviders} style={styles.retryBalance}>
+            <Text style={styles.retryBalanceLabel}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {providersLoading ? <ActivityIndicator color={colors.tealLight} /> : null}
+
+      {!providersLoading && !providersError ? (
+        <SurplusCard
+          surplus={surplus}
+          large
+          afterText={pending ? (canApprove ? kwh(remaining) + ' kWh remaining' : 'Not possible') : null}
+          afterColor={canApprove ? colors.tealLight : colors.danger}
+        />
+      ) : null}
 
       {pending && canApprove ? (
         <Notice tone="success" message="You have enough surplus to complete this request." />
       ) : null}
 
-      {pending && !canApprove ? (
+      {pending && !canApprove && !providersLoading && !providersError ? (
         <View style={styles.shortfall}>
           <View style={styles.shortfallHead}>
             <TriangleAlert size={16} color={colors.danger} strokeWidth={2} />
@@ -135,7 +181,7 @@ export default function RequestApprovalScreen() {
           <Divider style={styles.actionDivider} />
           <View style={styles.actions}>
             <Pressable
-              onPress={() => setModal('reject')}
+              onPress={busy ? undefined : () => setModal('reject')}
               style={({ pressed }) => [styles.action, styles.reject, pressed && { opacity: 0.85 }]}
             >
               <X size={16} color={colors.danger} strokeWidth={2.2} />
@@ -143,7 +189,7 @@ export default function RequestApprovalScreen() {
             </Pressable>
 
             <Pressable
-              onPress={canApprove ? () => setModal('approve') : undefined}
+              onPress={canApprove && !busy ? () => setModal('approve') : undefined}
               style={({ pressed }) => [
                 styles.action,
                 {
@@ -182,6 +228,7 @@ export default function RequestApprovalScreen() {
           ' kWh.'
         }
         confirmLabel="Approve"
+        busy={busy}
         onConfirm={onApprove}
         onCancel={() => setModal('')}
       />
@@ -189,9 +236,10 @@ export default function RequestApprovalScreen() {
       <ConfirmModal
         visible={modal === 'reject'}
         title="Reject this request?"
-        body={request.name + ' will be notified that their request for ' + kwh(request.kwh) + ' kWh was declined.'}
+        body={request.name + ' will see that their request for ' + kwh(request.kwh) + ' kWh was declined.'}
         confirmLabel="Reject"
         tone="danger"
+        busy={busy}
         onConfirm={onReject}
         onCancel={() => setModal('')}
       />
@@ -239,6 +287,9 @@ const styles = StyleSheet.create({
   },
   shortfallHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   shortfallTitle: { color: colors.danger, fontSize: 12, fontWeight: weight.heavy },
+  balanceError: { gap: 8 },
+  retryBalance: { alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 10 },
+  retryBalanceLabel: { color: colors.tealLight, fontSize: 12, fontWeight: weight.bold },
 
   messageCard: {
     backgroundColor: colors.surfaceAlt,

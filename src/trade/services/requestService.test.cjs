@@ -7,8 +7,8 @@ function loadService(supabase) {
   const source = fs.readFileSync(path.join(__dirname, 'requestService.js'), 'utf8');
   const code = source
     .replace("import { supabase } from '../../lib/supabase';", 'const { supabase } = require("../../lib/supabase");')
-    .replace('export async function fetchMyRequests', 'async function fetchMyRequests')
-    + '\nmodule.exports = { fetchMyRequests };';
+    .replaceAll('export async function ', 'async function ')
+    + '\nmodule.exports = { fetchMyRequests, fetchIncomingRequests, approveRequest, rejectRequest };';
   const module = { exports: {} };
   const localRequire = (specifier) => {
     if (specifier === '../../lib/supabase') return { supabase };
@@ -33,6 +33,10 @@ function fakeSupabase(responses) {
       };
       return query;
     },
+    rpc(name, args) {
+      calls.push({ rpc: name, args });
+      return Promise.resolve(responses.shift());
+    },
   };
   return { supabase, calls };
 }
@@ -55,6 +59,41 @@ test('My Requests is scoped to the requester and maps server data for the UI', a
     { id: '12', name: 'Solar Home', kwh: 2.5, status: 'Completed', ts: '2026-09-29T10:00:00.000Z', rate: null },
     { id: '11', name: 'Household', kwh: 1.25, status: 'Pending', ts: '2026-09-28T10:00:00.000Z', rate: null },
   ]);
+});
+
+test('Incoming Requests is scoped to the provider and maps requester data', async () => {
+  const { supabase, calls } = fakeSupabase([
+    { data: [
+      { id: 18, provider_id: 'owner-1', requester_id: 'member-1', amount_requested_kwh: '0.5', status: 'PENDING', created_at: '2026-09-30T10:00:00Z' },
+      { id: 17, provider_id: 'owner-1', requester_id: 'member-2', amount_requested_kwh: '1', status: 'REJECTED', created_at: '2026-09-29T10:00:00Z' },
+    ], error: null },
+    { data: [{ id: 'member-1', name: 'Test Requester' }], error: null },
+  ]);
+  const { fetchIncomingRequests } = loadService(supabase);
+  const rows = await fetchIncomingRequests('owner-1');
+
+  assert.deepEqual(calls[0].filters, [['eq', 'provider_id', 'owner-1']]);
+  assert.deepEqual(calls[1].filters, [['in', 'id', ['member-1', 'member-2']]]);
+  assert.deepEqual(rows.map(({ id, name, initials, kwh, status }) => ({ id, name, initials, kwh, status })), [
+    { id: '18', name: 'Test Requester', initials: 'TR', kwh: 0.5, status: 'Pending' },
+    { id: '17', name: 'Community Member', initials: 'CM', kwh: 1, status: 'Rejected' },
+  ]);
+});
+
+test('approve and reject use guarded RPCs and validate request IDs', async () => {
+  const { supabase, calls } = fakeSupabase([
+    { data: 'transaction-uuid', error: null },
+    { data: true, error: null },
+  ]);
+  const { approveRequest, rejectRequest } = loadService(supabase);
+  assert.equal(await approveRequest('18'), 'transaction-uuid');
+  assert.equal(await rejectRequest(19), true);
+  assert.deepEqual(calls, [
+    { rpc: 'trade_approve_request', args: { p_request_id: 18 } },
+    { rpc: 'trade_reject_request', args: { p_request_id: 19 } },
+  ]);
+  await assert.rejects(approveRequest('bad'), /Invalid request ID/);
+  assert.equal(calls.length, 2);
 });
 
 test('empty results and failed reads remain distinct', async () => {
