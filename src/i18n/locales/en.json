@@ -61,7 +61,29 @@
         "surplus": "Surplus",
         "openAlerts": "Open Alerts",
         "complaints": "Complaints"
+      },
+      "metricChip": {
+        "all": "All Metrics"
       }
+    },
+    "header": {
+      "alertsUnavailable": "Alerts unavailable",
+      "urgent": "{{count}} Urgent",
+      "openAlerts_one": "{{count}} Open Alert",
+      "openAlerts_other": "{{count}} Open Alerts",
+      "systemOk": "System OK",
+      "adminBadge": "ADMIN",
+      "subtitle": "Community Management Portal",
+      "overview": "Overview",
+      "logoutConfirmWeb": "Are you sure you want to log out?",
+      "logoutConfirmNative": "Are you sure you want to log out of the Admin Panel?"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "members": "Members",
+      "ledger": "Ledger",
+      "reports": "Reports",
+      "profile": "Profile"
     },
     "members": {
       "title": "Member Monitoring",
