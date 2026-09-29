@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -12,22 +13,23 @@ import { colors } from '../../trade/theme';
 import { useAdmin } from '../context/AdminContext';
 
 const TAB_KEYS = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'members',   label: 'Members',   icon: Users },
-  { key: 'ledger',    label: 'Ledger',    icon: Receipt },
-  { key: 'reports',   label: 'Reports',   icon: MessageSquare },
-  { key: 'profile',   label: 'Profile',   icon: UserCog },
+  { key: 'dashboard', labelKey: 'admin.nav.dashboard', icon: LayoutDashboard },
+  { key: 'members',   labelKey: 'admin.nav.members',   icon: Users },
+  { key: 'ledger',    labelKey: 'admin.nav.ledger',    icon: Receipt },
+  { key: 'reports',   labelKey: 'admin.nav.reports',   icon: MessageSquare },
+  { key: 'profile',   labelKey: 'admin.nav.profile',   icon: UserCog },
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const { t } = useTranslation();
   const { complaints } = useAdmin();
 
   // Count open complaints from live Supabase data
   const openComplaintsCount = (complaints || []).filter(c => c.status === 'Open').length;
 
-  const TABS = TAB_KEYS.map(t => ({
-    ...t,
-    badge: t.key === 'reports' && openComplaintsCount > 0 ? openComplaintsCount : null,
+  const TABS = TAB_KEYS.map(tab => ({
+    ...tab,
+    badge: tab.key === 'reports' && openComplaintsCount > 0 ? openComplaintsCount : null,
   }));
 
   return (
@@ -60,7 +62,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               )}
             </View>
             <Text style={[styles.label, { color, fontWeight: active ? '700' : '500' }]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </Pressable>
         );
