@@ -88,6 +88,45 @@ export async function fetchTechnicianJobs(technicianId) {
 }
 
 /**
+ * Accept a pending job: Pending → Active, assigned to this technician.
+ *
+ * The `status = 'pending'` filter makes this first-come-first-served — if
+ * another technician got there first the update matches nothing and we say
+ * so, instead of silently taking the job off them.
+ *
+ * @param {string} jobId
+ * @param {object} technician
+ * @param {string} technician.id   - auth user id
+ * @param {string} technician.name - shown to the household on their alert card
+ * @returns {Promise<object>} the updated job
+ */
+export async function acceptJob(jobId, { id: technicianId, name: technicianName }) {
+  if (!technicianId) throw new Error('Technician ID is required to accept a job.');
+
+  const { data, error } = await supabase
+    .from('jobs')
+    .update({
+      status: 'active',
+      technician_id: technicianId,
+      technician_name: technicianName || null,
+      accepted_at: new Date().toISOString(),
+    })
+    .eq('id', jobId)
+    .eq('status', 'pending')
+    .select(JOB_COLUMNS)
+    .single();
+
+  if (error) {
+    // PGRST116 = .single() matched zero rows: already accepted, or gone.
+    if (error.code === 'PGRST116') {
+      throw new Error('This job has already been accepted by another technician.');
+    }
+    throw error;
+  }
+  return buildJob(data);
+}
+
+/**
  * Past completed jobs at one household — the Maintenance History timeline
  * on the Diagnostic Dossier. Most recent first.
  *

@@ -388,7 +388,13 @@
       "noHistory": "No previous maintenance at this site.",
       "historyError": "Could not load maintenance history.",
       "by": "by {{name}}",
-      "unknownTech": "Unknown technician"
+      "unknownTech": "Unknown technician",
+      "accept": "Accept Job Ticket",
+      "acceptErrorTitle": "Could not accept job",
+      "acceptErrorBody": "Please try again.",
+      "acceptedByYou": "You accepted this job on {{date}}.",
+      "acceptedBy": "Accepted by {{name}}.",
+      "completedOn": "Completed on {{date}}."
     }
   }
 }

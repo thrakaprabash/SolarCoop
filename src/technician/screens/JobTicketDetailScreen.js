@@ -3,7 +3,8 @@ import {
   ActivityIndicator, Alert, BackHandler, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Cpu, History, MapPin, TriangleAlert, User } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft, CircleCheck, Cpu, History, MapPin, TriangleAlert, User, Wrench } from 'lucide-react-native';
 import { TECH, urgencyColor } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
@@ -44,7 +45,8 @@ function InfoLine({ label, value }) {
  */
 export default function JobTicketDetailScreen() {
   const { t } = useTranslation();
-  const { selectedJob: job, closeJob } = useTechnician();
+  const { selectedJob: job, closeJob, acceptJob, technicianId } = useTechnician();
+  const [accepting, setAccepting] = useState(false);
 
   const [history, setHistory]               = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -72,6 +74,18 @@ export default function JobTicketDetailScreen() {
 
   const faultColor = job.errorCode ? TECH.red : TECH.amber;
   const directionsUrl = buildDirectionsUrl(job.siteAddress);
+
+  // SOL-197 — Pending → Active.
+  const handleAccept = async () => {
+    setAccepting(true);
+    try {
+      await acceptJob(job.id);
+    } catch (err) {
+      notify(t('technician.detail.acceptErrorTitle'), err?.message || t('technician.detail.acceptErrorBody'));
+    } finally {
+      setAccepting(false);
+    }
+  };
 
   // SOL-196 — hand off to Google Maps for turn-by-turn directions to the site.
   const handleNavigate = async () => {
@@ -162,6 +176,40 @@ export default function JobTicketDetailScreen() {
           </View>
         )}
       </DossierCard>
+
+      {/* ── Workflow action ── */}
+      {job.status === 'pending' ? (
+        <Pressable onPress={handleAccept} disabled={accepting} style={({ pressed }) => pressed && styles.pressed}>
+          <LinearGradient
+            colors={[TECH.orange, TECH.orangeDark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.acceptBtn, accepting && styles.btnDisabled]}
+          >
+            {accepting
+              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              : <Text style={styles.acceptText}>{t('technician.detail.accept')}</Text>}
+          </LinearGradient>
+        </Pressable>
+      ) : job.status === 'active' ? (
+        <View style={[styles.stateBanner, { borderColor: TECH.orangeBorder, backgroundColor: TECH.orangeSoft }]}>
+          <Wrench size={15} color={TECH.orange} />
+          <Text style={styles.stateText}>
+            {job.technicianId === technicianId
+              ? t('technician.detail.acceptedByYou', { date: isoDate(job.acceptedAt) })
+              : t('technician.detail.acceptedBy', { name: job.technicianName || t('technician.detail.unknownTech') })}
+          </Text>
+        </View>
+      ) : (
+        <View style={[styles.stateBanner, { borderColor: TECH.greenBorder, backgroundColor: TECH.greenSoft }]}>
+          <CircleCheck size={15} color={TECH.green} />
+          <Text style={styles.stateText}>
+            {t('technician.detail.completedOn', { date: isoDate(job.completedAt) })}
+            {job.resolutionNotes ? `
+${job.resolutionNotes}` : ''}
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -212,6 +260,24 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   faultText: { flex: 1, fontSize: 12, fontWeight: '700' },
+  acceptBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 26,
+    minHeight: 50,
+    marginTop: 6,
+  },
+  acceptText: { fontSize: 12.5, fontWeight: '800', letterSpacing: 0.6, color: '#FFFFFF', textTransform: 'uppercase' },
+  stateBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 6,
+  },
+  stateText: { flex: 1, fontSize: 12, lineHeight: 18, color: TECH.text },
   historyLoading: { alignSelf: 'flex-start', marginVertical: 6 },
   muted: { fontSize: 11.5, color: TECH.textMuted },
   timeline: { gap: 0 },

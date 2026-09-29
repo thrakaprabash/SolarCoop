@@ -1,11 +1,14 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchTechnicianJobs } from '../services/jobService';
+import {
+  fetchTechnicianJobs,
+  acceptJob as serviceAcceptJob,
+} from '../services/jobService';
 
 const TechnicianContext = createContext(null);
 
 export const TechnicianProvider = ({ children, onExit }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const technicianId = user?.id ?? null;
 
   // ─── Navigation state ───────────────────────────────────────────────────────
@@ -64,6 +67,28 @@ export const TechnicianProvider = ({ children, onExit }) => {
     }
   }, [technicianId]);
 
+  // ─── acceptJob ──────────────────────────────────────────────────────────────
+  /**
+   * SOL-197 — Pending → Active. On success the dashboard switches to the
+   * Active view so the accepted ticket is what the technician sees next.
+   * If someone else took it first, the board is refreshed and the error is
+   * re-thrown for the screen to show.
+   */
+  const acceptJob = useCallback(async (jobId) => {
+    try {
+      const updated = await serviceAcceptJob(jobId, {
+        id: technicianId,
+        name: profile?.name ?? user?.user_metadata?.name,
+      });
+      setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+      setJobFilter('active');
+      return updated;
+    } catch (err) {
+      loadJobs();
+      throw err;
+    }
+  }, [technicianId, profile?.name, user?.user_metadata?.name, loadJobs]);
+
   return (
     <TechnicianContext.Provider
       value={{
@@ -84,6 +109,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
         jobCounts,
         connectionStatus,
         loadJobs,
+        acceptJob,
       }}
     >
       {children}
