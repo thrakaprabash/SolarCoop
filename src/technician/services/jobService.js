@@ -153,6 +153,64 @@ export async function updateChecklist(jobId, checklist) {
 }
 
 /**
+ * Close a job: Active → Completed (SOL-201). Only the assigned technician's
+ * active job matches; the household's alert card reads the same row, so it
+ * flips to "maintenance complete" as soon as this lands.
+ *
+ * @param {string} jobId
+ * @param {object} closure
+ * @param {string} closure.resolutionNotes
+ * @param {{label: string, done: boolean}[]} closure.checklist
+ * @returns {Promise<object>} the updated job
+ */
+export async function completeJob(jobId, { resolutionNotes, checklist }) {
+  const { data, error } = await supabase
+    .from('jobs')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      resolution_notes: resolutionNotes.trim(),
+      diagnostic_checklist: checklist.map(({ label, done }) => ({ label, done })),
+    })
+    .eq('id', jobId)
+    .eq('status', 'active')
+    .select(JOB_COLUMNS)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('This job is no longer active, or it is assigned to another technician.');
+    }
+    throw error;
+  }
+  return buildJob(data);
+}
+
+/**
+ * Subscribe to every change on public.jobs the signed-in user may see (RLS
+ * applies to Realtime). Requires migration 0007_jobs_realtime.sql.
+ *
+ * @param {string}   channelName - unique per subscriber
+ * @param {function} onChange    - receives the raw Realtime payload
+ * @param {string}   [filter]    - optional Realtime filter, e.g. 'household_user_id=eq.<uuid>'
+ * @returns {function} unsubscribe
+ */
+export function subscribeToJobs(channelName, onChange, filter) {
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'jobs', ...(filter ? { filter } : {}) },
+      onChange,
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+/**
  * Past completed jobs at one household — the Maintenance History timeline
  * on the Diagnostic Dossier. Most recent first.
  *

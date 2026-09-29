@@ -13,6 +13,7 @@ const GREEN = '#22C55E';
  */
 export function FaultAlertCard({ alert }) {
   const { t } = useTranslation();
+  const complete = alert.status === 'completed';
 
   return (
     <View style={styles.card}>
@@ -20,15 +21,21 @@ export function FaultAlertCard({ alert }) {
         <CheckCircle size={30} color={GREEN} strokeWidth={2.2} />
       </View>
 
-      <Text style={styles.title}>{t('faultAlert.title')}</Text>
-      <Text style={styles.message}>{alert.message || t('faultAlert.defaultMessage')}</Text>
+      <Text style={styles.title}>
+        {complete ? t('faultAlert.completeTitle') : t('faultAlert.title')}
+      </Text>
+      <Text style={styles.message}>
+        {complete
+          ? t('faultAlert.completeMessage')
+          : alert.message || t('faultAlert.defaultMessage')}
+      </Text>
 
       {/* SOL-200 — who is coming, once a technician has accepted the job */}
       <View style={[styles.techPill, !alert.technicianName && styles.techPillWaiting]}>
         {alert.technicianName ? <UserCheck size={13} color={GREEN} /> : null}
         <Text style={[styles.techText, !alert.technicianName && styles.techTextWaiting]}>
           {alert.technicianName
-            ? t('faultAlert.assignedTech', { name: alert.technicianName })
+            ? t(complete ? 'faultAlert.completedBy' : 'faultAlert.assignedTech', { name: alert.technicianName })
             : t('faultAlert.awaitingTech')}
         </Text>
       </View>

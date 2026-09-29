@@ -17,11 +17,12 @@ import TechBottomTabBar from './components/TechBottomTabBar';
 import TechnicianDashboardScreen from './screens/TechnicianDashboardScreen';
 import JobTicketDetailScreen from './screens/JobTicketDetailScreen';
 import DiagnosticsScreen from './screens/DiagnosticsScreen';
+import JobClosureScreen from './screens/JobClosureScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 function TechnicianShell() {
   const {
-    techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob, urgentAlertCount,
+    techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob, closureOpen, urgentAlertCount,
   } = useTechnician();
 
   // Load the job board as soon as the portal mounts.
@@ -41,7 +42,7 @@ function TechnicianShell() {
       <View style={styles.root}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <View style={styles.safeArea}>
-          <JobTicketDetailScreen />
+          {closureOpen && selectedJob.status === 'active' ? <JobClosureScreen /> : <JobTicketDetailScreen />}
         </View>
       </View>
     );

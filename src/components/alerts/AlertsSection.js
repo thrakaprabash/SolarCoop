@@ -9,7 +9,7 @@ import {
   editComplaint,
   deleteComplaint,
 } from '../../services/complaintService';
-import { fetchMyFaultAlerts } from '../../services/faultAlertService';
+import { fetchMyFaultAlerts, subscribeToMyFaultAlerts } from '../../services/faultAlertService';
 
 export const AlertsSection = () => {
   const { user } = useAuth();
@@ -50,6 +50,13 @@ export const AlertsSection = () => {
     loadComplaints();
     loadFaultAlerts();
   }, [loadComplaints, loadFaultAlerts]);
+
+  // SOL-201 — the card reads the same job the technician works on; reload it
+  // whenever that row changes (accepted → shows the tech, closed → complete).
+  useEffect(
+    () => subscribeToMyFaultAlerts(user?.id, () => loadFaultAlerts()),
+    [user?.id, loadFaultAlerts],
+  );
 
   const handleCreateSubmit = async (formData) => {
     if (!user?.id) throw new Error('User not authenticated.');

@@ -1,9 +1,12 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchTechnicianJobs,
   acceptJob as serviceAcceptJob,
   updateChecklist as serviceUpdateChecklist,
+  completeJob as serviceCompleteJob,
+  subscribeToJobs,
+  buildJob,
 } from '../services/jobService';
 
 const TechnicianContext = createContext(null);
@@ -16,6 +19,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
   const [techBottomTab, setTechBottomTab] = useState('dashboard'); // 'dashboard' | 'diagnostics' | 'profile'
   const [jobFilter, setJobFilter]         = useState('active');    // 'pending' | 'active' | 'completed'
   const [selectedJobId, setSelectedJobId] = useState(null);        // job open on the Diagnostic Dossier
+  const [closureOpen, setClosureOpen]     = useState(false);       // closure form for the open job
 
   // ─── Live job data ──────────────────────────────────────────────────────────
   const [jobs, setJobs]               = useState([]);
@@ -54,8 +58,10 @@ export const TechnicianProvider = ({ children, onExit }) => {
   }, [jobs]);
   const urgentAlertCount = openAlerts.filter(j => j.urgency === 'urgent').length;
 
-  const openJob  = useCallback((jobId) => setSelectedJobId(jobId), []);
-  const closeJob = useCallback(() => setSelectedJobId(null), []);
+  const openJob  = useCallback((jobId) => { setClosureOpen(false); setSelectedJobId(jobId); }, []);
+  const closeJob = useCallback(() => { setClosureOpen(false); setSelectedJobId(null); }, []);
+  const openClosure  = useCallback(() => setClosureOpen(true), []);
+  const closeClosure = useCallback(() => setClosureOpen(false), []);
 
   // ─── loadJobs ───────────────────────────────────────────────────────────────
   /**
@@ -125,6 +131,47 @@ export const TechnicianProvider = ({ children, onExit }) => {
     }
   }, [jobs]);
 
+  // ─── completeJob ────────────────────────────────────────────────────────────
+  /**
+   * SOL-201 — Active → Completed, with resolution notes. The household's
+   * alert card reads this same row, so it updates too.
+   */
+  const completeJob = useCallback(async (jobId, resolutionNotes) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) throw new Error('This job is no longer on your board.');
+    const updated = await serviceCompleteJob(jobId, { resolutionNotes, checklist: job.checklist });
+    setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    setClosureOpen(false);
+    setJobFilter('completed');
+    return updated;
+  }, [jobs]);
+
+  // ─── Live sync (SOL-201) ────────────────────────────────────────────────────
+  // Apply every jobs change straight onto the board: new faults appear, jobs
+  // another technician accepts drop out of the queue, and our own updates made
+  // from another device show up. Needs migration 0007_jobs_realtime.sql;
+  // without it the board still updates on pull-to-refresh.
+  useEffect(() => {
+    if (!technicianId) return undefined;
+
+    const onBoard = (job) => job.status === 'pending' || job.technicianId === technicianId;
+
+    return subscribeToJobs(`technician-jobs-${technicianId}`, (payload) => {
+      if (payload.eventType === 'DELETE') {
+        const goneId = payload.old?.id;
+        if (goneId) setJobs(prev => prev.filter(j => j.id !== goneId));
+        return;
+      }
+      if (!payload.new?.id) return;
+      const job = buildJob(payload.new);
+      setJobs(prev => {
+        const rest = prev.filter(j => j.id !== job.id);
+        if (!onBoard(job)) return rest;
+        return [job, ...rest].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      });
+    });
+  }, [technicianId]);
+
   return (
     <TechnicianContext.Provider
       value={{
@@ -137,6 +184,9 @@ export const TechnicianProvider = ({ children, onExit }) => {
         selectedJob,
         openJob,
         closeJob,
+        closureOpen,
+        openClosure,
+        closeClosure,
         // Jobs
         technicianId,
         jobs,
@@ -146,6 +196,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
         connectionStatus,
         loadJobs,
         acceptJob,
+        completeJob,
         // Diagnostics
         openAlerts,
         urgentAlertCount,

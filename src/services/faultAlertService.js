@@ -14,24 +14,29 @@
 import { supabase } from '../lib/supabase';
 
 const CONSUMER_JOB_COLUMNS =
-  'id, status, consumer_message, technician_name, accepted_at, created_at, updated_at';
+  'id, status, consumer_message, technician_name, accepted_at, completed_at, created_at, updated_at';
+
+// A finished job stays on the card this long, so the household sees
+// "maintenance complete" rather than the card silently vanishing (SOL-201).
+const SHOW_COMPLETED_FOR_MS = 24 * 60 * 60 * 1000;
 
 function buildFaultAlert(row) {
   return {
     id:        row.id,
-    status:    row.status, // 'pending' | 'active'
+    status:    row.status, // 'pending' | 'active' | 'completed'
     message:   row.consumer_message,
     // SOL-200 — set when a technician accepts the job; null while pending.
     technicianName: row.technician_name,
     acceptedAt:     row.accepted_at,
+    completedAt:    row.completed_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
 /**
- * Open maintenance jobs at the member's household (pending or in progress),
- * newest first.
+ * Maintenance jobs at the member's household that are open, or finished in
+ * the last 24 hours, newest first.
  *
  * @param {string} userId - auth user id of the signed-in member
  * @returns {Promise<object[]>}
@@ -43,9 +48,37 @@ export async function fetchMyFaultAlerts(userId) {
     .from('jobs')
     .select(CONSUMER_JOB_COLUMNS)
     .eq('household_user_id', userId)
-    .in('status', ['pending', 'active'])
+    .or(
+      'status.in.(pending,active),' +
+      `completed_at.gte.${new Date(Date.now() - SHOW_COMPLETED_FOR_MS).toISOString()}`
+    )
     .order('created_at', { ascending: false });
 
   if (error) throw error;
   return (data ?? []).map(buildFaultAlert);
+}
+
+/**
+ * Live updates for the member's own jobs (SOL-201): the same row the
+ * technician accepts and closes. Requires 0007_jobs_realtime.sql.
+ *
+ * @param {string}   userId
+ * @param {function} onChange - called on any insert / update / delete
+ * @returns {function} unsubscribe
+ */
+export function subscribeToMyFaultAlerts(userId, onChange) {
+  if (!userId) return () => {};
+
+  const channel = supabase
+    .channel(`household-jobs-${userId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'jobs', filter: `household_user_id=eq.${userId}` },
+      onChange,
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }

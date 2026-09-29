@@ -45,7 +45,7 @@ function InfoLine({ label, value }) {
  */
 export default function JobTicketDetailScreen() {
   const { t } = useTranslation();
-  const { selectedJob: job, closeJob, acceptJob, technicianId } = useTechnician();
+  const { selectedJob: job, closeJob, acceptJob, technicianId, openClosure } = useTechnician();
   const [accepting, setAccepting] = useState(false);
 
   const [history, setHistory]               = useState([]);
@@ -192,14 +192,28 @@ export default function JobTicketDetailScreen() {
           </LinearGradient>
         </Pressable>
       ) : job.status === 'active' ? (
-        <View style={[styles.stateBanner, { borderColor: TECH.orangeBorder, backgroundColor: TECH.orangeSoft }]}>
-          <Wrench size={15} color={TECH.orange} />
-          <Text style={styles.stateText}>
-            {job.technicianId === technicianId
-              ? t('technician.detail.acceptedByYou', { date: isoDate(job.acceptedAt) })
-              : t('technician.detail.acceptedBy', { name: job.technicianName || t('technician.detail.unknownTech') })}
-          </Text>
-        </View>
+        <>
+          <View style={[styles.stateBanner, { borderColor: TECH.orangeBorder, backgroundColor: TECH.orangeSoft }]}>
+            <Wrench size={15} color={TECH.orange} />
+            <Text style={styles.stateText}>
+              {job.technicianId === technicianId
+                ? t('technician.detail.acceptedByYou', { date: isoDate(job.acceptedAt) })
+                : t('technician.detail.acceptedBy', { name: job.technicianName || t('technician.detail.unknownTech') })}
+            </Text>
+          </View>
+          {job.technicianId === technicianId ? (
+            <Pressable onPress={openClosure} style={({ pressed }) => pressed && styles.pressed}>
+              <LinearGradient
+                colors={[TECH.orange, TECH.orangeDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.acceptBtn}
+              >
+                <Text style={styles.acceptText}>{t('technician.closure.complete')}</Text>
+              </LinearGradient>
+            </Pressable>
+          ) : null}
+        </>
       ) : (
         <View style={[styles.stateBanner, { borderColor: TECH.greenBorder, backgroundColor: TECH.greenSoft }]}>
           <CircleCheck size={15} color={TECH.green} />

@@ -332,7 +332,10 @@
     "title": "Routine Maintenance Scheduled",
     "defaultMessage": "Your system is safe. A technician will check on it soon — there is nothing you need to do.",
     "assignedTech": "Assigned Tech: {{name}}",
-    "awaitingTech": "A technician will be assigned shortly"
+    "awaitingTech": "A technician will be assigned shortly",
+    "completeTitle": "Maintenance Complete",
+    "completeMessage": "Your system has been checked and is running normally. Thank you for your patience.",
+    "completedBy": "Serviced by {{name}}"
   },
   "technician": {
     "header": {
@@ -416,6 +419,19 @@
       "saveErrorBody": "Please try again.",
       "noneTitle": "All systems healthy",
       "noneBody": "No open fault alerts right now."
+    },
+    "closure": {
+      "activeJob": "Active Job: {{title}}",
+      "title": "Close Job Ticket",
+      "subtitle": "Confirm the repair steps and record what was done.",
+      "checklist": "Parts & Repair Checklist",
+      "checkedCount": "{{done}} / {{total}} done",
+      "notes": "Resolution Notes",
+      "notesPlaceholder": "e.g. Replaced damaged MC4 connector on string 2. System verified stable.",
+      "notesHint": "Write at least {{min}} characters describing the repair.",
+      "complete": "Complete Repair & Close Ticket",
+      "errorTitle": "Could not close ticket",
+      "errorBody": "Please try again."
     }
   }
 }
