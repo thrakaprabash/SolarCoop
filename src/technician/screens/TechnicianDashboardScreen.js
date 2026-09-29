@@ -38,7 +38,7 @@ export default function TechnicianDashboardScreen() {
   const { t } = useTranslation();
   const {
     jobs, jobCounts, jobFilter, setJobFilter,
-    jobsLoading, jobsError, loadJobs,
+    jobsLoading, jobsError, loadJobs, openJob,
   } = useTechnician();
   const firstLoad = jobsLoading && jobs.length === 0;
 
@@ -50,7 +50,7 @@ export default function TechnicianDashboardScreen() {
     <Section label={t('technician.dashboard.pendingJobs')}>
       {pending.length === 0
         ? <Empty text={t('technician.dashboard.noPending')} />
-        : pending.map(job => <JobCard key={job.id} job={job} />)}
+        : pending.map(job => <JobCard key={job.id} job={job} onPress={() => openJob(job.id)} />)}
     </Section>
   );
 
@@ -91,7 +91,7 @@ export default function TechnicianDashboardScreen() {
           <Section label={t('technician.dashboard.activeTicket')}>
             {active.length === 0
               ? <Empty text={t('technician.dashboard.noActive')} />
-              : active.map(job => <JobCard key={job.id} job={job} featured />)}
+              : active.map(job => <JobCard key={job.id} job={job} featured onPress={() => openJob(job.id)} />)}
           </Section>
           {pendingSection}
         </>
@@ -103,7 +103,7 @@ export default function TechnicianDashboardScreen() {
         <Section label={t('technician.dashboard.completedJobs')}>
           {completed.length === 0
             ? <Empty text={t('technician.dashboard.noCompleted')} />
-            : completed.map(job => <JobCard key={job.id} job={job} />)}
+            : completed.map(job => <JobCard key={job.id} job={job} onPress={() => openJob(job.id)} />)}
         </Section>
       )}
     </ScrollView>

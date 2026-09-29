@@ -86,3 +86,29 @@ export async function fetchTechnicianJobs(technicianId) {
   if (error) throw error;
   return (data ?? []).map(buildJob);
 }
+
+/**
+ * Past completed jobs at one household — the Maintenance History timeline
+ * on the Diagnostic Dossier. Most recent first.
+ *
+ * @param {string} householdUserId - jobs.household_user_id
+ * @param {string} [excludeJobId]  - the job being viewed, left out of its own history
+ * @returns {Promise<object[]>}
+ */
+export async function fetchHouseholdHistory(householdUserId, excludeJobId = null) {
+  if (!householdUserId) return [];
+
+  let query = supabase
+    .from('jobs')
+    .select(JOB_COLUMNS)
+    .eq('household_user_id', householdUserId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(10);
+
+  if (excludeJobId) query = query.neq('id', excludeJobId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(buildJob);
+}

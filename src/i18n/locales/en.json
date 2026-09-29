@@ -368,6 +368,24 @@
       "statusInactive": "Status: Inactive (Error {{code}})",
       "statusDegraded": "Status: Degraded",
       "viewJob": "View Job"
+    },
+    "detail": {
+      "back": "Back to Dashboard",
+      "jobTicket": "Job Ticket · {{code}}",
+      "clientInfo": "Client Info",
+      "name": "Name",
+      "contact": "Contact",
+      "noAddress": "No site address on file",
+      "telemetry": "System Telemetry",
+      "inverter": "Inverter",
+      "location": "Fault location",
+      "errorLine": "Error {{code}}: {{message}}",
+      "noErrorCode": "No error code reported",
+      "history": "Maintenance History Timeline",
+      "noHistory": "No previous maintenance at this site.",
+      "historyError": "Could not load maintenance history.",
+      "by": "by {{name}}",
+      "unknownTech": "Unknown technician"
     }
   }
 }

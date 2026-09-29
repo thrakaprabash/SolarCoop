@@ -15,15 +15,34 @@ import { TECH } from './theme';
 import TechHeader from './components/TechHeader';
 import TechBottomTabBar from './components/TechBottomTabBar';
 import TechnicianDashboardScreen from './screens/TechnicianDashboardScreen';
+import JobTicketDetailScreen from './screens/JobTicketDetailScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 function TechnicianShell() {
-  const { techBottomTab, setTechBottomTab, loadJobs } = useTechnician();
+  const { techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob } = useTechnician();
 
   // Load the job board as soon as the portal mounts.
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
+
+  // Switching tabs always leaves the job that was open.
+  const handleTabSelect = (key) => {
+    closeJob();
+    setTechBottomTab(key);
+  };
+
+  // A job ticket takes over the whole screen, as in the Figma dossier frame.
+  if (selectedJob) {
+    return (
+      <View style={styles.root}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <View style={styles.safeArea}>
+          <JobTicketDetailScreen />
+        </View>
+      </View>
+    );
+  }
 
   const renderScreen = () => {
     switch (techBottomTab) {
@@ -39,7 +58,7 @@ function TechnicianShell() {
       <View style={styles.safeArea}>
         {techBottomTab !== 'profile' && <TechHeader />}
         <View style={styles.screen}>{renderScreen()}</View>
-        <TechBottomTabBar activeKey={techBottomTab} onSelect={setTechBottomTab} />
+        <TechBottomTabBar activeKey={techBottomTab} onSelect={handleTabSelect} />
       </View>
     </View>
   );

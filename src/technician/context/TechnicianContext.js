@@ -11,6 +11,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
   // ─── Navigation state ───────────────────────────────────────────────────────
   const [techBottomTab, setTechBottomTab] = useState('dashboard'); // 'dashboard' | 'diagnostics' | 'profile'
   const [jobFilter, setJobFilter]         = useState('active');    // 'pending' | 'active' | 'completed'
+  const [selectedJobId, setSelectedJobId] = useState(null);        // job open on the Diagnostic Dossier
 
   // ─── Live job data ──────────────────────────────────────────────────────────
   const [jobs, setJobs]               = useState([]);
@@ -28,6 +29,16 @@ export const TechnicianProvider = ({ children, onExit }) => {
     active:    jobs.filter(j => j.status === 'active').length,
     completed: jobs.filter(j => j.status === 'completed').length,
   }), [jobs]);
+
+  // The open job is looked up from `jobs` rather than copied, so a refresh
+  // or an accept updates the screen that's showing it.
+  const selectedJob = useMemo(
+    () => jobs.find(j => j.id === selectedJobId) ?? null,
+    [jobs, selectedJobId],
+  );
+
+  const openJob  = useCallback((jobId) => setSelectedJobId(jobId), []);
+  const closeJob = useCallback(() => setSelectedJobId(null), []);
 
   // ─── loadJobs ───────────────────────────────────────────────────────────────
   /**
@@ -62,6 +73,9 @@ export const TechnicianProvider = ({ children, onExit }) => {
         jobFilter,
         setJobFilter,
         onExit,
+        selectedJob,
+        openJob,
+        closeJob,
         // Jobs
         technicianId,
         jobs,
