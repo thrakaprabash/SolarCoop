@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import {
@@ -42,9 +43,19 @@ const STATUS_BG = {
   Suspended: 'rgba(239,68,68,0.12)',
 };
 
+// Canonical filter/status values stay in English — only the label shown for
+// each is translated, so filtering and status comparisons are untouched.
+const STATUS_LABEL_KEY = {
+  All:       'common.status.all',
+  Active:    'common.status.active',
+  Pending:   'common.status.pending',
+  Inactive:  'common.status.inactive',
+  Suspended: 'common.status.suspended',
+};
+
 const FILTER_OPTS = ['All', 'Active', 'Pending', 'Inactive', 'Suspended'];
 
-function MemberCard({ member, onPress }) {
+function MemberCard({ member, onPress, t }) {
   const accentColor = STATUS_COLORS[member.status];
   const hasSurplus = member.todaySurplus > 0;
 
@@ -69,7 +80,7 @@ function MemberCard({ member, onPress }) {
         <View style={styles.cardTopRow}>
           <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
           <View style={[styles.statusBadge, { backgroundColor: STATUS_BG[member.status], borderColor: `${accentColor}40` }]}>
-            <Text style={[styles.statusText, { color: accentColor }]}>{member.status}</Text>
+            <Text style={[styles.statusText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[member.status] ?? member.status)}</Text>
           </View>
         </View>
         <Text style={styles.householdText}>{member.household} · {member.solarCapacity} kW</Text>
@@ -127,6 +138,7 @@ function MemberCard({ member, onPress }) {
 const EMPTY_FORM = { email: '', name: '', mobile: '', household: '', capacity: '' };
 
 function AddMemberModal({ visible, onClose, onCreate }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -147,11 +159,11 @@ function AddMemberModal({ visible, onClose, onCreate }) {
     const household = form.household.trim();
 
     if (!name || !email || !household) {
-      setFormError('Name, email, and household are required.');
+      setFormError(t('admin.members.addModal.errorRequired'));
       return;
     }
     if (!email.includes('@') || !email.includes('.')) {
-      setFormError('Enter a valid email address.');
+      setFormError(t('admin.members.addModal.errorInvalidEmail'));
       return;
     }
 
@@ -167,7 +179,7 @@ function AddMemberModal({ visible, onClose, onCreate }) {
       });
       setCreatedResult(result);
     } catch (err) {
-      setFormError(err?.message || 'Could not create this member. Please try again.');
+      setFormError(err?.message || t('admin.members.addModal.errorGeneric'));
     } finally {
       setIsCreating(false);
     }
@@ -186,37 +198,33 @@ function AddMemberModal({ visible, onClose, onCreate }) {
               <View style={styles.successIconWrap}>
                 <CheckCircle2 size={28} color={COLORS.tealLight} />
               </View>
-              <Text style={styles.modalTitle}>Member Invited</Text>
+              <Text style={styles.modalTitle}>{t('admin.members.addModal.successTitle')}</Text>
               <Text style={styles.modalSubtext}>
-                {createdResult.name} has an account, but no login yet — share this
-                one-time temporary password so they can sign in and set their own.
-                It won't be shown again.
+                {t('admin.members.addModal.successSubtext', { name: createdResult.name })}
               </Text>
 
               <View style={styles.credentialBox}>
-                <Text style={styles.credentialLabel}>EMAIL</Text>
+                <Text style={styles.credentialLabel}>{t('admin.members.addModal.credentialEmail')}</Text>
                 <Text style={styles.credentialValue}>{createdResult.email}</Text>
-                <Text style={[styles.credentialLabel, { marginTop: 10 }]}>TEMPORARY PASSWORD</Text>
+                <Text style={[styles.credentialLabel, { marginTop: 10 }]}>{t('admin.members.addModal.credentialPassword')}</Text>
                 <Text style={styles.credentialValue}>{createdResult.tempPassword}</Text>
               </View>
 
               <TouchableOpacity style={styles.primaryBtn} onPress={handleClose} activeOpacity={0.85}>
-                <Text style={styles.primaryBtnText}>Done</Text>
+                <Text style={styles.primaryBtnText}>{t('admin.members.addModal.done')}</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
               {/* ── Form state ─────────────────────────────────────────────── */}
               <View style={styles.modalHeaderRow}>
-                <Text style={styles.modalTitle}>Add Member</Text>
+                <Text style={styles.modalTitle}>{t('admin.members.addModal.title')}</Text>
                 <TouchableOpacity onPress={handleClose} activeOpacity={0.7}>
                   <X size={20} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.modalSubtext}>
-                Creates a real account with no password yet — the member signs
-                in for the first time using a temporary password you'll share
-                with them.
+                {t('admin.members.addModal.subtext')}
               </Text>
 
               {formError ? (
@@ -226,19 +234,19 @@ function AddMemberModal({ visible, onClose, onCreate }) {
               ) : null}
 
               <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
-                <Text style={styles.fieldLabel}>NAME *</Text>
+                <Text style={styles.fieldLabel}>{t('admin.members.addModal.fieldName')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. Amal Fernando"
+                  placeholder={t('admin.members.addModal.placeholderName')}
                   placeholderTextColor={COLORS.textMuted}
                   value={form.name}
                   onChangeText={setField('name')}
                 />
 
-                <Text style={styles.fieldLabel}>EMAIL *</Text>
+                <Text style={styles.fieldLabel}>{t('admin.members.addModal.fieldEmail')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. amal@email.com"
+                  placeholder={t('admin.members.addModal.placeholderEmail')}
                   placeholderTextColor={COLORS.textMuted}
                   value={form.email}
                   onChangeText={setField('email')}
@@ -246,29 +254,29 @@ function AddMemberModal({ visible, onClose, onCreate }) {
                   keyboardType="email-address"
                 />
 
-                <Text style={styles.fieldLabel}>HOUSEHOLD *</Text>
+                <Text style={styles.fieldLabel}>{t('admin.members.addModal.fieldHousehold')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. House #13"
+                  placeholder={t('admin.members.addModal.placeholderHousehold')}
                   placeholderTextColor={COLORS.textMuted}
                   value={form.household}
                   onChangeText={setField('household')}
                 />
 
-                <Text style={styles.fieldLabel}>MOBILE NUMBER (Optional)</Text>
+                <Text style={styles.fieldLabel}>{t('admin.members.addModal.fieldMobile')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. 0771234567"
+                  placeholder={t('admin.members.addModal.placeholderMobile')}
                   placeholderTextColor={COLORS.textMuted}
                   value={form.mobile}
                   onChangeText={setField('mobile')}
                   keyboardType="phone-pad"
                 />
 
-                <Text style={styles.fieldLabel}>SOLAR CAPACITY, KW (Optional)</Text>
+                <Text style={styles.fieldLabel}>{t('admin.members.addModal.fieldCapacity')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. 4.5"
+                  placeholder={t('admin.members.addModal.placeholderCapacity')}
                   placeholderTextColor={COLORS.textMuted}
                   value={form.capacity}
                   onChangeText={setField('capacity')}
@@ -284,7 +292,7 @@ function AddMemberModal({ visible, onClose, onCreate }) {
               >
                 {isCreating
                   ? <ActivityIndicator size="small" color="#000000" />
-                  : <Text style={styles.primaryBtnText}>Create Member</Text>
+                  : <Text style={styles.primaryBtnText}>{t('admin.members.addModal.create')}</Text>
                 }
               </TouchableOpacity>
             </>
@@ -296,6 +304,7 @@ function AddMemberModal({ visible, onClose, onCreate }) {
 }
 
 export default function MemberMonitoringScreen() {
+  const { t } = useTranslation();
   const {
     setSelectedMember,
     setAdminBottomTab,
@@ -340,7 +349,7 @@ export default function MemberMonitoringScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Users size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>Member Monitoring</Text>
+          <Text style={styles.screenTitle}>{t('admin.members.title')}</Text>
         </View>
         {[1, 2, 3].map(i => (
           <View key={i} style={[styles.memberCard, styles.skeletonCard]}>
@@ -359,14 +368,14 @@ export default function MemberMonitoringScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Users size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>Member Monitoring</Text>
+          <Text style={styles.screenTitle}>{t('admin.members.title')}</Text>
         </View>
         <View style={[GLASS.card, styles.errorCard]}>
           <AlertCircle size={28} color={COLORS.red} />
-          <Text style={styles.errorTitle}>Could not load members</Text>
+          <Text style={styles.errorTitle}>{t('admin.members.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{membersError}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadMembers} activeOpacity={0.8}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -386,14 +395,14 @@ export default function MemberMonitoringScreen() {
       {/* Title */}
       <View style={styles.titleRow}>
         <Users size={18} color={COLORS.amberLight} />
-        <Text style={styles.screenTitle}>Member Monitoring</Text>
+        <Text style={styles.screenTitle}>{t('admin.members.title')}</Text>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setShowAddModal(true)}
           activeOpacity={0.8}
         >
           <UserPlus size={14} color={COLORS.amberLight} />
-          <Text style={styles.addBtnText}>Add Member</Text>
+          <Text style={styles.addBtnText}>{t('admin.members.addMember')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -402,7 +411,7 @@ export default function MemberMonitoringScreen() {
         <Search size={15} color={COLORS.textMuted} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by name or household…"
+          placeholder={t('admin.members.searchPlaceholder')}
           placeholderTextColor={COLORS.textMuted}
           value={search}
           onChangeText={setSearch}
@@ -418,7 +427,7 @@ export default function MemberMonitoringScreen() {
             onPress={() => setFilter(opt)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive]}>{opt}</Text>
+            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive]}>{t(STATUS_LABEL_KEY[opt])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -427,34 +436,34 @@ export default function MemberMonitoringScreen() {
       <View style={styles.summaryStrip}>
         <View style={[styles.summaryPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
           <Text style={[styles.summaryNum, { color: COLORS.tealLight }]}>{activeCnt}</Text>
-          <Text style={[styles.summaryLabel, { color: COLORS.tealLight }]}>Active</Text>
+          <Text style={[styles.summaryLabel, { color: COLORS.tealLight }]}>{t('common.status.active')}</Text>
         </View>
         <View style={[styles.summaryPill, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
           <Text style={[styles.summaryNum, { color: COLORS.blueLight }]}>{pendingCnt}</Text>
-          <Text style={[styles.summaryLabel, { color: COLORS.blueLight }]}>Pending</Text>
+          <Text style={[styles.summaryLabel, { color: COLORS.blueLight }]}>{t('common.status.pending')}</Text>
         </View>
         <View style={[styles.summaryPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
           <Text style={[styles.summaryNum, { color: COLORS.amberLight }]}>{inactiveCnt}</Text>
-          <Text style={[styles.summaryLabel, { color: COLORS.amberLight }]}>Inactive</Text>
+          <Text style={[styles.summaryLabel, { color: COLORS.amberLight }]}>{t('common.status.inactive')}</Text>
         </View>
         <View style={[styles.summaryPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
           <Text style={[styles.summaryNum, { color: COLORS.red }]}>{suspendCnt}</Text>
-          <Text style={[styles.summaryLabel, { color: COLORS.red }]}>Suspended</Text>
+          <Text style={[styles.summaryLabel, { color: COLORS.red }]}>{t('common.status.suspended')}</Text>
         </View>
         <View style={[styles.summaryPill, { backgroundColor: 'rgba(255,255,255,0.07)' }]}>
           <Text style={[styles.summaryNum, { color: COLORS.textPrimary }]}>{filtered.length}</Text>
-          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>Shown</Text>
+          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>{t('admin.members.shown')}</Text>
         </View>
       </View>
 
       {/* Member Cards */}
       {filtered.length === 0 ? (
         <View style={[GLASS.card, styles.emptyCard]}>
-          <Text style={styles.emptyText}>No members match your search.</Text>
+          <Text style={styles.emptyText}>{t('admin.members.noMatch')}</Text>
         </View>
       ) : (
         filtered.map(m => (
-          <MemberCard key={m.id} member={m} onPress={handleMemberPress} />
+          <MemberCard key={m.id} member={m} onPress={handleMemberPress} t={t} />
         ))
       )}
 

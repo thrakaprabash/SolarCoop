@@ -13,6 +13,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { timeAgo } from '../data/mockAdminData';
@@ -50,6 +51,44 @@ const STATUS_STYLE = {
 
 const DEFAULT_TYPE = 'admin_notice';
 
+// Every alert_type / category value stays exactly as ALERT_TYPES / ALERT_CATEGORIES
+// define it (filtering, dedupe and the registry lookup all key off these) —
+// only the label shown for each is translated.
+const ALERT_TYPE_LABEL_KEY = {
+  zero_production:       'admin.alerts.type.zeroProduction',
+  low_production:        'admin.alerts.type.lowProduction',
+  consumption_spike:     'admin.alerts.type.consumptionSpike',
+  community_surplus_low: 'admin.alerts.type.communitySurplusLow',
+  community_deficit:     'admin.alerts.type.communityDeficit',
+  transaction_reversed:  'admin.alerts.type.transactionReversed',
+  large_transaction:     'admin.alerts.type.largeTransaction',
+  request_pending:       'admin.alerts.type.requestPending',
+  signup_pending:        'admin.alerts.type.signupPending',
+  member_silent:         'admin.alerts.type.memberSilent',
+  complaint_new:         'admin.alerts.type.complaintNew',
+  complaint_aging:       'admin.alerts.type.complaintAging',
+  stale_data:            'admin.alerts.type.staleData',
+  system_error:          'admin.alerts.type.systemError',
+  admin_notice:          'admin.alerts.type.adminNotice',
+};
+
+const ALERT_CATEGORY_LABEL_KEY = {
+  Energy:       'admin.alerts.category.energy',
+  Transactions: 'admin.alerts.category.transactions',
+  Members:      'admin.alerts.category.members',
+  Complaints:   'admin.alerts.category.complaints',
+  System:       'admin.alerts.category.system',
+  Notice:       'admin.alerts.category.notice',
+  Other:        'admin.alerts.category.other',
+};
+
+// A type/category the registry doesn't recognise still renders (falls back to
+// whatever adminAlertService.js already computed) rather than breaking the inbox.
+const typeLabelFor = (type, fallback, t) =>
+  ALERT_TYPE_LABEL_KEY[type] ? t(ALERT_TYPE_LABEL_KEY[type]) : fallback;
+const categoryLabelFor = (category, t) =>
+  category === 'All' ? t('common.status.all') : (ALERT_CATEGORY_LABEL_KEY[category] ? t(ALERT_CATEGORY_LABEL_KEY[category]) : category);
+
 // ─── Small helpers ────────────────────────────────────────────────────────────
 const notify = (title, message) => {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -59,7 +98,7 @@ const notify = (title, message) => {
   }
 };
 
-const confirmAction = (title, message, confirmLabel, onConfirm) => {
+const confirmAction = (title, message, confirmLabel, cancelLabel, onConfirm) => {
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined' && window.confirm ? window.confirm(message) : true) {
       onConfirm();
@@ -67,27 +106,31 @@ const confirmAction = (title, message, confirmLabel, onConfirm) => {
     return;
   }
   Alert.alert(title, message, [
-    { text: 'Cancel', style: 'cancel' },
+    { text: cancelLabel, style: 'cancel' },
     { text: confirmLabel, style: 'destructive', onPress: onConfirm },
   ]);
 };
 
-const recipientLabel = (alert) => {
-  if (!alert.userId) return 'Community-wide';
+const recipientLabel = (alert, t) => {
+  if (!alert.userId) return t('admin.alerts.communityWide');
   return alert.household ? `${alert.member} · ${alert.household}` : alert.member;
 };
 
 // One line summing up the last automatic scan, e.g.
 // "Last scan 12s ago — 2 new alerts · 1 check couldn't run (pending_requests)".
-const describeScan = (scan) => {
-  if (scan.error) return `Last scan failed: ${scan.error}`;
+const describeScan = (scan, t) => {
+  if (scan.error) return t('admin.alerts.scan.failed', { error: scan.error });
 
-  const parts = [scan.raised === 0 ? 'nothing new' : `${scan.raised} new alert${scan.raised === 1 ? '' : 's'}`];
+  const parts = [
+    scan.raised === 0
+      ? t('admin.alerts.scan.nothingNew')
+      : t('admin.alerts.scan.newAlerts', { count: scan.raised }),
+  ];
   if (scan.failedChecks.length > 0) {
     const names = scan.failedChecks.map(f => f.check).join(', ');
-    parts.push(`${scan.failedChecks.length} check${scan.failedChecks.length === 1 ? '' : 's'} couldn't run (${names})`);
+    parts.push(t('admin.alerts.scan.checksFailed', { count: scan.failedChecks.length, names }));
   }
-  return `Last scan ${timeAgo(scan.at)} — ${parts.join(' · ')}`;
+  return t('admin.alerts.scan.summary', { time: timeAgo(scan.at), parts: parts.join(' · ') });
 };
 
 function Chip({ label, active, onPress, color }) {
@@ -110,7 +153,7 @@ function Chip({ label, active, onPress, color }) {
 }
 
 // ─── Alert Card ───────────────────────────────────────────────────────────────
-function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember }) {
+function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember, t }) {
   const [busy, setBusy] = useState(null); // 'resolve' | 'reopen' | 'delete' | null
   const { color, bg, Icon } = SEVERITY_STYLE[alert.severity] ?? SEVERITY_STYLE.Medium;
   const status = STATUS_STYLE[alert.status] ?? STATUS_STYLE.Open;
@@ -123,7 +166,10 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
     try {
       await action(alert.id);
     } catch (err) {
-      notify(`Could not ${kind} alert`, err?.message || 'Please try again.');
+      notify(
+        t('admin.alerts.actionFailedTitle', { kind: t(`admin.alerts.kind.${kind}`) }),
+        err?.message || t('admin.alerts.pleaseTryAgain')
+      );
     } finally {
       setBusy(null);
     }
@@ -132,15 +178,16 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
   const handleDelete = () => {
     if (busy) return;
     confirmAction(
-      'Delete Alert',
-      'Permanently delete this alert? This cannot be undone.',
-      'Delete',
+      t('admin.alerts.deleteConfirmTitle'),
+      t('admin.alerts.deleteConfirmMessage'),
+      t('admin.alerts.action.delete'),
+      t('common.cancel'),
       async () => {
         setBusy('delete');
         try {
           await onDelete(alert.id);
         } catch (err) {
-          notify('Could not delete alert', err?.message || 'Please try again.');
+          notify(t('admin.alerts.deleteFailedTitle'), err?.message || t('admin.alerts.pleaseTryAgain'));
           setBusy(null);
         }
       }
@@ -158,9 +205,9 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
 
         <View style={styles.alertContent}>
           <View style={styles.alertTopRow}>
-            <Text style={styles.alertType}>{alert.typeLabel}</Text>
+            <Text style={styles.alertType}>{typeLabelFor(alert.type, alert.typeLabel, t)}</Text>
             <View style={[styles.severityPill, { backgroundColor: bg, borderColor: `${color}30` }]}>
-              <Text style={[styles.severityText, { color }]}>{alert.severity}</Text>
+              <Text style={[styles.severityText, { color }]}>{t(`common.severity.${alert.severity.toLowerCase()}`)}</Text>
             </View>
           </View>
 
@@ -173,17 +220,17 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
               </Text>
             </View>
             <View style={styles.metaPill}>
-              <Text style={styles.metaPillText}>{alert.category}</Text>
+              <Text style={styles.metaPillText}>{categoryLabelFor(alert.category, t)}</Text>
             </View>
             {alert.source === 'system' && (
               <View style={[styles.metaPill, styles.systemPill]}>
-                <Text style={[styles.metaPillText, { color: COLORS.blueLight }]}>System-detected</Text>
+                <Text style={[styles.metaPillText, { color: COLORS.blueLight }]}>{t('admin.alerts.systemDetected')}</Text>
               </View>
             )}
             <Text style={styles.alertTime}>{timeAgo(alert.timestamp)}</Text>
             <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
               <StatusIcon size={9} color={status.color} />
-              <Text style={[styles.statusPillText, { color: status.color }]}>{alert.status}</Text>
+              <Text style={[styles.statusPillText, { color: status.color }]}>{t(`common.status.${alert.status.toLowerCase()}`)}</Text>
             </View>
           </View>
 
@@ -195,7 +242,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
                 activeOpacity={0.8}
               >
                 <User size={13} color={COLORS.amberLight} />
-                <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>View Member</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.alerts.action.viewMember')}</Text>
               </TouchableOpacity>
             )}
 
@@ -207,7 +254,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
                 activeOpacity={0.8}
               >
                 <Pencil size={13} color={COLORS.textPrimary} />
-                <Text style={[styles.actionBtnText, { color: COLORS.textPrimary }]}>Edit</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.textPrimary }]}>{t('admin.alerts.action.edit')}</Text>
               </TouchableOpacity>
             )}
 
@@ -222,7 +269,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
                   ? <ActivityIndicator size="small" color={COLORS.tealLight} />
                   : <CheckCircle size={13} color={COLORS.tealLight} />
                 }
-                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>Mark Resolved</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.alerts.action.resolve')}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -235,7 +282,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
                   ? <ActivityIndicator size="small" color={COLORS.blueLight} />
                   : <RotateCcw size={13} color={COLORS.blueLight} />
                 }
-                <Text style={[styles.actionBtnText, { color: COLORS.blueLight }]}>Reopen</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.blueLight }]}>{t('admin.alerts.action.reopen')}</Text>
               </TouchableOpacity>
             )}
 
@@ -249,7 +296,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
                 ? <ActivityIndicator size="small" color={COLORS.red} />
                 : <Trash2 size={13} color={COLORS.red} />
               }
-              <Text style={[styles.actionBtnText, { color: COLORS.red }]}>Delete</Text>
+              <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.alerts.action.delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -264,6 +311,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember 
 // this via `key` whenever the alert being edited changes, so the initial
 // state below is always seeded fresh from `editing`.
 function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
+  const { t } = useTranslation();
   const isEditing = !!editing;
 
   const [category, setCategory] = useState(ALERT_TYPES[DEFAULT_TYPE].category);
@@ -314,11 +362,11 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
 
   const handleSubmit = async () => {
     if (message.trim().length < 5) {
-      setError('Write a message of at least 5 characters.');
+      setError(t('admin.alerts.form.errorMessageTooShort'));
       return;
     }
     if (!isEditing && target === 'member' && !pickedMember) {
-      setError('Pick which member this alert is for.');
+      setError(t('admin.alerts.form.errorPickMember'));
       return;
     }
 
@@ -332,7 +380,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
       );
       handleClose();
     } catch (err) {
-      setError(err?.message || `Could not ${isEditing ? 'save' : 'create'} this alert. Please try again.`);
+      setError(err?.message || t(isEditing ? 'admin.alerts.form.errorSaveGeneric' : 'admin.alerts.form.errorCreateGeneric'));
     } finally {
       setSaving(false);
     }
@@ -346,7 +394,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
       >
         <View style={styles.modalCard}>
           <View style={styles.modalHeaderRow}>
-            <Text style={styles.modalTitle}>{isEditing ? 'Edit Alert' : 'New Alert'}</Text>
+            <Text style={styles.modalTitle}>{isEditing ? t('admin.alerts.form.editTitle') : t('admin.alerts.form.newTitle')}</Text>
             <TouchableOpacity onPress={handleClose} activeOpacity={0.7}>
               <X size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -361,38 +409,38 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
           <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
             {isEditing ? (
               <View style={styles.readOnlyBox}>
-                <Text style={styles.readOnlyLabel}>TYPE</Text>
-                <Text style={styles.readOnlyValue}>{editing.typeLabel} · {editing.category}</Text>
-                <Text style={[styles.readOnlyLabel, { marginTop: 10 }]}>SENT TO</Text>
-                <Text style={styles.readOnlyValue}>{recipientLabel(editing)}</Text>
+                <Text style={styles.readOnlyLabel}>{t('admin.alerts.form.typeLabel')}</Text>
+                <Text style={styles.readOnlyValue}>{typeLabelFor(editing.type, editing.typeLabel, t)} · {categoryLabelFor(editing.category, t)}</Text>
+                <Text style={[styles.readOnlyLabel, { marginTop: 10 }]}>{t('admin.alerts.form.sentToLabel')}</Text>
+                <Text style={styles.readOnlyValue}>{recipientLabel(editing, t)}</Text>
                 <Text style={styles.readOnlyNote}>
-                  Type and recipient can't be changed — delete and recreate the alert to change them.
+                  {t('admin.alerts.form.readOnlyNote')}
                 </Text>
               </View>
             ) : (
               <>
-                <Text style={styles.fieldLabel}>CATEGORY</Text>
+                <Text style={styles.fieldLabel}>{t('admin.alerts.form.fieldCategory')}</Text>
                 <View style={styles.chipWrap}>
                   {ALERT_CATEGORIES.map(cat => (
-                    <Chip key={cat} label={cat} active={category === cat} onPress={() => pickCategory(cat)} />
+                    <Chip key={cat} label={categoryLabelFor(cat, t)} active={category === cat} onPress={() => pickCategory(cat)} />
                   ))}
                 </View>
 
-                <Text style={styles.fieldLabel}>TYPE</Text>
+                <Text style={styles.fieldLabel}>{t('admin.alerts.form.fieldType')}</Text>
                 <View style={styles.chipWrap}>
                   {typesInCategory.map(([key, meta]) => (
-                    <Chip key={key} label={meta.label} active={type === key} onPress={() => pickType(key)} />
+                    <Chip key={key} label={typeLabelFor(key, meta.label, t)} active={type === key} onPress={() => pickType(key)} />
                   ))}
                 </View>
               </>
             )}
 
-            <Text style={styles.fieldLabel}>SEVERITY</Text>
+            <Text style={styles.fieldLabel}>{t('admin.alerts.form.fieldSeverity')}</Text>
             <View style={styles.chipWrap}>
               {SEVERITIES.map(sev => (
                 <Chip
                   key={sev}
-                  label={sev}
+                  label={t(`common.severity.${sev.toLowerCase()}`)}
                   active={severity === sev}
                   color={SEVERITY_STYLE[sev].color}
                   onPress={() => setSeverity(sev)}
@@ -402,10 +450,10 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
 
             {!isEditing && (
               <>
-                <Text style={styles.fieldLabel}>SEND TO</Text>
+                <Text style={styles.fieldLabel}>{t('admin.alerts.form.fieldSendTo')}</Text>
                 <View style={styles.chipWrap}>
-                  <Chip label="Community-wide" active={target === 'community'} onPress={() => setTarget('community')} />
-                  <Chip label="Specific member" active={target === 'member'} onPress={() => setTarget('member')} />
+                  <Chip label={t('admin.alerts.communityWide')} active={target === 'community'} onPress={() => setTarget('community')} />
+                  <Chip label={t('admin.alerts.form.specificMember')} active={target === 'member'} onPress={() => setTarget('member')} />
                 </View>
 
                 {target === 'member' && (
@@ -423,14 +471,14 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
                       <>
                         <TextInput
                           style={styles.input}
-                          placeholder="Search by name or household…"
+                          placeholder={t('admin.members.searchPlaceholder')}
                           placeholderTextColor={COLORS.textMuted}
                           value={memberQuery}
                           onChangeText={setMemberQuery}
                         />
                         {memberMatches.length === 0 ? (
                           <Text style={styles.pickerEmpty}>
-                            {members.length === 0 ? 'No members loaded yet.' : 'No members match.'}
+                            {members.length === 0 ? t('admin.alerts.form.noMembersLoaded') : t('admin.alerts.form.noMembersMatch')}
                           </Text>
                         ) : (
                           memberMatches.map(m => (
@@ -453,12 +501,12 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
             )}
 
             <View style={styles.labelRow}>
-              <Text style={styles.fieldLabel}>MESSAGE *</Text>
-              <Text style={styles.charCount}>{message.length} / 300</Text>
+              <Text style={styles.fieldLabel}>{t('admin.alerts.form.fieldMessage')}</Text>
+              <Text style={styles.charCount}>{t('admin.alerts.form.charCount', { count: message.length })}</Text>
             </View>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="What should the recipient know?"
+              placeholder={t('admin.alerts.form.messagePlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               value={message}
               onChangeText={setMessage}
@@ -476,7 +524,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
           >
             {saving
               ? <ActivityIndicator size="small" color="#000000" />
-              : <Text style={styles.primaryBtnText}>{isEditing ? 'Save Changes' : 'Create Alert'}</Text>
+              : <Text style={styles.primaryBtnText}>{isEditing ? t('admin.settings.saveChanges') : t('admin.alerts.form.createAlert')}</Text>
             }
           </TouchableOpacity>
         </View>
@@ -487,6 +535,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function AlertsScreen() {
+  const { t } = useTranslation();
   const {
     alerts,
     alertsLoading,
@@ -562,7 +611,7 @@ export default function AlertsScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Bell size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>System Alerts</Text>
+          <Text style={styles.screenTitle}>{t('admin.alerts.title')}</Text>
         </View>
         {[1, 2, 3].map(i => (
           <View key={i} style={[styles.alertCard, styles.skeletonCard]}>
@@ -581,14 +630,14 @@ export default function AlertsScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Bell size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>System Alerts</Text>
+          <Text style={styles.screenTitle}>{t('admin.alerts.title')}</Text>
         </View>
         <View style={[GLASS.card, styles.errorCard]}>
           <AlertCircle size={28} color={COLORS.red} />
-          <Text style={styles.errorTitle}>Could not load alerts</Text>
+          <Text style={styles.errorTitle}>{t('admin.alerts.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{alertsError}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadAlerts} activeOpacity={0.8}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -608,7 +657,7 @@ export default function AlertsScreen() {
         {/* Title */}
         <View style={styles.titleRow}>
           <Bell size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>System Alerts</Text>
+          <Text style={styles.screenTitle}>{t('admin.alerts.title')}</Text>
           <TouchableOpacity
             style={[styles.scanBtn, scanning && styles.scanBtnDisabled]}
             onPress={() => scanAlerts()}
@@ -619,7 +668,7 @@ export default function AlertsScreen() {
               ? <ActivityIndicator size="small" color={COLORS.tealLight} />
               : <ScanSearch size={14} color={COLORS.tealLight} />
             }
-            <Text style={styles.scanBtnText}>{scanning ? 'Scanning…' : 'Scan'}</Text>
+            <Text style={styles.scanBtnText}>{scanning ? t('admin.alerts.scanning') : t('admin.alerts.scanBtn')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.newBtn}
@@ -627,16 +676,16 @@ export default function AlertsScreen() {
             activeOpacity={0.8}
           >
             <Plus size={14} color={COLORS.amberLight} />
-            <Text style={styles.newBtnText}>New Alert</Text>
+            <Text style={styles.newBtnText}>{t('admin.alerts.newAlert')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Refresh failed but we still have older data to show */}
         {alertsError ? (
           <View style={styles.staleBanner}>
-            <Text style={styles.staleBannerText}>Couldn't refresh — showing what was last loaded.</Text>
+            <Text style={styles.staleBannerText}>{t('admin.alerts.staleBanner')}</Text>
             <TouchableOpacity onPress={loadAlerts} activeOpacity={0.7}>
-              <Text style={styles.staleBannerRetry}>Retry</Text>
+              <Text style={styles.staleBannerRetry}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -649,7 +698,7 @@ export default function AlertsScreen() {
               (lastScan.error || lastScan.failedChecks.length > 0) && { color: COLORS.amberLight },
             ]}
           >
-            {describeScan(lastScan)}
+            {describeScan(lastScan, t)}
           </Text>
         ) : null}
 
@@ -670,21 +719,21 @@ export default function AlertsScreen() {
               >
                 <Icon size={15} color={color} />
                 <Text style={[styles.severityCount, { color }]}>{openBySeverity[sev]}</Text>
-                <Text style={styles.severityLabel}>{sev}</Text>
+                <Text style={styles.severityLabel}>{t(`common.severity.${sev.toLowerCase()}`)}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
         <Text style={styles.hintText}>
           {severityFilter
-            ? `Showing ${severityFilter} only — tap it again to clear`
-            : 'Open alerts by severity — tap one to filter'}
+            ? t('admin.alerts.hintFiltered', { severity: t(`common.severity.${severityFilter.toLowerCase()}`) })
+            : t('admin.alerts.hintDefault')}
         </Text>
 
         {/* Status filter */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
           {STATUS_FILTERS.map(f => (
-            <Chip key={f} label={f} active={statusFilter === f} onPress={() => setStatusFilter(f)} />
+            <Chip key={f} label={t(`common.status.${f.toLowerCase()}`)} active={statusFilter === f} onPress={() => setStatusFilter(f)} />
           ))}
         </ScrollView>
 
@@ -692,24 +741,22 @@ export default function AlertsScreen() {
         {presentCategories.length > 0 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
             {['All', ...presentCategories].map(cat => (
-              <Chip key={cat} label={cat} active={categoryFilter === cat} onPress={() => setCategoryFilter(cat)} />
+              <Chip key={cat} label={categoryLabelFor(cat, t)} active={categoryFilter === cat} onPress={() => setCategoryFilter(cat)} />
             ))}
           </ScrollView>
         )}
 
         <Text style={styles.listLabel}>
-          {filtered.length} Alert{filtered.length !== 1 ? 's' : ''}
+          {t('admin.alerts.listLabel', { count: filtered.length })}
         </Text>
 
         {/* Alert Cards */}
         {filtered.length === 0 ? (
           <View style={[GLASS.card, styles.emptyCard]}>
             <CheckCircle size={28} color={COLORS.tealLight} />
-            <Text style={styles.emptyTitle}>All Clear!</Text>
+            <Text style={styles.emptyTitle}>{t('admin.alerts.emptyTitle')}</Text>
             <Text style={styles.emptyText}>
-              {alerts.length === 0
-                ? 'No alerts have been raised yet.'
-                : 'No alerts match these filters.'}
+              {alerts.length === 0 ? t('admin.alerts.emptyNoneRaised') : t('admin.alerts.emptyNoMatch')}
             </Text>
           </View>
         ) : (
@@ -722,6 +769,7 @@ export default function AlertsScreen() {
               onDelete={deleteAlert}
               onEdit={(a) => setForm({ open: true, editing: a })}
               onViewMember={alert.userId && memberIds.has(alert.userId) ? handleViewMember : null}
+              t={t}
             />
           ))
         )}

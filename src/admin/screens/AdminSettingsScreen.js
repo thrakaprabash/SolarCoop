@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { useAuth } from '../../context/AuthContext';
@@ -38,6 +39,7 @@ const getInitials = (name = '') => {
 };
 
 export default function AdminSettingsScreen() {
+  const { t } = useTranslation();
   const { onExit, communityStats } = useAdmin();
   const { user, profile, updateProfile } = useAuth();
 
@@ -74,9 +76,9 @@ export default function AdminSettingsScreen() {
   const handleSaveProfile = async () => {
     if (!name.trim()) {
       if (Platform.OS === 'web') {
-        window.alert('Full Name cannot be empty.');
+        window.alert(t('admin.settings.validationError'));
       } else {
-        Alert.alert('Validation Error', 'Full Name cannot be empty.');
+        Alert.alert(t('admin.settings.validationErrorTitle'), t('admin.settings.validationError'));
       }
       return;
     }
@@ -95,17 +97,17 @@ export default function AdminSettingsScreen() {
       if (error) throw error;
 
       if (Platform.OS === 'web') {
-        window.alert('Admin profile updated successfully!');
+        window.alert(t('admin.settings.updateSuccess'));
       } else {
-        Alert.alert('Success', 'Admin profile updated successfully!');
+        Alert.alert(t('admin.settings.successTitle'), t('admin.settings.updateSuccess'));
       }
       setIsEditing(false);
     } catch (err) {
-      const msg = err?.message || 'Failed to update profile details.';
+      const msg = err?.message || t('admin.settings.updateFailedDefault');
       if (Platform.OS === 'web') {
-        window.alert(`Update failed: ${msg}`);
+        window.alert(t('admin.settings.updateFailedInline', { message: msg }));
       } else {
-        Alert.alert('Update Failed', msg);
+        Alert.alert(t('admin.settings.updateFailedTitle'), msg);
       }
     } finally {
       setSaving(false);
@@ -115,7 +117,7 @@ export default function AdminSettingsScreen() {
   const handleLogout = () => {
     if (Platform.OS === 'web') {
       const confirmed = typeof window !== 'undefined' && window.confirm
-        ? window.confirm('Are you sure you want to sign out of the Admin Panel?')
+        ? window.confirm(t('admin.settings.logoutConfirm'))
         : true;
       if (confirmed) {
         onExit();
@@ -124,22 +126,22 @@ export default function AdminSettingsScreen() {
     }
 
     Alert.alert(
-      'Logout',
-      'Are you sure you want to sign out of the Admin Panel?',
+      t('admin.settings.logout'),
+      t('admin.settings.logoutConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: onExit },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.settings.logout'), style: 'destructive', onPress: onExit },
       ]
     );
   };
 
   const menuItems = [
-    { icon: Info,        label: 'About SolarCoop',  sub: 'Community Energy Sharing App v1.0.0' },
-    { icon: ShieldCheck, label: 'Admin Privileges', sub: 'Full system access · Real-time Member Sync' },
-    { icon: UserCog,     label: 'System Environment', sub: 'Expo SDK 57 · React Native 0.86' },
+    { icon: Info,        label: t('admin.settings.menu.about.label'),  sub: t('admin.settings.menu.about.sub') },
+    { icon: ShieldCheck, label: t('admin.settings.menu.adminPrivileges.label'), sub: t('admin.settings.menu.adminPrivileges.sub') },
+    { icon: UserCog,     label: t('admin.settings.menu.systemEnv.label'), sub: t('admin.settings.menu.systemEnv.sub') },
   ];
 
-  const displayName = profile?.name || user?.user_metadata?.name || 'Administrator';
+  const displayName = profile?.name || user?.user_metadata?.name || t('admin.settings.administrator');
   const email = user?.email || 'admin@solarcoop.app';
 
   return (
@@ -148,13 +150,13 @@ export default function AdminSettingsScreen() {
       {/* Header Title */}
       <View style={styles.titleRow}>
         <UserCog size={18} color={COLORS.amberLight} />
-        <Text style={styles.screenTitle}>Admin Profile</Text>
+        <Text style={styles.screenTitle}>{t('admin.settings.title')}</Text>
       </View>
 
       {/* Hero Card */}
       <View style={[GLASS.card, styles.profileCard]}>
         <View style={styles.profileBanner} />
-        
+
         <View style={styles.avatarWrap}>
           <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
         </View>
@@ -164,24 +166,24 @@ export default function AdminSettingsScreen() {
 
         <View style={styles.roleBadge}>
           <ShieldCheck size={12} color={COLORS.amberLight} />
-          <Text style={styles.roleBadgeText}>SUPER ADMIN</Text>
+          <Text style={styles.roleBadgeText}>{t('admin.settings.superAdmin')}</Text>
         </View>
 
         {/* Live Admin Summary Stats */}
         <View style={styles.adminInfoRow}>
           <View style={styles.adminInfoItem}>
             <Text style={styles.adminInfoNum}>{communityStats ? communityStats.totalMembers : '--'}</Text>
-            <Text style={styles.adminInfoLabel}>Members</Text>
+            <Text style={styles.adminInfoLabel}>{t('admin.dashboard.stat.members')}</Text>
           </View>
           <View style={styles.adminInfoDivider} />
           <View style={styles.adminInfoItem}>
             <Text style={styles.adminInfoNum}>{communityStats ? communityStats.activeMembers : '--'}</Text>
-            <Text style={styles.adminInfoLabel}>Active</Text>
+            <Text style={styles.adminInfoLabel}>{t('common.status.active')}</Text>
           </View>
           <View style={styles.adminInfoDivider} />
           <View style={styles.adminInfoItem}>
             <Text style={styles.adminInfoNum}>∞</Text>
-            <Text style={styles.adminInfoLabel}>Access Level</Text>
+            <Text style={styles.adminInfoLabel}>{t('admin.settings.accessLevel')}</Text>
           </View>
         </View>
       </View>
@@ -189,16 +191,16 @@ export default function AdminSettingsScreen() {
       {/* Profile Details Card (View Mode / Edit Mode) */}
       <View style={[GLASS.card, styles.detailsCard]}>
         <View style={styles.detailsHeader}>
-          <Text style={styles.detailsTitle}>Profile Information</Text>
+          <Text style={styles.detailsTitle}>{t('admin.settings.profileInformation')}</Text>
           {!isEditing ? (
             <TouchableOpacity style={styles.editBtn} onPress={handleStartEdit} activeOpacity={0.7}>
               <Edit3 size={13} color={COLORS.amberLight} />
-              <Text style={styles.editBtnText}>Edit Profile</Text>
+              <Text style={styles.editBtnText}>{t('admin.settings.editProfile')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.cancelBtnTop} onPress={handleCancelEdit} disabled={saving} activeOpacity={0.7}>
               <X size={13} color={COLORS.textMuted} />
-              <Text style={styles.cancelBtnTopText}>Cancel</Text>
+              <Text style={styles.cancelBtnTopText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -209,7 +211,7 @@ export default function AdminSettingsScreen() {
             <View style={styles.row}>
               <View style={styles.rowLabel}>
                 <User size={15} color={COLORS.amberLight} />
-                <Text style={styles.rowLabelText}>Full Name</Text>
+                <Text style={styles.rowLabelText}>{t('admin.settings.field.fullName')}</Text>
               </View>
               <Text style={styles.rowValue}>{profile?.name || '—'}</Text>
             </View>
@@ -217,7 +219,7 @@ export default function AdminSettingsScreen() {
             <View style={styles.row}>
               <View style={styles.rowLabel}>
                 <Mail size={15} color={COLORS.amberLight} />
-                <Text style={styles.rowLabelText}>Email Address</Text>
+                <Text style={styles.rowLabelText}>{t('admin.settings.field.email')}</Text>
               </View>
               <Text style={styles.rowValue}>{email}</Text>
             </View>
@@ -225,7 +227,7 @@ export default function AdminSettingsScreen() {
             <View style={styles.row}>
               <View style={styles.rowLabel}>
                 <Phone size={15} color={COLORS.amberLight} />
-                <Text style={styles.rowLabelText}>Mobile Number</Text>
+                <Text style={styles.rowLabelText}>{t('admin.settings.field.mobile')}</Text>
               </View>
               <Text style={styles.rowValue}>{profile?.mobile_number || '—'}</Text>
             </View>
@@ -233,7 +235,7 @@ export default function AdminSettingsScreen() {
             <View style={styles.row}>
               <View style={styles.rowLabel}>
                 <Home size={15} color={COLORS.amberLight} />
-                <Text style={styles.rowLabelText}>Household / Admin ID</Text>
+                <Text style={styles.rowLabelText}>{t('admin.settings.field.household')}</Text>
               </View>
               <Text style={styles.rowValue}>{profile?.household_id || '—'}</Text>
             </View>
@@ -241,9 +243,9 @@ export default function AdminSettingsScreen() {
             <View style={[styles.row, { borderBottomWidth: 0 }]}>
               <View style={styles.rowLabel}>
                 <Shield size={15} color={COLORS.amberLight} />
-                <Text style={styles.rowLabelText}>Role</Text>
+                <Text style={styles.rowLabelText}>{t('admin.settings.field.role')}</Text>
               </View>
-              <Text style={styles.rowValue}>Administrator</Text>
+              <Text style={styles.rowValue}>{t('admin.settings.administrator')}</Text>
             </View>
           </View>
         ) : (
@@ -251,14 +253,14 @@ export default function AdminSettingsScreen() {
           <View style={styles.formContainer}>
             {/* Field: Full Name */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
+              <Text style={styles.inputLabel}>{t('admin.settings.field.fullName')}</Text>
               <View style={styles.inputWrapper}>
                 <User size={15} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter your full name"
+                  placeholder={t('admin.settings.placeholder.fullName')}
                   placeholderTextColor={COLORS.textMuted}
                 />
               </View>
@@ -266,14 +268,14 @@ export default function AdminSettingsScreen() {
 
             {/* Field: Mobile Number */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Mobile Number</Text>
+              <Text style={styles.inputLabel}>{t('admin.settings.field.mobile')}</Text>
               <View style={styles.inputWrapper}>
                 <Phone size={15} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
                   value={mobileNumber}
                   onChangeText={setMobileNumber}
-                  placeholder="e.g. +94 77 123 4567"
+                  placeholder={t('admin.settings.placeholder.mobile')}
                   placeholderTextColor={COLORS.textMuted}
                   keyboardType="phone-pad"
                 />
@@ -282,14 +284,14 @@ export default function AdminSettingsScreen() {
 
             {/* Field: Household / Admin Dept ID */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Household / Admin ID</Text>
+              <Text style={styles.inputLabel}>{t('admin.settings.field.household')}</Text>
               <View style={styles.inputWrapper}>
                 <Home size={15} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
                   value={householdId}
                   onChangeText={setHouseholdId}
-                  placeholder="e.g. HH-ADMIN-01"
+                  placeholder={t('admin.settings.placeholder.household')}
                   placeholderTextColor={COLORS.textMuted}
                 />
               </View>
@@ -303,7 +305,7 @@ export default function AdminSettingsScreen() {
                 disabled={saving}
                 activeOpacity={0.7}
               >
-                <Text style={styles.cancelFormBtnText}>Cancel</Text>
+                <Text style={styles.cancelFormBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -317,7 +319,7 @@ export default function AdminSettingsScreen() {
                 ) : (
                   <>
                     <Check size={16} color="#FFFFFF" />
-                    <Text style={styles.saveFormBtnText}>Save Changes</Text>
+                    <Text style={styles.saveFormBtnText}>{t('admin.settings.saveChanges')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -351,7 +353,7 @@ export default function AdminSettingsScreen() {
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <LogOut size={18} color={COLORS.red} />
-        <Text style={styles.logoutBtnText}>Logout</Text>
+        <Text style={styles.logoutBtnText}>{t('admin.settings.logout')}</Text>
       </TouchableOpacity>
 
       <View style={{ height: 24 }} />

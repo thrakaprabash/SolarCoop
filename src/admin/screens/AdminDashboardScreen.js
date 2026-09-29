@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { timeAgo } from '../data/mockAdminData';
@@ -52,20 +53,21 @@ function StatCard({ icon: Icon, iconColor, iconBg, label, value, unit, trend, tr
 
 // ─── System Health Panel ────────────────────────────────────────────────────
 function SystemHealthPanel() {
+  const { t } = useTranslation();
   const services = [
-    { label: 'Application Server', status: 'Online',   color: COLORS.tealLight },
-    { label: 'Database',           status: 'Online',   color: COLORS.tealLight },
-    { label: 'Solar Grid Feed',    status: 'Degraded', color: COLORS.amberLight },
-    { label: 'Notification Service', status: 'Online', color: COLORS.tealLight },
+    { label: t('admin.dashboard.health.appServer'), status: t('admin.dashboard.health.online'), color: COLORS.tealLight },
+    { label: t('admin.dashboard.health.database'), status: t('admin.dashboard.health.online'), color: COLORS.tealLight },
+    { label: t('admin.dashboard.health.solarGridFeed'), status: t('admin.dashboard.health.degraded'), color: COLORS.amberLight },
+    { label: t('admin.dashboard.health.notificationService'), status: t('admin.dashboard.health.online'), color: COLORS.tealLight },
   ];
 
   return (
     <View style={[GLASS.card, styles.sectionCard]}>
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>System Health</Text>
+        <Text style={styles.sectionTitle}>{t('admin.dashboard.systemHealth')}</Text>
         <View style={styles.liveChip}>
           <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
+          <Text style={styles.liveText}>{t('admin.dashboard.live')}</Text>
         </View>
       </View>
       {services.map((s, i) => (
@@ -80,7 +82,7 @@ function SystemHealthPanel() {
 }
 
 // ─── Recent Activity Feed ────────────────────────────────────────────────────
-function getActivityFeed({ alerts, complaints, transactions }) {
+function getActivityFeed({ alerts, complaints, transactions }, t) {
   const events = [];
 
   alerts.filter(a => a.status === 'Open').slice(0, 2).forEach(a => {
@@ -88,7 +90,7 @@ function getActivityFeed({ alerts, complaints, transactions }) {
       id: `alert-${a.id}`,
       color: a.severity === 'Critical' || a.severity === 'High' ? COLORS.red : COLORS.amberLight,
       icon: AlertTriangle,
-      label: `${a.typeLabel} — ${a.member}`,
+      label: t('admin.dashboard.activityAlertLabel', { type: a.typeLabel, member: a.member }),
       time: a.timestamp,
     });
   });
@@ -98,21 +100,23 @@ function getActivityFeed({ alerts, complaints, transactions }) {
       id: `complaint-${c.id}`,
       color: COLORS.amber,
       icon: MessageSquare,
-      label: `Complaint: ${c.type} — ${c.household}`,
+      label: t('admin.dashboard.activityComplaintLabel', { type: c.type, household: c.household }),
       time: c.submittedAt,
     });
   });
 
   // A transaction row only exists once a trade completed (or was reversed by
   // an admin), so there's no "pending" transfer to surface — show the latest.
-  transactions.slice(0, 2).forEach(t => {
-    const reversed = t.status === 'Reversed';
+  transactions.slice(0, 2).forEach(t2 => {
+    const reversed = t2.status === 'Reversed';
     events.push({
-      id: `tx-${t.id}`,
+      id: `tx-${t2.id}`,
       color: reversed ? COLORS.red : COLORS.tealLight,
       icon: ArrowUpRight,
-      label: `${reversed ? 'Reversed Transfer' : 'Transfer'}: ${t.sender} → ${t.receiver} · ${t.amount} kWh`,
-      time: t.timestamp,
+      label: t(reversed ? 'admin.dashboard.activityReversedTransferLabel' : 'admin.dashboard.activityTransferLabel', {
+        sender: t2.sender, receiver: t2.receiver, amount: t2.amount,
+      }),
+      time: t2.timestamp,
     });
   });
 
@@ -121,6 +125,7 @@ function getActivityFeed({ alerts, complaints, transactions }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function AdminDashboardScreen() {
+  const { t } = useTranslation();
   const {
     adminHeaderToggle,
     adminMetricChip,
@@ -131,7 +136,7 @@ export default function AdminDashboardScreen() {
     transactions,
     openAlertCount,
   } = useAdmin();
-  const feed = getActivityFeed({ alerts, complaints, transactions });
+  const feed = getActivityFeed({ alerts, complaints, transactions }, t);
 
   // Derive display values — fall back to '--' while data loads
   const s = communityStats;
@@ -140,7 +145,7 @@ export default function AdminDashboardScreen() {
       icon: Users,
       iconColor: COLORS.amberLight,
       iconBg: 'rgba(245,158,11,0.15)',
-      label: 'Members',
+      label: t('admin.dashboard.stat.members'),
       value: s ? s.totalMembers : '--',
       unit: null,
       trend: null,
@@ -151,7 +156,7 @@ export default function AdminDashboardScreen() {
       icon: Sun,
       iconColor: '#FBBF24',
       iconBg: 'rgba(251,191,36,0.12)',
-      label: 'Production',
+      label: t('admin.dashboard.stat.production'),
       value: s ? s.totalProduction : '--',
       unit: s ? 'kWh' : null,
       trend: null,
@@ -162,7 +167,7 @@ export default function AdminDashboardScreen() {
       icon: Zap,
       iconColor: COLORS.teal,
       iconBg: 'rgba(20,184,166,0.12)',
-      label: 'Consumption',
+      label: t('admin.dashboard.stat.consumption'),
       value: s ? s.totalConsumption : '--',
       unit: s ? 'kWh' : null,
       trend: null,
@@ -173,7 +178,7 @@ export default function AdminDashboardScreen() {
       icon: BatteryCharging,
       iconColor: COLORS.tealLight,
       iconBg: 'rgba(45,212,191,0.12)',
-      label: 'Surplus',
+      label: t('admin.dashboard.stat.surplus'),
       value: s ? s.totalSurplus : '--',
       unit: s ? 'kWh' : null,
       trend: null,
@@ -184,7 +189,7 @@ export default function AdminDashboardScreen() {
       icon: AlertTriangle,
       iconColor: COLORS.red,
       iconBg: 'rgba(239,68,68,0.12)',
-      label: 'Open Alerts',
+      label: t('admin.dashboard.stat.openAlerts'),
       value: openAlertCount,
       unit: null,
       trend: null,
@@ -194,7 +199,7 @@ export default function AdminDashboardScreen() {
       icon: MessageSquare,
       iconColor: COLORS.amber,
       iconBg: 'rgba(245,158,11,0.12)',
-      label: 'Complaints',
+      label: t('admin.dashboard.stat.complaints'),
       value: complaints.filter(c => c.status === 'Open').length,
       unit: null,
       trend: null,
@@ -212,7 +217,7 @@ export default function AdminDashboardScreen() {
       {/* Section Title */}
       <View style={styles.headerRow}>
         <Text style={styles.screenTitle}>
-          {adminHeaderToggle === 'health' ? 'System Health' : 'Community Overview'}
+          {adminHeaderToggle === 'health' ? t('admin.dashboard.systemHealth') : t('admin.dashboard.communityOverview')}
         </Text>
         <Text style={styles.screenDate}>
           {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -224,7 +229,7 @@ export default function AdminDashboardScreen() {
 
       {/* Community Stats Grid */}
       <View style={[GLASS.card, styles.statsCard]}>
-        <Text style={styles.sectionTitle}>Community Stats — Today</Text>
+        <Text style={styles.sectionTitle}>{t('admin.dashboard.statsToday')}</Text>
         <View style={styles.statsGrid}>
           {visibleStats.map((s, i) => (
             <StatCard key={i} {...s} />
@@ -234,26 +239,26 @@ export default function AdminDashboardScreen() {
 
       {/* Member Breakdown Bar */}
       <View style={[GLASS.card, styles.sectionCard]}>
-        <Text style={styles.sectionTitle}>Member Status</Text>
+        <Text style={styles.sectionTitle}>{t('admin.dashboard.memberStatus')}</Text>
         <View style={styles.memberBreakdownRow}>
           <View style={styles.breakdownItem}>
             <Text style={[styles.breakdownNum, { color: COLORS.tealLight }]}>{s ? s.activeMembers : '--'}</Text>
-            <Text style={styles.breakdownLabel}>Active</Text>
+            <Text style={styles.breakdownLabel}>{t('common.status.active')}</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
             <Text style={[styles.breakdownNum, { color: COLORS.blueLight }]}>{s ? s.pendingMembers : '--'}</Text>
-            <Text style={styles.breakdownLabel}>Pending</Text>
+            <Text style={styles.breakdownLabel}>{t('common.status.pending')}</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
             <Text style={[styles.breakdownNum, { color: COLORS.amberLight }]}>{s ? s.inactiveMembers : '--'}</Text>
-            <Text style={styles.breakdownLabel}>Inactive</Text>
+            <Text style={styles.breakdownLabel}>{t('common.status.inactive')}</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
             <Text style={[styles.breakdownNum, { color: COLORS.red }]}>{s ? s.suspendedMembers : '--'}</Text>
-            <Text style={styles.breakdownLabel}>Suspended</Text>
+            <Text style={styles.breakdownLabel}>{t('common.status.suspended')}</Text>
           </View>
         </View>
 
@@ -284,8 +289,8 @@ export default function AdminDashboardScreen() {
       {/* Energy Flow Visualization */}
       <View style={[GLASS.card, styles.sectionCard]}>
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Energy Flow</Text>
-          <Text style={styles.sectionSubtext}>Community · Today</Text>
+          <Text style={styles.sectionTitle}>{t('admin.dashboard.energyFlow')}</Text>
+          <Text style={styles.sectionSubtext}>{t('admin.dashboard.communityToday')}</Text>
         </View>
         <View style={styles.energyFlowRow}>
           {[
@@ -313,20 +318,20 @@ export default function AdminDashboardScreen() {
         <View style={styles.flowLegendRow}>
           <View style={styles.flowLegend}>
             <View style={[styles.flowDot, { backgroundColor: COLORS.amber }]} />
-            <Text style={styles.flowLegendText}>Production {s ? s.totalProduction : '--'} kWh</Text>
+            <Text style={styles.flowLegendText}>{t('admin.dashboard.flowProduction', { value: s ? s.totalProduction : '--' })}</Text>
           </View>
           <View style={styles.flowLegend}>
             <View style={[styles.flowDot, { backgroundColor: COLORS.tealLight }]} />
-            <Text style={styles.flowLegendText}>Consumption {s ? s.totalConsumption : '--'} kWh</Text>
+            <Text style={styles.flowLegendText}>{t('admin.dashboard.flowConsumption', { value: s ? s.totalConsumption : '--' })}</Text>
           </View>
         </View>
       </View>
 
       {/* Recent Activity Feed */}
       <View style={[GLASS.card, styles.sectionCard]}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
+        <Text style={styles.sectionTitle}>{t('admin.dashboard.recentActivity')}</Text>
         {feed.length === 0 && (
-          <Text style={styles.feedEmpty}>No recent activity yet.</Text>
+          <Text style={styles.feedEmpty}>{t('admin.dashboard.noActivity')}</Text>
         )}
         {feed.map(event => {
           const Icon = event.icon;
@@ -353,7 +358,7 @@ export default function AdminDashboardScreen() {
           activeOpacity={0.8}
         >
           <AlertTriangle size={16} color="#FFFFFF" />
-          <Text style={styles.actionBtnText}>View Alerts</Text>
+          <Text style={styles.actionBtnText}>{t('admin.dashboard.viewAlerts')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtnAmber}
@@ -361,7 +366,7 @@ export default function AdminDashboardScreen() {
           activeOpacity={0.8}
         >
           <MessageSquare size={16} color="#FFFFFF" />
-          <Text style={styles.actionBtnText}>Complaints</Text>
+          <Text style={styles.actionBtnText}>{t('admin.dashboard.stat.complaints')}</Text>
         </TouchableOpacity>
       </View>
 

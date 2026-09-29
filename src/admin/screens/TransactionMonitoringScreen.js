@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { timeAgo } from '../data/mockAdminData';
@@ -25,6 +26,13 @@ import {
 
 const FILTERS = ['All', 'Completed', 'Reversed'];
 
+// Canonical filter/status values stay in English — only the label shown is translated.
+const STATUS_LABEL_KEY = {
+  All:       'common.status.all',
+  Completed: 'common.status.completed',
+  Reversed:  'common.status.reversed',
+};
+
 const TX_COLORS = {
   Completed: COLORS.tealLight,
   Reversed:  COLORS.red,
@@ -40,7 +48,7 @@ const TX_ICONS = {
   Reversed:  XCircle,
 };
 
-function TxRow({ tx, onReverse }) {
+function TxRow({ tx, onReverse, t }) {
   const [expanded, setExpanded] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
   const color  = TX_COLORS[tx.status];
@@ -52,11 +60,11 @@ function TxRow({ tx, onReverse }) {
     try {
       await onReverse(tx.id);
     } catch (err) {
-      const errMsg = err?.message || 'Failed to reverse transaction.';
+      const errMsg = err?.message || t('admin.transactions.reverseFailedDefault');
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`Reverse failed: ${errMsg}`);
+        window.alert(t('admin.transactions.reverseFailedInline', { message: errMsg }));
       } else {
-        Alert.alert('Reverse failed', errMsg);
+        Alert.alert(t('admin.transactions.reverseFailedTitle'), errMsg);
       }
     } finally {
       setIsReversing(false);
@@ -65,7 +73,7 @@ function TxRow({ tx, onReverse }) {
 
   const handleReverse = () => {
     if (isReversing) return;
-    const confirmText = `Reverse this ${tx.amount} kWh transaction between ${tx.sender} and ${tx.receiver}? This cannot be undone.`;
+    const confirmText = t('admin.transactions.reverseConfirm', { amount: tx.amount, sender: tx.sender, receiver: tx.receiver });
 
     if (Platform.OS === 'web') {
       if (typeof window !== 'undefined' && window.confirm ? window.confirm(confirmText) : true) {
@@ -75,11 +83,11 @@ function TxRow({ tx, onReverse }) {
     }
 
     Alert.alert(
-      'Reverse Transaction',
+      t('admin.transactions.reverseDialogTitle'),
       confirmText,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Reverse', style: 'destructive', onPress: performReverse },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.transactions.reverseAction'), style: 'destructive', onPress: performReverse },
       ]
     );
   };
@@ -112,7 +120,7 @@ function TxRow({ tx, onReverse }) {
           <Text style={[styles.txAmount, { color }]}>{tx.amount} kWh</Text>
           <View style={[styles.txStatusPill, { backgroundColor: bg }]}>
             <StatusIcon size={9} color={color} />
-            <Text style={[styles.txStatusText, { color }]}>{tx.status}</Text>
+            <Text style={[styles.txStatusText, { color }]}>{t(STATUS_LABEL_KEY[tx.status] ?? tx.status)}</Text>
           </View>
         </View>
 
@@ -123,11 +131,11 @@ function TxRow({ tx, onReverse }) {
       {expanded && (
         <View style={styles.txExpanded}>
           <View style={styles.expandRow}>
-            <Text style={styles.expandLabel}>Reference</Text>
+            <Text style={styles.expandLabel}>{t('admin.transactions.expand.reference')}</Text>
             <Text style={styles.expandValue}>{tx.referenceCode}</Text>
           </View>
           <View style={styles.expandRow}>
-            <Text style={styles.expandLabel}>Date & Time</Text>
+            <Text style={styles.expandLabel}>{t('admin.transactions.expand.dateTime')}</Text>
             <Text style={styles.expandValue}>
               {new Date(tx.timestamp).toLocaleString('en-GB', {
                 day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -135,12 +143,12 @@ function TxRow({ tx, onReverse }) {
             </Text>
           </View>
           <View style={styles.expandRow}>
-            <Text style={styles.expandLabel}>Energy Amount</Text>
+            <Text style={styles.expandLabel}>{t('admin.transactions.expand.energyAmount')}</Text>
             <Text style={styles.expandValue}>{tx.amount} kWh</Text>
           </View>
           <View style={styles.expandRow}>
-            <Text style={styles.expandLabel}>Status</Text>
-            <Text style={[styles.expandValue, { color }]}>{tx.status}</Text>
+            <Text style={styles.expandLabel}>{t('admin.transactions.expand.status')}</Text>
+            <Text style={[styles.expandValue, { color }]}>{t(STATUS_LABEL_KEY[tx.status] ?? tx.status)}</Text>
           </View>
 
           {tx.status === 'Completed' && (
@@ -155,7 +163,7 @@ function TxRow({ tx, onReverse }) {
                 : <RotateCcw size={14} color={COLORS.red} />
               }
               <Text style={styles.reverseBtnText}>
-                {isReversing ? 'Reversing…' : 'Reverse Transaction'}
+                {isReversing ? t('admin.transactions.reversing') : t('admin.transactions.reverseAction')}
               </Text>
             </TouchableOpacity>
           )}
@@ -166,6 +174,7 @@ function TxRow({ tx, onReverse }) {
 }
 
 export default function TransactionMonitoringScreen() {
+  const { t } = useTranslation();
   const {
     transactions,
     transactionsLoading,
@@ -177,11 +186,11 @@ export default function TransactionMonitoringScreen() {
 
   const filtered = filter === 'All'
     ? transactions
-    : transactions.filter(t => t.status === filter);
+    : transactions.filter(t2 => t2.status === filter);
 
-  const completed = transactions.filter(t => t.status === 'Completed');
-  const reversed  = transactions.filter(t => t.status === 'Reversed');
-  const totalKwh  = completed.reduce((s, t) => s + t.amount, 0).toFixed(1);
+  const completed = transactions.filter(t2 => t2.status === 'Completed');
+  const reversed  = transactions.filter(t2 => t2.status === 'Reversed');
+  const totalKwh  = completed.reduce((s, t2) => s + t2.amount, 0).toFixed(1);
 
   // ── Loading skeleton ────────────────────────────────────────────────────────
   if (transactionsLoading) {
@@ -189,7 +198,7 @@ export default function TransactionMonitoringScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Receipt size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>Transaction Ledger</Text>
+          <Text style={styles.screenTitle}>{t('admin.transactions.title')}</Text>
         </View>
         {[1, 2, 3].map(i => (
           <View key={i} style={[styles.txCard, styles.skeletonCard]}>
@@ -207,14 +216,14 @@ export default function TransactionMonitoringScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Receipt size={18} color={COLORS.amberLight} />
-          <Text style={styles.screenTitle}>Transaction Ledger</Text>
+          <Text style={styles.screenTitle}>{t('admin.transactions.title')}</Text>
         </View>
         <View style={[GLASS.card, styles.errorCard]}>
           <AlertCircle size={28} color={COLORS.red} />
-          <Text style={styles.errorTitle}>Could not load transactions</Text>
+          <Text style={styles.errorTitle}>{t('admin.transactions.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{transactionsError}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadTransactions} activeOpacity={0.8}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -227,24 +236,24 @@ export default function TransactionMonitoringScreen() {
       {/* Title */}
       <View style={styles.titleRow}>
         <Receipt size={18} color={COLORS.amberLight} />
-        <Text style={styles.screenTitle}>Transaction Ledger</Text>
+        <Text style={styles.screenTitle}>{t('admin.transactions.title')}</Text>
       </View>
 
       {/* Summary Bar */}
       <View style={[GLASS.card, styles.summaryCard]}>
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryNum, { color: COLORS.tealLight }]}>{completed.length}</Text>
-          <Text style={styles.summaryLabel}>Completed</Text>
+          <Text style={styles.summaryLabel}>{t('common.status.completed')}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryNum, { color: COLORS.red }]}>{reversed.length}</Text>
-          <Text style={styles.summaryLabel}>Reversed</Text>
+          <Text style={styles.summaryLabel}>{t('common.status.reversed')}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryNum, { color: COLORS.textBright }]}>{totalKwh}</Text>
-          <Text style={styles.summaryLabel}>kWh Shared</Text>
+          <Text style={styles.summaryLabel}>{t('admin.transactions.kwhShared')}</Text>
         </View>
       </View>
 
@@ -257,22 +266,23 @@ export default function TransactionMonitoringScreen() {
             onPress={() => setFilter(f)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{f}</Text>
+            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{t(STATUS_LABEL_KEY[f])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       {/* Transaction List */}
       <Text style={styles.listLabel}>
-        {filtered.length} Transaction{filtered.length !== 1 ? 's' : ''}{filter !== 'All' ? ` · ${filter}` : ''}
+        {t('admin.transactions.listLabel', { count: filtered.length })}
+        {filter !== 'All' ? ` · ${t(STATUS_LABEL_KEY[filter])}` : ''}
       </Text>
 
       {filtered.length === 0 ? (
         <View style={[GLASS.card, styles.emptyCard]}>
-          <Text style={styles.emptyText}>No transactions match this filter.</Text>
+          <Text style={styles.emptyText}>{t('admin.transactions.noMatch')}</Text>
         </View>
       ) : (
-        filtered.map(tx => <TxRow key={tx.id} tx={tx} onReverse={reverseTransaction} />)
+        filtered.map(tx => <TxRow key={tx.id} tx={tx} onReverse={reverseTransaction} t={t} />)
       )}
 
       <View style={{ height: 24 }} />
