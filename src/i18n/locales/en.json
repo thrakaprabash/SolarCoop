@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "SolarCoop",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "welcomeMessage": "Welcome to SolarCoop"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Admin Dashboard"
+    }
+  }
+}
