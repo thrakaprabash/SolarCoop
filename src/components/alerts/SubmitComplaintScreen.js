@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { ArrowLeft, Send, AlertCircle } from 'lucide-react-native';
@@ -19,45 +20,43 @@ const COMPLAINT_TYPES = [
   'Other',
 ];
 
-export const SubmitComplaintScreen = ({ onBack, onSubmit }) => {
-  const [type, setType] = useState(COMPLAINT_TYPES[0]);
-  const [transaction, setTransaction] = useState('');
-  const [description, setDescription] = useState('');
+export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = null }) => {
+  const isEditing = !!existingComplaint;
+  
+  const [type, setType] = useState(existingComplaint?.type || COMPLAINT_TYPES[0]);
+  const [transaction, setTransaction] = useState(existingComplaint?.relatedTransaction || '');
+  const [description, setDescription] = useState(existingComplaint?.description || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const isValid = description.trim().length >= 20;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isValid) return;
     
     setIsSubmitting(true);
+    setSubmitError(null);
     
-    // Simulate network delay
-    setTimeout(() => {
-      const newComplaint = {
-        id: `c${Date.now()}`,
-        complainant: 'Vihanga Perera', // Hardcoded mock user for now
-        household: 'House #01',
-        memberId: 'm1',
+    try {
+      await onSubmit({
         type,
         description: description.trim(),
         relatedTransaction: transaction.trim() || null,
-        relatedAmount: null,
-        status: 'Open',
-        resolutionNote: '',
-        submittedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
+      });
+
       setIsSubmitting(false);
       setShowSuccess(true);
       
       // Navigate back after showing success message briefly
       setTimeout(() => {
-        onSubmit(newComplaint);
-      }, 1500);
-    }, 800);
+        onBack();
+      }, 1200);
+    } catch (err) {
+      console.error('[SubmitComplaintScreen] Submission failed:', err);
+      setSubmitError(err.message || 'Could not submit complaint. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   if (showSuccess) {
@@ -66,9 +65,13 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit }) => {
         <View style={styles.successCircle}>
           <Send size={32} color={COLORS.tealLight} />
         </View>
-        <Text style={styles.successTitle}>Complaint Submitted</Text>
+        <Text style={styles.successTitle}>
+          {isEditing ? 'Complaint Updated' : 'Complaint Submitted'}
+        </Text>
         <Text style={styles.successText}>
-          Your issue has been forwarded to the cooperative administration. You can track its status in the My Complaints list.
+          {isEditing
+            ? 'Your changes have been saved and sent to the cooperative administration.'
+            : 'Your issue has been forwarded to the cooperative administration. You can track its status in the My Complaints list.'}
         </Text>
       </View>
     );
@@ -84,8 +87,8 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit }) => {
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
           <ArrowLeft size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Submit a Complaint</Text>
-        <View style={{ width: 40 }} /> {/* balance for flex layout */}
+        <Text style={styles.headerTitle}>{isEditing ? 'Edit Complaint' : 'Submit a Complaint'}</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -93,9 +96,17 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit }) => {
         <View style={[GLASS.card, styles.infoCard]}>
           <AlertCircle size={20} color={COLORS.amberLight} />
           <Text style={styles.infoText}>
-            Please provide accurate details so administrators can investigate and resolve your issue efficiently.
+            {isEditing 
+              ? 'You can edit your pending complaint details before administrators begin reviewing it.'
+              : 'Please provide accurate details so administrators can investigate and resolve your issue efficiently.'}
           </Text>
         </View>
+
+        {submitError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>{submitError}</Text>
+          </View>
+        ) : null}
 
         {/* Type Selector */}
         <View style={styles.section}>
@@ -158,14 +169,18 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit }) => {
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={[styles.submitBtn, !isValid && styles.submitBtnDisabled]}
+          style={[styles.submitBtn, (!isValid || isSubmitting) && styles.submitBtnDisabled]}
           onPress={handleSubmit}
           disabled={!isValid || isSubmitting}
           activeOpacity={0.8}
         >
-          <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled]}>
-            {isSubmitting ? 'Submitting...' : 'Submit Complaint'}
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#000000" />
+          ) : (
+            <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled]}>
+              {isEditing ? 'Save Changes' : 'Submit Complaint'}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
@@ -205,6 +220,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245, 158, 11, 0.2)',
   },
   infoText: { flex: 1, fontSize: 13, color: COLORS.textSecondary, lineHeight: 19, fontWeight: '500' },
+
+  errorBanner: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorBannerText: { color: COLORS.red, fontSize: 13, fontWeight: '600', textAlign: 'center' },
 
   section: { gap: 10 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -9,9 +9,14 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
-import { MOCK_COMPLAINTS, timeAgo } from '../data/mockAdminData';
+import { useAdmin } from '../context/AdminContext';
+import { timeAgo } from '../data/mockAdminData';
 import {
   MessageSquare,
   ChevronDown,
@@ -21,6 +26,10 @@ import {
   Clock,
   Eye,
   Receipt,
+  Save,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react-native';
 
 if (Platform.OS === 'android') {
@@ -29,6 +38,23 @@ if (Platform.OS === 'android') {
 }
 
 const FILTERS = ['All', 'Open', 'Under Review', 'Resolved', 'Rejected'];
+
+// Canonical filter/status/type values stay in English — only the label shown
+// is translated, so filtering and status comparisons are untouched.
+const STATUS_LABEL_KEY = {
+  All:           'common.status.all',
+  Open:          'common.status.open',
+  'Under Review': 'common.status.underReview',
+  Resolved:      'common.status.resolved',
+  Rejected:      'common.status.rejected',
+};
+
+const TYPE_LABEL_KEY = {
+  'Transaction Error': 'admin.complaints.type.transactionError',
+  'Billing Dispute':   'admin.complaints.type.billingDispute',
+  'System Fault':      'admin.complaints.type.systemFault',
+  'Other':             'admin.complaints.type.other',
+};
 
 const STATUS_COLOR = {
   'Open':         COLORS.red,
@@ -53,8 +79,14 @@ const TYPE_COLOR = {
 
 // ─── 4-Step Stepper ──────────────────────────────────────────────────────────
 const STEPS = ['Open', 'Under Review', 'Investigated', 'Resolved'];
+const STEP_LABEL_KEY = {
+  Open:           'common.status.open',
+  'Under Review': 'common.status.underReview',
+  Investigated:   'admin.complaints.investigated',
+  Resolved:       'common.status.resolved',
+};
 
-function StatusStepper({ currentStatus }) {
+function StatusStepper({ currentStatus, t }) {
   const stepMap = {
     'Open': 0, 'Under Review': 1, 'Investigated': 2, 'Resolved': 3, 'Rejected': -1,
   };
@@ -78,7 +110,7 @@ function StatusStepper({ currentStatus }) {
                   <Text style={[styles.stepNum, { color }]}>{i + 1}</Text>
                 )}
               </View>
-              <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{step}</Text>
+              <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{t(STEP_LABEL_KEY[step])}</Text>
             </View>
             {i < STEPS.length - 1 && (
               <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : 'rgba(255,255,255,0.1)' }]} />
@@ -91,11 +123,13 @@ function StatusStepper({ currentStatus }) {
 }
 
 // ─── Complaint Card ───────────────────────────────────────────────────────────
-function ComplaintCard({ complaint, onUpdateStatus }) {
-  const [expanded, setExpanded]     = useState(false);
-  const [note, setNote]             = useState(complaint.resolutionNote);
-  const [status, setStatus]         = useState(complaint.status);
-  const accentColor = STATUS_COLOR[status];
+function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }) {
+  const [expanded, setExpanded] = useState(false);
+  const [noteText, setNoteText] = useState(complaint.resolutionNote || '');
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  const status = complaint.status;
+  const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
   const canAct = status === 'Open' || status === 'Under Review';
 
   const handleToggle = () => {
@@ -103,10 +137,48 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
     setExpanded(e => !e);
   };
 
-  const changeStatus = (newStatus) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setStatus(newStatus);
-    onUpdateStatus && onUpdateStatus(complaint.id, newStatus);
+  const handleSaveNote = async () => {
+    try {
+      setIsSavingNote(true);
+      await onSaveNote(complaint.id, noteText);
+    } catch (err) {
+      const msg = err?.message || t('admin.complaints.saveNoteError');
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert(t('admin.complaints.errorTitle'), msg);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleClearNote = () => {
+    const confirmAction = async () => {
+      try {
+        setIsSavingNote(true);
+        await onClearNote(complaint.id);
+        setNoteText('');
+      } catch (err) {
+        const msg = err?.message || t('admin.complaints.clearNoteError');
+        if (Platform.OS === 'web') window.alert(msg);
+        else Alert.alert(t('admin.complaints.errorTitle'), msg);
+      } finally {
+        setIsSavingNote(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('admin.complaints.clearNoteConfirm'))) {
+        confirmAction();
+      }
+    } else {
+      Alert.alert(
+        t('admin.complaints.clearNoteTitle'),
+        t('admin.complaints.clearNoteConfirm'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('admin.complaints.clearNoteAction'), style: 'destructive', onPress: confirmAction },
+        ]
+      );
+    }
   };
 
   return (
@@ -118,7 +190,7 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
         {/* Type badge */}
         <View style={[styles.typeBadge, { backgroundColor: `${TYPE_COLOR[complaint.type] ?? COLORS.textMuted}15` }]}>
           <Text style={[styles.typeText, { color: TYPE_COLOR[complaint.type] ?? COLORS.textSecondary }]}>
-            {complaint.type}
+            {t(TYPE_LABEL_KEY[complaint.type] ?? complaint.type)}
           </Text>
         </View>
 
@@ -127,7 +199,7 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
           <View style={styles.headerTop}>
             <Text style={styles.complainantName}>{complaint.complainant}</Text>
             <View style={[styles.statusPill, { backgroundColor: STATUS_BG[status], borderColor: `${accentColor}30` }]}>
-              <Text style={[styles.statusPillText, { color: accentColor }]}>{status}</Text>
+              <Text style={[styles.statusPillText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[status] ?? status)}</Text>
             </View>
           </View>
           <Text style={styles.householdText}>{complaint.household}</Text>
@@ -143,18 +215,18 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
         <View style={styles.expandedPanel}>
           {/* Full description */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Full Description</Text>
+            <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.fullDescription')}</Text>
             <Text style={styles.expandBody}>{complaint.description}</Text>
           </View>
 
           {/* Related transaction */}
           {complaint.relatedTransaction && (
             <View style={styles.expandSection}>
-              <Text style={styles.expandSectionTitle}>Related Transaction</Text>
+              <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.relatedTransaction')}</Text>
               <View style={styles.txRefRow}>
                 <Receipt size={13} color={COLORS.amberLight} />
                 <Text style={styles.txRefText}>
-                  {complaint.relatedTransaction.toUpperCase()} · {complaint.relatedAmount} kWh
+                  {complaint.relatedTransaction.toUpperCase()} {complaint.relatedAmount ? `· ${complaint.relatedAmount} kWh` : ''}
                 </Text>
               </View>
             </View>
@@ -162,63 +234,84 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
 
           {/* Status Stepper */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Resolution Progress</Text>
-            <StatusStepper currentStatus={status} />
+            <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.resolutionProgress')}</Text>
+            <StatusStepper currentStatus={status} t={t} />
           </View>
 
-          {/* Resolution Note */}
+          {/* Resolution Note Editor */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Resolution Note</Text>
+            <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.adminNote')}</Text>
             <TextInput
               style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Add resolution note…"
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder={t('admin.complaints.notePlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               multiline
               numberOfLines={3}
             />
+            <View style={styles.noteBtnRow}>
+              <TouchableOpacity
+                style={[styles.noteSaveBtn, isSavingNote && { opacity: 0.6 }]}
+                onPress={handleSaveNote}
+                disabled={isSavingNote}
+                activeOpacity={0.8}
+              >
+                {isSavingNote ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Save size={13} color="#FFFFFF" />
+                    <Text style={styles.noteSaveBtnText}>{t('admin.complaints.saveNote')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              {complaint.resolutionNote ? (
+                <TouchableOpacity
+                  style={[styles.noteClearBtn, isSavingNote && { opacity: 0.6 }]}
+                  onPress={handleClearNote}
+                  disabled={isSavingNote}
+                  activeOpacity={0.8}
+                >
+                  <Trash2 size={13} color={COLORS.red} />
+                  <Text style={styles.noteClearBtnText}>{t('admin.complaints.clearNote')}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
 
-          {/* Action Buttons */}
+          {/* Status Action Buttons */}
           {canAct && (
             <View style={styles.actionBtnsRow}>
               {status === 'Open' && (
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }]}
-                  onPress={() => changeStatus('Under Review')}
+                  onPress={() => onUpdateStatus(complaint.id, 'Under Review')}
                   activeOpacity={0.8}
                 >
                   <Eye size={14} color={COLORS.amberLight} />
-                  <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>Review</Text>
+                  <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.complaints.action.review')}</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.12)', borderColor: 'rgba(45,212,191,0.3)' }]}
-                onPress={() => changeStatus('Resolved')}
+                onPress={() => onUpdateStatus(complaint.id, 'Resolved')}
                 activeOpacity={0.8}
               >
                 <CheckCircle size={14} color={COLORS.tealLight} />
-                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>Resolve</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.complaints.action.resolve')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }]}
-                onPress={() => changeStatus('Rejected')}
+                onPress={() => onUpdateStatus(complaint.id, 'Rejected')}
                 activeOpacity={0.8}
               >
                 <XCircle size={14} color={COLORS.red} />
-                <Text style={[styles.actionBtnText, { color: COLORS.red }]}>Reject</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.complaints.action.reject')}</Text>
               </TouchableOpacity>
             </View>
           )}
-
-          {/* Already resolved/rejected note */}
-          {!canAct && complaint.resolutionNote ? (
-            <View style={styles.expandSection}>
-              <Text style={styles.expandSectionTitle}>Admin Note</Text>
-              <Text style={styles.expandBody}>{complaint.resolutionNote}</Text>
-            </View>
-          ) : null}
         </View>
       )}
     </View>
@@ -227,43 +320,83 @@ function ComplaintCard({ complaint, onUpdateStatus }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function ComplaintsScreen() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('All');
-  const [complaints, setComplaints] = useState(MOCK_COMPLAINTS);
+  const [refreshing, setRefreshing] = useState(false);
+  const {
+    complaints,
+    complaintsLoading,
+    complaintsError,
+    loadComplaints,
+    updateComplaintStatus,
+    saveResolutionNote,
+    clearResolutionNote,
+  } = useAdmin();
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadComplaints();
+    setRefreshing(false);
+  };
 
   const filtered = filter === 'All'
     ? complaints
     : complaints.filter(c => c.status === filter);
 
-  const openCnt       = complaints.filter(c => c.status === 'Open').length;
-  const reviewCnt     = complaints.filter(c => c.status === 'Under Review').length;
-  const resolvedCnt   = complaints.filter(c => c.status === 'Resolved').length;
+  const openCnt     = complaints.filter(c => c.status === 'Open').length;
+  const reviewCnt   = complaints.filter(c => c.status === 'Under Review').length;
+  const resolvedCnt = complaints.filter(c => c.status === 'Resolved').length;
 
-  const handleUpdate = (id, newStatus) => {
-    setComplaints(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
-  };
+  if (complaintsLoading && complaints.length === 0) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.amberLight} />
+        <Text style={styles.loadingText}>{t('admin.complaints.loading')}</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.amberLight} />
+      }
+    >
 
       {/* Title */}
       <View style={styles.titleRow}>
         <MessageSquare size={18} color={COLORS.amberLight} />
-        <Text style={styles.screenTitle}>Complaints</Text>
+        <Text style={styles.screenTitle}>{t('admin.complaints.title')}</Text>
       </View>
+
+      {/* Error Card if fetch failed */}
+      {complaintsError ? (
+        <View style={[GLASS.card, styles.errorCard]}>
+          <AlertTriangle size={24} color={COLORS.red} />
+          <Text style={styles.errorText}>{complaintsError}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadComplaints} activeOpacity={0.8}>
+            <RefreshCw size={14} color="#FFFFFF" />
+            <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* Stats Strip */}
       <View style={styles.statsStrip}>
         <View style={[styles.statPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
           <Text style={[styles.statNum, { color: COLORS.red }]}>{openCnt}</Text>
-          <Text style={[styles.statLabel, { color: COLORS.red }]}>Open</Text>
+          <Text style={[styles.statLabel, { color: COLORS.red }]}>{t('common.status.open')}</Text>
         </View>
         <View style={[styles.statPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
           <Text style={[styles.statNum, { color: COLORS.amberLight }]}>{reviewCnt}</Text>
-          <Text style={[styles.statLabel, { color: COLORS.amberLight }]}>In Review</Text>
+          <Text style={[styles.statLabel, { color: COLORS.amberLight }]}>{t('admin.complaints.inReviewShort')}</Text>
         </View>
         <View style={[styles.statPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
           <Text style={[styles.statNum, { color: COLORS.tealLight }]}>{resolvedCnt}</Text>
-          <Text style={[styles.statLabel, { color: COLORS.tealLight }]}>Resolved</Text>
+          <Text style={[styles.statLabel, { color: COLORS.tealLight }]}>{t('common.status.resolved')}</Text>
         </View>
       </View>
 
@@ -276,7 +409,7 @@ export default function ComplaintsScreen() {
             onPress={() => setFilter(f)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{f}</Text>
+            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{t(STATUS_LABEL_KEY[f])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -285,12 +418,19 @@ export default function ComplaintsScreen() {
       {filtered.length === 0 ? (
         <View style={[GLASS.card, styles.emptyCard]}>
           <CheckCircle size={28} color={COLORS.tealLight} />
-          <Text style={styles.emptyTitle}>No Complaints Here</Text>
-          <Text style={styles.emptyText}>Nothing to show for "{filter}".</Text>
+          <Text style={styles.emptyTitle}>{t('admin.complaints.emptyTitle')}</Text>
+          <Text style={styles.emptyText}>{t('admin.complaints.emptyText', { filter: t(STATUS_LABEL_KEY[filter]) })}</Text>
         </View>
       ) : (
         filtered.map(c => (
-          <ComplaintCard key={c.id} complaint={c} onUpdateStatus={handleUpdate} />
+          <ComplaintCard
+            key={c.id}
+            complaint={c}
+            onUpdateStatus={updateComplaintStatus}
+            onSaveNote={saveResolutionNote}
+            onClearNote={clearResolutionNote}
+            t={t}
+          />
         ))
       )}
 
@@ -303,8 +443,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 32 },
+  loadingText: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
+
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   screenTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textBright },
+
+  errorCard: { padding: 16, alignItems: 'center', gap: 10, backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.2)' },
+  errorText: { fontSize: 13, color: COLORS.red, textAlign: 'center', fontWeight: '500' },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.red, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  retryBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 
   statsStrip: { flexDirection: 'row', gap: 10 },
   statPill: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 14, gap: 3 },
@@ -405,8 +553,32 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
 
+  noteBtnRow: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end', marginTop: 4 },
+  noteSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.teal,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  noteSaveBtnText: { fontSize: 12, fontWeight: '700', color: '#000000' },
+  noteClearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  noteClearBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.red },
+
   // Action Buttons
-  actionBtnsRow: { flexDirection: 'row', gap: 8 },
+  actionBtnsRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -9,17 +10,28 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../../theme/colors';
 import { colors } from '../../trade/theme';
-import { COMMUNITY_STATS } from '../data/mockAdminData';
+import { useAdmin } from '../context/AdminContext';
 
-const TABS = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: null },
-  { key: 'members',   label: 'Members',   icon: Users,           badge: COMMUNITY_STATS.totalMembers },
-  { key: 'ledger',    label: 'Ledger',    icon: Receipt,         badge: COMMUNITY_STATS.pendingTransactions },
-  { key: 'reports',   label: 'Reports',   icon: MessageSquare,   badge: COMMUNITY_STATS.openComplaints },
-  { key: 'profile',   label: 'Profile',   icon: UserCog,         badge: null },
+const TAB_KEYS = [
+  { key: 'dashboard', labelKey: 'admin.nav.dashboard', icon: LayoutDashboard },
+  { key: 'members',   labelKey: 'admin.nav.members',   icon: Users },
+  { key: 'ledger',    labelKey: 'admin.nav.ledger',    icon: Receipt },
+  { key: 'reports',   labelKey: 'admin.nav.reports',   icon: MessageSquare },
+  { key: 'profile',   labelKey: 'admin.nav.profile',   icon: UserCog },
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const { t } = useTranslation();
+  const { complaints } = useAdmin();
+
+  // Count open complaints from live Supabase data
+  const openComplaintsCount = (complaints || []).filter(c => c.status === 'Open').length;
+
+  const TABS = TAB_KEYS.map(tab => ({
+    ...tab,
+    badge: tab.key === 'reports' && openComplaintsCount > 0 ? openComplaintsCount : null,
+  }));
+
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(bottomInset, 12) }]}>
       {TABS.map((tab) => {
@@ -41,7 +53,8 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               >
                 <Icon size={18} color={color} strokeWidth={2} />
               </View>
-              {/* Badge */}
+
+              {/* Red notification badge — only shows when open complaints exist */}
               {tab.badge != null && tab.badge > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{tab.badge > 99 ? '99+' : tab.badge}</Text>
@@ -49,7 +62,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               )}
             </View>
             <Text style={[styles.label, { color, fontWeight: active ? '700' : '500' }]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </Pressable>
         );

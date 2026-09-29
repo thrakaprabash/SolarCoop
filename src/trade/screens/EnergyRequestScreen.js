@@ -17,6 +17,8 @@ export default function EnergyRequestScreen() {
 
   const [amount, setAmount] = useState('2.5');
   const [confirmation, setConfirmation] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const value = parseFloat(amount);
   const error = useMemo(() => {
@@ -33,9 +35,16 @@ export default function EnergyRequestScreen() {
     setConfirmation('');
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (error || !provider) return;
-    submitRequest(provider, value);
+    setSubmitting(true);
+    setSubmitError('');
+    const { error: requestError } = await submitRequest(provider.id, value);
+    setSubmitting(false);
+    if (requestError) {
+      setSubmitError(requestError.message || 'Could not send request.');
+      return;
+    }
     setConfirmation('Request for ' + kwh(value) + ' kWh sent to ' + provider.name);
     showToast('Request sent to ' + provider.name);
   };
@@ -111,14 +120,14 @@ export default function EnergyRequestScreen() {
           <Text style={styles.costValue}>{error ? '—' : money(value * provider.rate)}</Text>
         </View>
 
-        <Notice message={error} tone="error" />
+        <Notice message={error || submitError} tone="error" />
         <Notice message={confirmation} tone="success" />
 
         <PrimaryButton
           label="Submit Request"
           icon={ArrowUpRight}
           onPress={onSubmit}
-          disabled={!!error}
+          disabled={!!error || submitting}
           background={error || confirmation ? colors.tealTintStrong : colors.teal}
           style={styles.submit}
         />

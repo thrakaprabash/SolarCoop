@@ -1,11 +1,61 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
+import { ShieldCheck, LogOut } from 'lucide-react-native';
 
 export default function AdminHeader() {
-  const { adminHeaderToggle, setAdminHeaderToggle, onExit } = useAdmin();
+  const { t } = useTranslation();
+  const {
+    adminHeaderToggle,
+    setAdminHeaderToggle,
+    setAdminBottomTab,
+    onExit,
+    alerts,
+    alertsError,
+    openAlertCount,
+    urgentAlertCount,
+  } = useAdmin();
+
+  // The pill reflects real alert state instead of a hardcoded "System OK":
+  // red for open Critical/High alerts, amber for lesser open ones, teal only
+  // when nothing needs attention. If alerts couldn't load at all we say so
+  // rather than claim everything is fine.
+  const pill =
+    alertsError && alerts.length === 0
+      ? { text: t('admin.header.alertsUnavailable'), color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+      : urgentAlertCount > 0
+        ? { text: t('admin.header.urgent', { count: urgentAlertCount }), color: COLORS.red, bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' }
+        : openAlertCount > 0
+          ? { text: t('admin.header.openAlerts', { count: openAlertCount }), color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+          : { text: t('admin.header.systemOk'), color: COLORS.tealLight, bg: 'rgba(20,184,166,0.12)', border: 'rgba(20,184,166,0.25)' };
+
+  const handleToggle = (toggleKey) => {
+    setAdminHeaderToggle(toggleKey);
+    setAdminBottomTab('dashboard');
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm
+        ? window.confirm(t('admin.header.logoutConfirmWeb'))
+        : true;
+      if (confirmed) {
+        onExit();
+      }
+      return;
+    }
+
+    Alert.alert(
+      t('admin.settings.logout'),
+      t('admin.header.logoutConfirmNative'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.settings.logout'), style: 'destructive', onPress: onExit },
+      ]
+    );
+  };
 
   return (
     <View style={styles.headerContainer}>
@@ -17,48 +67,52 @@ export default function AdminHeader() {
           </View>
           <View>
             <View style={styles.titleRow}>
-              <Text style={styles.appName}>SolarCoop</Text>
+              <Text style={styles.appName}>{t('common.appName')}</Text>
               <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>ADMIN</Text>
+                <Text style={styles.adminBadgeText}>{t('admin.header.adminBadge')}</Text>
               </View>
             </View>
-            <Text style={styles.subTitle}>Community Management Portal</Text>
+            <Text style={styles.subTitle}>{t('admin.header.subtitle')}</Text>
           </View>
         </View>
 
-        {/* System Status Pill */}
-        <View style={styles.statusPill}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>System OK</Text>
-        </View>
+        {/* System Status Pill — links to the alerts inbox */}
+        <TouchableOpacity
+          style={[styles.statusPill, { backgroundColor: pill.bg, borderColor: pill.border }]}
+          onPress={() => setAdminBottomTab('alerts')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.statusDot, { backgroundColor: pill.color }]} />
+          <Text style={[styles.statusText, { color: pill.color }]}>{pill.text}</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Second Row — Toggle + Exit */}
+      {/* Second Row — Toggle + Logout */}
       <View style={styles.bottomRow}>
         {/* Overview / System Health Toggle */}
         <View style={styles.toggleContainer}>
           <TouchableOpacity
             style={[styles.toggleTab, adminHeaderToggle === 'overview' && styles.toggleTabActive]}
-            onPress={() => setAdminHeaderToggle('overview')}
+            onPress={() => handleToggle('overview')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'overview' && styles.toggleTextActive]}>
-              Overview
+              {t('admin.header.overview')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleTab, adminHeaderToggle === 'health' && styles.toggleTabActive]}
-            onPress={() => setAdminHeaderToggle('health')}
+            onPress={() => handleToggle('health')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'health' && styles.toggleTextActive]}>
-              System Health
+              {t('admin.dashboard.systemHealth')}
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Exit Button */}
-        <TouchableOpacity style={styles.exitBtn} onPress={onExit} activeOpacity={0.7}>
-          <ArrowLeft size={13} color={COLORS.textSecondary} />
-          <Text style={styles.exitText}>Exit Admin</Text>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutHeaderBtn} onPress={handleLogout} activeOpacity={0.7}>
+          <LogOut size={13} color={COLORS.red} />
+          <Text style={styles.logoutHeaderText}>{t('admin.settings.logout')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,20 +229,20 @@ const styles = StyleSheet.create({
     color: COLORS.amberLight,
     fontWeight: '700',
   },
-  exitBtn: {
+  logoutHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.28)',
   },
-  exitText: {
+  logoutHeaderText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontWeight: '700',
+    color: COLORS.red,
   },
 });

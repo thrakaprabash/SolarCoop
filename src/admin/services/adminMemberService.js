@@ -1,0 +1,370 @@
+/**
+ * src/admin/services/adminMemberService.js
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Supabase query layer for the Admin Member Monitoring feature (CES-41).
+ *
+ * All functions are pure async utilities — no React state, no UI imports.
+ * The member shape returned by every function matches the existing MOCK_MEMBERS
+ * schema exactly, so MemberMonitoringScreen and MemberDetailScreen need only
+ * swap their data source without any structural changes.
+ *
+ * Real Supabase schema (confirmed):
+ *   profiles:       id, name, role, household_id, solar_capacity_kw,
+ *                   status, created_at, updated_at, mobile_number
+ *   energy_records: id, user_id, production_kwh, consumption_kwh,
+ *                   surplus_kwh, recorded_at
+ *
+ * Note: profiles has no email column. household_id is used in its place.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+import { supabase, supabaseAdminInvite } from '../../lib/supabase';
+
+// ─── Status Vocabulary Mapper ─────────────────────────────────────────────────
+//
+// The Admin UI uses:   'Active' | 'Pending' | 'Inactive' | 'Suspended'
+// The database uses:   'active' | 'inactive' | 'blocked' | 'pending_approval'
+//
+// 'Pending' is kept distinct from 'Inactive': pending_approval/pending mean
+// "never yet approved" (a brand-new signup or an admin-invited account with
+// no login yet — see AuthContext.js's STATUS_BY_ROLE), which is a different
+// situation from an admin deactivating a previously-active member. Collapsing
+// them into one label made a freshly invited member indistinguishable from a
+// deactivated one.
+//
+// This mapper is the ONLY place where this translation lives.
+// Never hard-code status strings in screens or context.
+
+const DB_TO_UI_STATUS = {
+  active:           'Active',
+  inactive:         'Inactive',
+  blocked:          'Suspended',
+  suspended:        'Suspended',
+  pending_approval: 'Pending',
+  pending:          'Pending',
+};
+
+const UI_TO_DB_STATUS = {
+  Active:    'active',
+  // 'pending_approval' is a distinct state (a brand-new signup awaiting its
+  // first approval — see AuthContext.js's STATUS_BY_ROLE), not the same
+  // thing as an admin deactivating a previously-active member, so
+  // deactivating writes 'inactive' — the value this mapper already reads
+  // back as 'Inactive' on the other side.
+  Inactive:  'inactive',
+  Suspended: 'blocked',
+};
+
+/**
+ * Convert a raw database status value to the UI display label.
+ * Falls back to 'Inactive' for any unknown or null value.
+ *
+ * @param {string|null} dbStatus - Value from profiles.status
+ * @returns {'Active'|'Pending'|'Inactive'|'Suspended'}
+ */
+export const toUIStatus = (dbStatus) =>
+  DB_TO_UI_STATUS[dbStatus] ?? 'Inactive';
+
+/**
+ * Convert a UI label back to the database status value for writes.
+ * Falls back to 'inactive' for any unknown value. There is no admin action
+ * that sets a member to 'Pending' directly — it's a state a member arrives
+ * at (new signup or admin invite), never one an admin assigns — so it isn't
+ * a key here.
+ *
+ * @param {'Active'|'Inactive'|'Suspended'} uiStatus
+ * @returns {string} - Value to write to profiles.status
+ */
+export const toDBStatus = (uiStatus) =>
+  UI_TO_DB_STATUS[uiStatus] ?? 'inactive';
+
+// ─── Member Shape Builder ─────────────────────────────────────────────────────
+
+/**
+ * Build a normalised member object from a profile row + its energy records.
+ *
+ * The returned shape matches MOCK_MEMBERS exactly so MemberMonitoringScreen
+ * and MemberDetailScreen render without structural changes.
+ *
+ * @param {object}   profile - Row from public.profiles
+ * @param {object[]} records - energy_records for this user, newest-first (≤7)
+ * @returns {object}         - Normalised member object
+ */
+function buildMember(profile, records = []) {
+  // Most recent record — used for today's production/consumption/surplus
+  const latest = records[0] ?? null;
+
+  // Last 7 records reversed to oldest→newest for the sparkline trend bars
+  const last7 = [...records].slice(0, 7).reverse();
+  const trend  = last7.map(r => Number(r.production_kwh ?? 0));
+
+  // Weekly totals — sum of last 7 records
+  const weeklyProduction  = last7.reduce((s, r) => s + Number(r.production_kwh  ?? 0), 0);
+  const weeklyConsumption = last7.reduce((s, r) => s + Number(r.consumption_kwh ?? 0), 0);
+
+  return {
+    id:                profile.id,
+    name:              profile.name ?? 'Unknown Member',
+    // No email column in profiles. household_id used as identifier instead.
+    email:             null,
+    household:         profile.household_id ?? '—',
+    solarCapacity:     Number(profile.solar_capacity_kw ?? 0),
+    status:            toUIStatus(profile.status),
+    joinDate:          profile.created_at,
+    todayProduction:   Number(latest?.production_kwh  ?? 0),
+    todayConsumption:  Number(latest?.consumption_kwh ?? 0),
+    todaySurplus:      Number(latest?.surplus_kwh     ?? 0),  // pre-computed in DB
+    weeklyProduction:  parseFloat(weeklyProduction.toFixed(1)),
+    weeklyConsumption: parseFloat(weeklyConsumption.toFixed(1)),
+    // Guarantee 7 bars — pad with zeros if fewer records exist
+    trend:             trend.length > 0
+      ? [...Array(Math.max(0, 7 - trend.length)).fill(0), ...trend]
+      : [0, 0, 0, 0, 0, 0, 0],
+  };
+}
+
+// ─── Queries ──────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all non-admin member profiles with their latest energy data.
+ *
+ * Strategy (two sequential queries, joined client-side):
+ *   1. SELECT all profiles WHERE role != 'admin'
+ *   2. SELECT energy_records for those user IDs, newest-first
+ *   3. Group energy records by user_id (max 7 per user) and build member objects
+ *
+ * Energy failures are non-fatal — members load with zero energy values rather
+ * than the entire list failing.
+ *
+ * @returns {Promise<object[]>} Array of normalised member objects
+ */
+export async function fetchAllMembers() {
+  // ── 1. Profiles ────────────────────────────────────────────────────────────
+  const { data: profiles, error: profileErr } = await supabase
+    .from('profiles')
+    .select('id, name, role, household_id, solar_capacity_kw, status, created_at')
+    .neq('role', 'admin')
+    .order('created_at', { ascending: false });
+
+  if (profileErr) throw profileErr;
+  if (!profiles || profiles.length === 0) return [];
+
+  const userIds = profiles.map(p => p.id);
+
+  // ── 2. Energy records ──────────────────────────────────────────────────────
+  const { data: energyRecords, error: energyErr } = await supabase
+    .from('energy_records')
+    .select('user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at')
+    .in('user_id', userIds)
+    .order('recorded_at', { ascending: false });
+
+  if (energyErr) {
+    console.warn('[adminMemberService] Energy records unavailable:', energyErr.message);
+  }
+
+  // ── 3. Group energy records by user_id (max 7 per user, newest-first) ──────
+  const recordsByUser = {};
+  for (const record of (energyRecords ?? [])) {
+    if (!recordsByUser[record.user_id]) {
+      recordsByUser[record.user_id] = [];
+    }
+    if (recordsByUser[record.user_id].length < 7) {
+      recordsByUser[record.user_id].push(record);
+    }
+  }
+
+  // ── 4. Build normalised member objects ──────────────────────────────────────
+  return profiles.map(profile =>
+    buildMember(profile, recordsByUser[profile.id] ?? [])
+  );
+}
+
+/**
+ * Compute community-level aggregate statistics from an already-fetched members
+ * array. Pure computation — no additional Supabase call needed.
+ *
+ * Mirrors the shape of COMMUNITY_STATS from mockAdminData.js so
+ * AdminDashboardScreen can drop-in replace it.
+ *
+ * @param {object[]} members - Output of fetchAllMembers()
+ * @returns {object}          - Community stats object
+ */
+export function computeCommunityStats(members) {
+  const activeMembers    = members.filter(m => m.status === 'Active').length;
+  const pendingMembers   = members.filter(m => m.status === 'Pending').length;
+  const inactiveMembers  = members.filter(m => m.status === 'Inactive').length;
+  const suspendedMembers = members.filter(m => m.status === 'Suspended').length;
+
+  const totalProduction  = members.reduce((s, m) => s + m.todayProduction,  0);
+  const totalConsumption = members.reduce((s, m) => s + m.todayConsumption, 0);
+  // Only count positive surplus (deficit households don't contribute)
+  const totalSurplus     = members.reduce((s, m) => s + Math.max(m.todaySurplus, 0), 0);
+
+  return {
+    totalMembers:      members.length,
+    activeMembers,
+    pendingMembers,
+    inactiveMembers,
+    suspendedMembers,
+    totalProduction:   parseFloat(totalProduction.toFixed(1)),
+    totalConsumption:  parseFloat(totalConsumption.toFixed(1)),
+    totalSurplus:      parseFloat(totalSurplus.toFixed(1)),
+  };
+}
+
+/**
+ * Update a member's account status in Supabase.
+ *
+ * Maps the UI label to the correct DB value before writing.
+ * Also updates the `updated_at` timestamp.
+ *
+ * @param {string} userId   - profiles.id (uuid)
+ * @param {string} uiStatus - 'Active' | 'Inactive' | 'Suspended'
+ * @returns {Promise<object>} Updated profiles row
+ * @throws {Error} On Supabase write failure
+ */
+export async function updateMemberStatus(userId, uiStatus) {
+  const dbStatus = toDBStatus(uiStatus);
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      status:     dbStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId)
+    .select();
+
+  if (error) {
+    console.error('[adminMemberService] updateMemberStatus DB error:', error.message, 'Payload sent:', { dbStatus });
+    throw error;
+  }
+
+  return data[0];
+}
+
+/**
+ * Generate a random temporary password for an admin-invited account.
+ * Comfortably meets Supabase's default minimum length. The member is
+ * expected to use "Forgot password" (or be given this value directly) the
+ * first time they sign in.
+ */
+function generateTempPassword() {
+  const random = Math.random().toString(36).slice(-8);
+  return `Solar-${random}-${Math.floor(Math.random() * 900 + 100)}`;
+}
+
+/**
+ * Admin-invite a new member account.
+ *
+ * `profiles.id` is a foreign key to `auth.users.id`, populated by the same
+ * `auth.users → public.profiles` database trigger every self-registration
+ * goes through (see AuthContext.js) — there is no way to create a bare
+ * `profiles` row directly. This calls `supabase.auth.signUp()` on
+ * `supabaseAdminInvite` (a second, session-isolated client — see
+ * src/lib/supabase.js) specifically so the currently logged-in admin's own
+ * session is never overwritten by the new member's session.
+ *
+ * The account has no password the member knows yet. The temporary one
+ * generated here is returned once so the UI can show it to the admin to
+ * pass along — it is never stored or shown again after this call returns.
+ *
+ * Role is 'owner', not a literal 'member' — this app's actual role
+ * vocabulary is consumer/technician/owner/admin (see AuthContext.js's
+ * STATUS_BY_ROLE); there is no 'member' role, and 'owner' is both the one
+ * that already maps to 'pending_approval' status and the one associated
+ * with household/solar-capacity data, which is what this form collects.
+ *
+ * @param {object} params
+ * @param {string} params.email
+ * @param {string} params.name
+ * @param {string} [params.mobileNumber]
+ * @param {string} [params.householdId]
+ * @param {number} [params.solarCapacityKw]
+ * @returns {Promise<{userId: string, email: string, name: string, tempPassword: string}>}
+ * @throws {Error} On Supabase signup failure
+ */
+export async function createInvitedMember({ email, name, mobileNumber, householdId, solarCapacityKw }) {
+  const tempPassword = generateTempPassword();
+
+  const { data, error } = await supabaseAdminInvite.auth.signUp({
+    email,
+    password: tempPassword,
+    options: {
+      data: {
+        name,
+        role: 'owner',
+        mobile_number: mobileNumber || null,
+        household_id: householdId || null,
+        solar_capacity_kw: solarCapacityKw != null ? Number(solarCapacityKw) : null,
+        status: 'pending_approval',
+      },
+    },
+  });
+
+  if (error) throw error;
+  if (!data?.user) {
+    throw new Error(
+      'Supabase did not return a new user. Check whether email confirmation is required in your Auth settings.'
+    );
+  }
+
+  // Belt-and-suspenders, same reasoning as AuthContext's enforceProfileStatus:
+  // the metadata trigger is the primary path, this covers setups where it
+  // doesn't copy every field. Runs on the same isolated client, whose
+  // in-memory session is momentarily the new member's, never the admin's.
+  const { error: profileErr } = await supabaseAdminInvite
+    .from('profiles')
+    .update({
+      household_id: householdId || null,
+      solar_capacity_kw: solarCapacityKw != null ? Number(solarCapacityKw) : null,
+      status: 'pending_approval',
+    })
+    .eq('id', data.user.id);
+
+  if (profileErr) {
+    console.warn(
+      '[adminMemberService] createInvitedMember: profile follow-up update failed (non-fatal):',
+      profileErr.message
+    );
+  }
+
+  // Leave the isolated client signed out before it's reused for the next invite.
+  await supabaseAdminInvite.auth.signOut().catch(() => {});
+
+  return { userId: data.user.id, email, name, tempPassword };
+}
+
+/**
+ * Update the logged-in admin's profile details in Supabase.
+ *
+ * @param {string} userId   - profiles.id (uuid)
+ * @param {object} updates  - { name, mobileNumber, householdId }
+ * @returns {Promise<object>} Updated profiles row
+ * @throws {Error} On Supabase write failure
+ */
+export async function updateAdminProfileDetails(userId, { name, mobileNumber, householdId }) {
+  const payload = {
+    name:         name.trim(),
+    mobile_number: mobileNumber ? mobileNumber.trim() : null,
+    household_id: householdId ? householdId.trim() : null,
+    updated_at:   new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(payload)
+    .eq('id', userId)
+    .select();
+
+  if (error) {
+    console.error('[adminMemberService] updateAdminProfileDetails error:', error.message);
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Could not update admin profile. Check RLS policies for profiles table.');
+  }
+
+  return data[0];
+}

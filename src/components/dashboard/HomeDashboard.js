@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
@@ -9,19 +9,21 @@ import {
   Battery, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  Info,
-  Leaf,
-  Globe,
-  Activity,
-  Maximize2,
-  TrendingUp,
-  TrendingDown,
-  ShieldCheck,
-  ChevronRight,
-  Users,
-  Coins,
-  CheckCircle2,
+  Info, 
+  Leaf, 
+  Globe, 
+  Activity, 
+  Maximize2, 
+  TrendingUp, 
+  TrendingDown, 
+  ChevronRight, 
+  Users, 
+  Coins, 
+  CheckCircle2, 
+  SlidersHorizontal 
 } from 'lucide-react-native';
+import { LiveTelemetryWidget } from './LiveTelemetryWidget';
+import { WidgetCustomizerModal } from './WidgetCustomizerModal';
 
 // ─── Sub-component: SVG Arc Progress Ring (Issue #2) ───
 const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children }) => {
@@ -62,19 +64,32 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 };
 
 // ─── Main Dashboard Component ───
-export const HomeDashboard = ({ onOpenAdmin }) => {
-  const { metrics, setActiveTab, executeShareEnergy, executeBorrowEnergy } = useEnergy();
+// SOL-96 / SOL-185 / SOL-187: Home DashBoard View Component
+export const HomeDashboard = () => {
+  const { 
+    metrics, 
+    setActiveTab, 
+    executeShareEnergy, 
+    executeBorrowEnergy, 
+    loading,
+    widgetLayout,
+    updateWidgetLayout,
+    resetWidgetLayout,
+  } = useEnergy();
+
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
   const [actionSuccess, setActionSuccess] = useState(null); // null | 'share' | 'borrow'
+  const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
 
   // ── Issue #1: Pulsing live indicator animation ──
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const isNative = Platform.OS !== 'web';
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, useNativeDriver: isNative }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: isNative }),
       ])
     );
     animation.start();
@@ -116,274 +131,265 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
   const sunshineProgress = 98;
   const gridFreeProgress = metrics.gridIndependence;
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* ═══ Title Header with Live Pulse (Issue #1) ═══ */}
-      <View style={styles.headerRow}>
-        <View>
-          <View style={styles.titleRow}>
-            <Animated.View style={[styles.livePulseDot, { opacity: pulseAnim }]} />
-            <Text style={styles.title}>Current Power</Text>
+  // ── Individual Section Renderers (SOL-185, SOL-187) ──
+  const renderPowerGrid = () => (
+    <View key="powerGrid" style={[GLASS.card, styles.powerGridCard]}>
+      <View style={styles.gridRow}>
+        {/* Solar — tappable, navigates to Production */}
+        <TouchableOpacity 
+          style={styles.gridCell}
+          onPress={() => setActiveTab('production')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cellIconRow}>
+            <Sun size={16} color={COLORS.amberLight} />
+            <Text style={styles.cellLabel}>Solar</Text>
+            <View style={{ flex: 1 }} />
+            <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
-          <Text style={styles.lastUpdate}>Live • Updated just now</Text>
-        </View>
-        <TouchableOpacity style={styles.iconExpand}>
-          <Maximize2 size={14} color={COLORS.textSecondary} />
+          <Text style={styles.cellValue}>
+            {metrics.instantProduction} <Text style={styles.cellUnit}>kW</Text>
+          </Text>
+          <View style={styles.cellTrend}>
+            <TrendingUp size={10} color={COLORS.tealLight} />
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>+12%</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Grid — tappable, navigates to Deficit */}
+        <TouchableOpacity 
+          style={styles.gridCell}
+          onPress={() => setActiveTab('deficit')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cellIconRow}>
+            <Globe size={16} color={COLORS.textSecondary} />
+            <Text style={styles.cellLabel}>Grid</Text>
+            <View style={{ flex: 1 }} />
+            <ChevronRight size={12} color={COLORS.textMuted} />
+          </View>
+          <Text style={styles.cellValue}>
+            0.00 <Text style={styles.cellUnit}>kW</Text>
+          </Text>
+          <View style={styles.cellTrend}>
+            <Activity size={10} color={COLORS.textMuted} />
+            <Text style={styles.cellTrendText}>Offline</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
-      {/* ═══ 2×2 Power Grid with Navigation Chevrons (Issues #5, #7) ═══ */}
-      <View style={[GLASS.card, styles.powerGridCard]}>
-        <View style={styles.gridRow}>
-          {/* Solar — tappable, navigates to Production */}
-          <TouchableOpacity 
-            style={styles.gridCell}
-            onPress={() => setActiveTab('production')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cellIconRow}>
-              <Sun size={16} color={COLORS.amberLight} />
-              <Text style={styles.cellLabel}>Solar</Text>
-              <View style={{ flex: 1 }} />
-              <ChevronRight size={12} color={COLORS.textMuted} />
-            </View>
-            <Text style={styles.cellValue}>
-              {metrics.instantProduction} <Text style={styles.cellUnit}>kW</Text>
+      <View style={styles.gridRow}>
+        {/* Output — highlighted, NOT tappable (no chevron) — dynamic surplus/deficit */}
+        <View style={[
+          styles.gridCell,
+          isSurplus ? styles.gridCellHighlightSurplus : styles.gridCellHighlightDeficit,
+        ]}>
+          <View style={styles.cellIconRow}>
+            <Zap size={16} color={isSurplus ? COLORS.amber : COLORS.red} />
+            <Text style={[styles.cellLabel, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>
+              {isSurplus ? 'Net Output' : 'Net Draw'}
             </Text>
-            <View style={styles.cellTrend}>
-              <TrendingUp size={10} color={COLORS.tealLight} />
-              <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>+12%</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Grid — tappable, navigates to Deficit */}
-          <TouchableOpacity 
-            style={styles.gridCell}
-            onPress={() => setActiveTab('deficit')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cellIconRow}>
-              <Globe size={16} color={COLORS.textSecondary} />
-              <Text style={styles.cellLabel}>Grid</Text>
-              <View style={{ flex: 1 }} />
-              <ChevronRight size={12} color={COLORS.textMuted} />
-            </View>
-            <Text style={styles.cellValue}>
-              0.00 <Text style={styles.cellUnit}>kW</Text>
-            </Text>
-            <View style={styles.cellTrend}>
-              <Activity size={10} color={COLORS.textMuted} />
-              <Text style={styles.cellTrendText}>Offline</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.gridRow}>
-          {/* Output — highlighted, NOT tappable (no chevron) — dynamic surplus/deficit */}
-          <View style={[
-            styles.gridCell,
-            isSurplus ? styles.gridCellHighlightSurplus : styles.gridCellHighlightDeficit,
-          ]}>
-            <View style={styles.cellIconRow}>
-              <Zap size={16} color={isSurplus ? COLORS.amber : COLORS.red} />
-              <Text style={[styles.cellLabel, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>
-                {isSurplus ? 'Net Output' : 'Net Draw'}
-              </Text>
-            </View>
-            <Text style={[styles.cellValue, { color: COLORS.textBright }]}>
-              {Math.abs(netOutput).toFixed(2)}{' '}
-              <Text style={[styles.cellUnit, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>kW</Text>
-            </Text>
-            <View style={styles.cellTrend}>
-              {isSurplus
-                ? <TrendingUp size={10} color={COLORS.tealLight} />
-                : <TrendingDown size={10} color={COLORS.red} />
-              }
-              <Text style={[styles.cellTrendText, { color: isSurplus ? COLORS.tealLight : COLORS.red }]}>
-                {isSurplus ? 'Exporting' : 'Importing'}
-              </Text>
-            </View>
           </View>
-
-          {/* Battery — tappable, navigates to Surplus */}
-          <TouchableOpacity 
-            style={styles.gridCell}
-            onPress={() => setActiveTab('surplus')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cellIconRow}>
-              <Battery size={16} color={COLORS.tealLight} />
-              <Text style={styles.cellLabel}>Battery</Text>
-              <View style={{ flex: 1 }} />
-              <ChevronRight size={12} color={COLORS.textMuted} />
-            </View>
-            <Text style={styles.cellValue}>
-              {(metrics.instantConsumption * 0.1).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
-            </Text>
-            <View style={styles.cellTrend}>
-              <TrendingUp size={10} color={COLORS.tealLight} />
-              <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{metrics.batteryLevel}%</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ═══ Environmental Benefits with SVG Progress Rings (Issue #2) ═══ */}
-      <View style={[GLASS.card, styles.sectionCard]}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Environmental Benefits</Text>
-          <Info size={14} color={COLORS.textMuted} />
-        </View>
-
-        <View style={styles.benefitsRow}>
-          {/* CO₂ Saved */}
-          <View style={styles.benefitCol}>
-            <ProgressRing progress={co2Progress} size={64} strokeWidth={4} color={COLORS.tealLight}>
-              <Leaf size={11} color={COLORS.tealLight} style={{ position: 'absolute', top: 8 }} />
-              <Text style={styles.gaugeNum}>{metrics.co2SavedKg.toFixed(0)}</Text>
-            </ProgressRing>
-            <Text style={styles.benefitLabel}>CO₂ Saved</Text>
-            <Text style={styles.benefitUnit}>kg</Text>
-            <View style={styles.benefitDelta}>
-              <TrendingUp size={8} color={COLORS.tealLight} />
-              <Text style={styles.benefitDeltaText}>+12% vs avg</Text>
-            </View>
-          </View>
-
-          {/* Sunshine % */}
-          <View style={styles.benefitCol}>
-            <ProgressRing progress={sunshineProgress} size={64} strokeWidth={4} color={COLORS.amber}>
-              <Sun size={11} color={COLORS.amber} style={{ position: 'absolute', top: 8 }} />
-              <Text style={styles.gaugeNum}>98</Text>
-            </ProgressRing>
-            <Text style={styles.benefitLabel}>Sunshine</Text>
-            <Text style={styles.benefitUnit}>%</Text>
-            <View style={styles.benefitDelta}>
-              <TrendingUp size={8} color={COLORS.amberLight} />
-              <Text style={[styles.benefitDeltaText, { color: COLORS.amberLight }]}>Peak day</Text>
-            </View>
-          </View>
-
-          {/* Grid Independence */}
-          <View style={styles.benefitCol}>
-            <ProgressRing progress={gridFreeProgress} size={64} strokeWidth={4} color={COLORS.amberLight}>
-              <Globe size={11} color={COLORS.amberLight} style={{ position: 'absolute', top: 8 }} />
-              <Text style={styles.gaugeNum}>{metrics.gridIndependence}</Text>
-            </ProgressRing>
-            <Text style={styles.benefitLabel}>Grid Free</Text>
-            <Text style={styles.benefitUnit}>%</Text>
-            <View style={styles.benefitDelta}>
-              <TrendingUp size={8} color={COLORS.tealLight} />
-              <Text style={styles.benefitDeltaText}>+3% this week</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* ═══ Site Power & Consumption with Functional Toggle (Issues #1, #4) ═══ */}
-      <View style={[GLASS.card, styles.sectionCard]}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>
-            {powerEnergyToggle === 'power' ? 'Site Power' : 'Site Energy'}
+          <Text style={[styles.cellValue, { color: COLORS.textBright }]}>
+            {Math.abs(netOutput).toFixed(2)}{' '}
+            <Text style={[styles.cellUnit, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>kW</Text>
           </Text>
-          <View style={styles.togglePillContainer}>
-            <TouchableOpacity
-              style={[styles.togglePillBtn, powerEnergyToggle === 'power' && styles.togglePillBtnActive]}
-              onPress={() => setPowerEnergyToggle('power')}
-            >
-              <Text style={[styles.togglePillText, powerEnergyToggle === 'power' && styles.togglePillTextActive]}>
-                Power
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.togglePillBtn, powerEnergyToggle === 'energy' && styles.togglePillBtnActive]}
-              onPress={() => setPowerEnergyToggle('energy')}
-            >
-              <Text style={[styles.togglePillText, powerEnergyToggle === 'energy' && styles.togglePillTextActive]}>
-                Energy
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.cellTrend}>
+            {isSurplus
+              ? <TrendingUp size={10} color={COLORS.tealLight} />
+              : <TrendingDown size={10} color={COLORS.red} />
+            }
+            <Text style={[styles.cellTrendText, { color: isSurplus ? COLORS.tealLight : COLORS.red }]}>
+              {isSurplus ? 'Exporting' : 'Importing'}
+            </Text>
           </View>
         </View>
 
-        <View style={styles.consumptionMetricRow}>
-          <Text style={styles.consValue}>
-            {sitePowerValue} <Text style={styles.consUnit}>{sitePowerUnit}</Text>
+        {/* Battery — tappable, navigates to Surplus */}
+        <TouchableOpacity 
+          style={styles.gridCell}
+          onPress={() => setActiveTab('surplus')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cellIconRow}>
+            <Battery size={16} color={COLORS.tealLight} />
+            <Text style={styles.cellLabel}>Battery</Text>
+            <View style={{ flex: 1 }} />
+            <ChevronRight size={12} color={COLORS.textMuted} />
+          </View>
+          <Text style={styles.cellValue}>
+            {(metrics.instantConsumption * 0.1).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
           </Text>
-          <View style={styles.consDotsRow}>
-            <View style={styles.dotLegend}>
-              <View style={[styles.dot, { backgroundColor: COLORS.amber }]} />
-              <Text style={styles.dotText}>Solar {solarLegendVal}</Text>
-            </View>
-            <View style={styles.dotLegend}>
-              <View style={[styles.dot, { backgroundColor: COLORS.tealLight }]} />
-              <Text style={styles.dotText}>Co-op {coopLegendVal}</Text>
-            </View>
+          <View style={styles.cellTrend}>
+            <TrendingUp size={10} color={COLORS.tealLight} />
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{metrics.batteryLevel}%</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderEnvironmental = () => (
+    <View key="environmental" style={[GLASS.card, styles.sectionCard]}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Environmental Benefits</Text>
+        <Info size={14} color={COLORS.textMuted} />
+      </View>
+
+      <View style={styles.benefitsRow}>
+        {/* CO₂ Saved */}
+        <View style={styles.benefitCol}>
+          <ProgressRing progress={co2Progress} size={64} strokeWidth={4} color={COLORS.tealLight}>
+            <Leaf size={11} color={COLORS.tealLight} style={{ position: 'absolute', top: 8 }} />
+            <Text style={styles.gaugeNum}>{metrics.co2SavedKg.toFixed(0)}</Text>
+          </ProgressRing>
+          <Text style={styles.benefitLabel}>CO₂ Saved</Text>
+          <Text style={styles.benefitUnit}>kg</Text>
+          <View style={styles.benefitDelta}>
+            <TrendingUp size={8} color={COLORS.tealLight} />
+            <Text style={styles.benefitDeltaText}>+12% vs avg</Text>
           </View>
         </View>
 
-        {/* Energy Flow Diagram — replaces random bubbles (Issue #1) */}
-        <View style={styles.energyFlowContainer}>
-          {/* Solar Source */}
-          <View style={styles.flowNode}>
-            <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.amberGlow }]}>
-              <Sun size={13} color={COLORS.amber} />
-            </View>
-            <Text style={styles.flowNodeLabel}>Solar</Text>
+        {/* Sunshine % */}
+        <View style={styles.benefitCol}>
+          <ProgressRing progress={sunshineProgress} size={64} strokeWidth={4} color={COLORS.amber}>
+            <Sun size={11} color={COLORS.amber} style={{ position: 'absolute', top: 8 }} />
+            <Text style={styles.gaugeNum}>98</Text>
+          </ProgressRing>
+          <Text style={styles.benefitLabel}>Sunshine</Text>
+          <Text style={styles.benefitUnit}>%</Text>
+          <View style={styles.benefitDelta}>
+            <TrendingUp size={8} color={COLORS.amberLight} />
+            <Text style={[styles.benefitDeltaText, { color: COLORS.amberLight }]}>Peak day</Text>
           </View>
+        </View>
 
-          {/* Arrow: Solar → Home */}
-          <View style={styles.flowArrowContainer}>
-            <View style={[styles.flowLine, { backgroundColor: COLORS.amber }]} />
-            <View style={[styles.flowArrowHead, { borderLeftColor: COLORS.amber }]} />
+        {/* Grid Independence */}
+        <View style={styles.benefitCol}>
+          <ProgressRing progress={gridFreeProgress} size={64} strokeWidth={4} color={COLORS.amberLight}>
+            <Globe size={11} color={COLORS.amberLight} style={{ position: 'absolute', top: 8 }} />
+            <Text style={styles.gaugeNum}>{metrics.gridIndependence}</Text>
+          </ProgressRing>
+          <Text style={styles.benefitLabel}>Grid Free</Text>
+          <Text style={styles.benefitUnit}>%</Text>
+          <View style={styles.benefitDelta}>
+            <TrendingUp size={8} color={COLORS.tealLight} />
+            <Text style={styles.benefitDeltaText}>+3% this week</Text>
           </View>
+        </View>
+      </View>
+    </View>
+  );
 
-          {/* Home Load */}
-          <View style={styles.flowNode}>
-            <View style={[styles.flowNodeIcon, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
-              <Zap size={13} color={COLORS.amberLight} />
-            </View>
-            <Text style={styles.flowNodeLabel}>Home</Text>
+  const renderSitePower = () => (
+    <View key="sitePower" style={[GLASS.card, styles.sectionCard]}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>
+          {powerEnergyToggle === 'power' ? 'Site Power' : 'Site Energy'}
+        </Text>
+        <View style={styles.togglePillContainer}>
+          <TouchableOpacity
+            style={[styles.togglePillBtn, powerEnergyToggle === 'power' && styles.togglePillBtnActive]}
+            onPress={() => setPowerEnergyToggle('power')}
+          >
+            <Text style={[styles.togglePillText, powerEnergyToggle === 'power' && styles.togglePillTextActive]}>
+              Power
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.togglePillBtn, powerEnergyToggle === 'energy' && styles.togglePillBtnActive]}
+            onPress={() => setPowerEnergyToggle('energy')}
+          >
+            <Text style={[styles.togglePillText, powerEnergyToggle === 'energy' && styles.togglePillTextActive]}>
+              Energy
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.consumptionMetricRow}>
+        <Text style={styles.consValue}>
+          {sitePowerValue} <Text style={styles.consUnit}>{sitePowerUnit}</Text>
+        </Text>
+        <View style={styles.consDotsRow}>
+          <View style={styles.dotLegend}>
+            <View style={[styles.dot, { backgroundColor: COLORS.amber }]} />
+            <Text style={styles.dotText}>Solar {solarLegendVal}</Text>
           </View>
-
-          {/* Arrow: Home → Battery (color changes based on surplus/deficit) */}
-          <View style={styles.flowArrowContainer}>
-            <View style={[styles.flowLine, { backgroundColor: isSurplus ? COLORS.tealLight : COLORS.red }]} />
-            <View style={[styles.flowArrowHead, { borderLeftColor: isSurplus ? COLORS.tealLight : COLORS.red }]} />
-          </View>
-
-          {/* Battery Storage */}
-          <View style={styles.flowNode}>
-            <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.tealGlow }]}>
-              <Battery size={13} color={COLORS.tealLight} />
-            </View>
-            <Text style={styles.flowNodeLabel}>Battery</Text>
+          <View style={styles.dotLegend}>
+            <View style={[styles.dot, { backgroundColor: COLORS.tealLight }]} />
+            <Text style={styles.dotText}>Co-op {coopLegendVal}</Text>
           </View>
         </View>
       </View>
 
-      {/* ═══ Co-op Community Activity Strip (Issue #6) ═══ */}
-      <View style={[GLASS.card, styles.coopStrip]}>
-        <View style={styles.coopStripItem}>
-          <Users size={14} color={COLORS.tealLight} />
-          <Text style={styles.coopStripValue}>{metrics.coopMembersOnline}</Text>
-          <Text style={styles.coopStripLabel}>Online</Text>
+      {/* Energy Flow Diagram — replaces random bubbles (Issue #1) */}
+      <View style={styles.energyFlowContainer}>
+        {/* Solar Source */}
+        <View style={styles.flowNode}>
+          <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.amberGlow }]}>
+            <Sun size={13} color={COLORS.amber} />
+          </View>
+          <Text style={styles.flowNodeLabel}>Solar</Text>
         </View>
-        <View style={styles.coopDivider} />
-        <View style={styles.coopStripItem}>
-          <Zap size={14} color={COLORS.amber} />
-          <Text style={styles.coopStripValue}>{metrics.coopTotalCapacity}</Text>
-          <Text style={styles.coopStripLabel}>kW Pool</Text>
+
+        {/* Arrow: Solar → Home */}
+        <View style={styles.flowArrowContainer}>
+          <View style={[styles.flowLine, { backgroundColor: COLORS.amber }]} />
+          <View style={[styles.flowArrowHead, { borderLeftColor: COLORS.amber }]} />
         </View>
-        <View style={styles.coopDivider} />
-        <View style={styles.coopStripItem}>
-          <Coins size={14} color={COLORS.amberLight} />
-          <Text style={styles.coopStripValue}>{metrics.coopTokensEarned}</Text>
-          <Text style={styles.coopStripLabel}>Tokens</Text>
+
+        {/* Home Load */}
+        <View style={styles.flowNode}>
+          <View style={[styles.flowNodeIcon, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
+            <Zap size={13} color={COLORS.amberLight} />
+          </View>
+          <Text style={styles.flowNodeLabel}>Home</Text>
+        </View>
+
+        {/* Arrow: Home → Battery (color changes based on surplus/deficit) */}
+        <View style={styles.flowArrowContainer}>
+          <View style={[styles.flowLine, { backgroundColor: isSurplus ? COLORS.tealLight : COLORS.red }]} />
+          <View style={[styles.flowArrowHead, { borderLeftColor: isSurplus ? COLORS.tealLight : COLORS.red }]} />
+        </View>
+
+        {/* Battery Storage */}
+        <View style={styles.flowNode}>
+          <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.tealGlow }]}>
+            <Battery size={13} color={COLORS.tealLight} />
+          </View>
+          <Text style={styles.flowNodeLabel}>Battery</Text>
         </View>
       </View>
+    </View>
+  );
 
-      {/* ═══ Inline Success Toast (Issue #3) ═══ */}
+  const renderCoopActivity = () => (
+    <View key="coopActivity" style={[GLASS.card, styles.coopStrip]}>
+      <View style={styles.coopStripItem}>
+        <Users size={14} color={COLORS.tealLight} />
+        <Text style={styles.coopStripValue}>{metrics.coopMembersOnline}</Text>
+        <Text style={styles.coopStripLabel}>Online</Text>
+      </View>
+      <View style={styles.coopDivider} />
+      <View style={styles.coopStripItem}>
+        <Zap size={14} color={COLORS.amber} />
+        <Text style={styles.coopStripValue}>{metrics.coopTotalCapacity}</Text>
+        <Text style={styles.coopStripLabel}>kW Pool</Text>
+      </View>
+      <View style={styles.coopDivider} />
+      <View style={styles.coopStripItem}>
+        <Coins size={14} color={COLORS.amberLight} />
+        <Text style={styles.coopStripValue}>{metrics.coopTokensEarned}</Text>
+        <Text style={styles.coopStripLabel}>Tokens</Text>
+      </View>
+    </View>
+  );
+
+  const renderQuickActions = () => (
+    <View key="quickActions" style={styles.quickActionsContainer}>
+      {/* Inline Success Toast (Issue #3) */}
       {actionSuccess && (
         <View style={styles.successToast}>
           <CheckCircle2 size={16} color={COLORS.tealLight} />
@@ -395,7 +401,7 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
         </View>
       )}
 
-      {/* ═══ Quick Actions — Visual Hierarchy (Issue #3) ═══ */}
+      {/* Quick Actions — Visual Hierarchy (Issue #3) */}
       <View style={styles.actionsRow}>
         <TouchableOpacity 
           style={styles.actionBtnPrimary}
@@ -415,20 +421,80 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
           <Text style={styles.actionBtnSecondaryText}>Request Draw</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  );
 
-      {/* Admin Panel Entry */}
-      <TouchableOpacity
-        style={styles.adminEntryBtn}
-        onPress={onOpenAdmin}
-        activeOpacity={0.8}
-      >
-        <ShieldCheck size={15} color={'#A78BFA'} />
-        <Text style={styles.adminEntryText}>Admin Panel</Text>
-        <Text style={styles.adminEntryArrow}>›</Text>
-      </TouchableOpacity>
+  const renderWidget = (widgetId) => {
+    switch (widgetId) {
+      case 'telemetry':
+        return <LiveTelemetryWidget key="telemetry" />;
+      case 'powerGrid':
+        return renderPowerGrid();
+      case 'environmental':
+        return renderEnvironmental();
+      case 'sitePower':
+        return renderSitePower();
+      case 'coopActivity':
+        return renderCoopActivity();
+      case 'quickActions':
+        return renderQuickActions();
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {/* ═══ Loading Skeleton (first fetch) ═══ */}
+      {loading && (
+        <View style={styles.skeletonContainer}>
+          <View style={styles.skeletonLine} />
+          <View style={[styles.skeletonLine, { width: '60%' }]} />
+          <View style={[styles.skeletonBlock, { height: 120, marginTop: 8 }]} />
+          <View style={[styles.skeletonBlock, { height: 80, marginTop: 8 }]} />
+        </View>
+      )}
+
+      {/* ═══ Title Header with Live Pulse & Layout Customizer (SOL-185) ═══ */}
+      <View style={styles.headerRow}>
+        <View>
+          <View style={styles.titleRow}>
+            <Animated.View style={[styles.livePulseDot, { opacity: pulseAnim }]} />
+            <Text style={styles.title}>Current Power</Text>
+          </View>
+          <Text style={styles.lastUpdate}>Live • Smart Energy Microgrid</Text>
+        </View>
+
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.iconCustomLayout}
+            onPress={() => setCustomizeModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <SlidersHorizontal size={14} color={COLORS.amberLight} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconExpand}>
+            <Maximize2 size={14} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ═══ Configurable & Reorderable Dashboard Widgets (SOL-185, SOL-187) ═══ */}
+      {(widgetLayout || [])
+        .filter(w => w.visible)
+        .map(w => renderWidget(w.id))}
 
       {/* Spacer */}
       <View style={{ height: 20 }} />
+
+      {/* ═══ Widget Customization Modal (SOL-185) ═══ */}
+      <WidgetCustomizerModal
+        visible={customizeModalVisible}
+        onClose={() => setCustomizeModalVisible(false)}
+        layout={widgetLayout}
+        onSaveLayout={updateWidgetLayout}
+        onResetLayout={resetWidgetLayout}
+      />
     </ScrollView>
   );
 };
@@ -437,6 +503,19 @@ export const HomeDashboard = ({ onOpenAdmin }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
+
+  // ── Loading Skeleton ──
+  skeletonContainer: { gap: 8, marginBottom: 4 },
+  skeletonLine: {
+    height: 14, borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    width: '80%',
+  },
+  skeletonBlock: {
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: '100%',
+  },
 
   // ── Header ──
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -449,12 +528,20 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 20, fontWeight: '800', color: COLORS.textBright, letterSpacing: -0.3 },
   lastUpdate: { fontSize: 11, marginTop: 2, color: COLORS.textMuted, marginLeft: 16 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  iconCustomLayout: { 
+    width: 32, height: 32, borderRadius: 16, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
   iconExpand: { 
     width: 32, height: 32, borderRadius: 16, 
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  quickActionsContainer: { gap: 10 },
 
   // ── Power Grid ──
   powerGridCard: { padding: 10, gap: 8 },

@@ -5,6 +5,7 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Rect, Path, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { Sun, ShieldAlert, Cpu, Gauge, Compass, Thermometer, Sparkles } from 'lucide-react-native';
 
+// SOL-97: Production View Component
 export const ProductionView = () => {
   const { metrics } = useEnergy();
 

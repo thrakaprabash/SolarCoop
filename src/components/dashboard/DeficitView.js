@@ -4,6 +4,7 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { AlertTriangle, ArrowDownLeft, ShieldAlert, DollarSign, Zap, CheckCircle2, TrendingDown } from 'lucide-react-native';
 
+// SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
   const { metrics, executeBorrowEnergy } = useEnergy();
   

@@ -4,6 +4,7 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Zap, Wind, Repeat, Droplet, Box, Tv, AlertTriangle, Sparkles, Clock } from 'lucide-react-native';
 
+// SOL-98: Consumption View Component
 export const ConsumptionView = () => {
   const { metrics, appliances, toggleAppliance } = useEnergy();
 
