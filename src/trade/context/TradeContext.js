@@ -1,19 +1,23 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-import { INITIAL_REQUESTS } from '../data/requests';
 import { INCOMING_REQUESTS } from '../data/incoming';
 import { TRANSACTIONS, TXN_SEQ_START } from '../data/transactions';
 import { ENERGY, IMPACT } from '../data/energy';
-import { sum, today, txnRef } from '../utils/format';
+import { sum, txnRef } from '../utils/format';
+import { fetchMyRequests } from '../services/requestService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
 const INITIAL_SURPLUS = +(ENERGY.todayProduction - ENERGY.todayConsumption).toFixed(1);
 
 const TradeContext = createContext(null);
+const EMPTY_REQUESTS = [];
 
 export function TradeProvider({ children }) {
   const { user } = useAuth();
+  const activeUserId = useRef(user?.id ?? null);
+  const requestsFetchId = useRef(0);
+  activeUserId.current = user?.id ?? null;
 
   const [households, setHouseholds] = useState([]);
   const [providersLoading, setProvidersLoading] = useState(true);
@@ -98,8 +102,15 @@ export function TradeProvider({ children }) {
     refreshProviders();
   }, [refreshProviders]);
 
-  const [requests, setRequests] = useState(INITIAL_REQUESTS);
-  const [requestedIds, setRequestedIds] = useState({});
+  const [requestState, setRequestState] = useState({ userId: null, items: EMPTY_REQUESTS });
+  const requestsBelongToUser = requestState.userId === (user?.id ?? null);
+  const requests = requestsBelongToUser ? requestState.items : EMPTY_REQUESTS;
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestsRefreshing, setRequestsRefreshing] = useState(false);
+  const [requestsError, setRequestsError] = useState(null);
+  const visibleRequestsLoading = requestsBelongToUser ? requestsLoading : true;
+  const visibleRequestsRefreshing = requestsBelongToUser ? requestsRefreshing : false;
+  const visibleRequestsError = requestsBelongToUser ? requestsError : null;
   const [incoming, setIncoming] = useState(INCOMING_REQUESTS);
   const [transactions, setTransactions] = useState(TRANSACTIONS);
   const [surplus, setSurplus] = useState(INITIAL_SURPLUS);
@@ -112,19 +123,59 @@ export function TradeProvider({ children }) {
     showToast._t = setTimeout(() => setToast(''), ms);
   }, []);
 
+  const refreshRequests = useCallback(async ({ refresh = false } = {}) => {
+    const userId = user?.id;
+    const fetchId = ++requestsFetchId.current;
+    if (!userId) {
+      setRequestState({ userId: null, items: EMPTY_REQUESTS });
+      setRequestsError(null);
+      setRequestsLoading(false);
+      setRequestsRefreshing(false);
+      return { data: [], error: null };
+    }
+
+    setRequestState((previous) => previous.userId === userId
+      ? previous
+      : { userId, items: EMPTY_REQUESTS });
+    if (refresh) setRequestsRefreshing(true);
+    else setRequestsLoading(true);
+    setRequestsError(null);
+
+    try {
+      const data = await fetchMyRequests(userId);
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestState({ userId, items: data });
+      }
+      return { data, error: null };
+    } catch (error) {
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestsError(error?.message || 'Could not load your requests.');
+      }
+      return { data: null, error };
+    } finally {
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestsLoading(false);
+        setRequestsRefreshing(false);
+      }
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    setRequestState({ userId: user?.id ?? null, items: EMPTY_REQUESTS });
+    setRequestsError(null);
+    refreshRequests();
+  }, [refreshRequests]);
+
   /**
-   * Persists a new energy request to Supabase (SOL-105). The requester's own
-   * "My Requests" list (SOL-106) is still local/mock this sprint, so on
-   * success we also push an optimistic entry there for continuity — Sprint 3
-   * replaces that list with a real fetch and this optimistic push becomes
-   * redundant (safe to remove then).
+   * Persists a new energy request to Supabase (SOL-105), then reloads the
+   * requester's list so My Requests shows its authoritative status.
    */
   const submitRequest = useCallback(
     async (providerId, amountKwh) => {
       if (!user?.id) {
         return { data: null, error: new Error('You must be signed in to request energy.') };
       }
-      if (!(amountKwh > 0)) {
+      if (!Number.isFinite(amountKwh) || !(amountKwh > 0)) {
         return { data: null, error: new Error('Enter a valid amount greater than zero.') };
       }
 
@@ -141,21 +192,11 @@ export function TradeProvider({ children }) {
 
       if (error) return { data: null, error };
 
-      const provider = households.find((h) => h.id === providerId);
-      const entry = {
-        id: data.id,
-        name: provider?.name || 'Household',
-        kwh: amountKwh,
-        rate: provider?.rate,
-        date: today(),
-        status: 'Pending',
-      };
-      setRequests((prev) => [entry, ...prev]);
-      setRequestedIds((prev) => ({ ...prev, [providerId]: true }));
+      await refreshRequests({ refresh: true });
 
       return { data, error: null };
     },
-    [user, households],
+    [user?.id, refreshRequests],
   );
 
   /**
@@ -216,6 +257,15 @@ export function TradeProvider({ children }) {
     };
   }, [households]);
 
+  const requestedIds = useMemo(
+    () => Object.fromEntries(
+      requests
+        .filter((request) => request.status === 'Pending' || request.status === 'Approved')
+        .map((request) => [request.providerId, true])
+    ),
+    [requests]
+  );
+
   const pendingCount = useMemo(() => requests.filter((r) => r.status === 'Pending').length, [requests]);
 
   const incomingPendingCount = useMemo(
@@ -230,6 +280,10 @@ export function TradeProvider({ children }) {
       providersError,
       refreshProviders,
       requests,
+      requestsLoading: visibleRequestsLoading,
+      requestsRefreshing: visibleRequestsRefreshing,
+      requestsError: visibleRequestsError,
+      refreshRequests,
       requestedIds,
       pendingCount,
       pool,
@@ -254,6 +308,10 @@ export function TradeProvider({ children }) {
       providersError,
       refreshProviders,
       requests,
+      visibleRequestsLoading,
+      visibleRequestsRefreshing,
+      visibleRequestsError,
+      refreshRequests,
       requestedIds,
       pendingCount,
       pool,

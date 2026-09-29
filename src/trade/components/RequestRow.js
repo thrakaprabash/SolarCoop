@@ -20,9 +20,11 @@ export default function RequestRow({ request, last }) {
         <Text style={styles.date}>{request.date}</Text>
       </View>
 
-      <View style={[styles.cost, { backgroundColor: tone.pillBg }]}>
-        <Text style={[styles.costText, { color: tone.color }]}>{money(request.kwh * request.rate)}</Text>
-      </View>
+      {request.rate != null ? (
+        <View style={[styles.cost, { backgroundColor: tone.pillBg }]}>
+          <Text style={[styles.costText, { color: tone.color }]}>{money(request.kwh * request.rate)}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
