@@ -327,5 +327,111 @@
         "errorCreateGeneric": "Could not create this alert. Please try again."
       }
     }
+  },
+  "faultAlert": {
+    "title": "Routine Maintenance Scheduled",
+    "defaultMessage": "Your system is safe. A technician will check on it soon — there is nothing you need to do.",
+    "assignedTech": "Assigned Tech: {{name}}",
+    "awaitingTech": "A technician will be assigned shortly",
+    "completeTitle": "Maintenance Complete",
+    "completeMessage": "Your system has been checked and is running normally. Thank you for your patience.",
+    "completedBy": "Serviced by {{name}}"
+  },
+  "technician": {
+    "header": {
+      "appName": "SolarCoop Tech",
+      "subtitle": "Technician Portal",
+      "apiConnected": "API Connected",
+      "apiConnecting": "Connecting",
+      "apiOffline": "API Offline"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "diagnostics": "Diagnostics",
+      "profile": "Profile"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "active": "Active",
+      "completed": "Completed",
+      "withCount": "{{label}} ({{count}})"
+    },
+    "urgency": {
+      "urgent": "Urgent",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "dashboard": {
+      "activeTicket": "Active Job Ticket",
+      "pendingJobs": "Pending Jobs",
+      "completedJobs": "Completed Jobs",
+      "noActive": "No active job. Accept a pending job to start.",
+      "noPending": "No pending jobs. The queue is clear.",
+      "noCompleted": "No completed jobs yet.",
+      "loading": "Loading job tickets…"
+    },
+    "job": {
+      "household": "Household",
+      "distance": "Distance",
+      "distanceValue": "{{km}} km ({{area}})",
+      "statusInactive": "Status: Inactive (Error {{code}})",
+      "statusDegraded": "Status: Degraded",
+      "viewJob": "View Job"
+    },
+    "detail": {
+      "back": "Back to Dashboard",
+      "jobTicket": "Job Ticket · {{code}}",
+      "clientInfo": "Client Info",
+      "name": "Name",
+      "contact": "Contact",
+      "noAddress": "No site address on file",
+      "navigate": "Navigate via Google Maps",
+      "mapsErrorTitle": "Could not open Maps",
+      "mapsErrorBody": "Google Maps could not be opened on this device.",
+      "telemetry": "System Telemetry",
+      "inverter": "Inverter",
+      "location": "Fault location",
+      "errorLine": "Error {{code}}: {{message}}",
+      "noErrorCode": "No error code reported",
+      "history": "Maintenance History Timeline",
+      "noHistory": "No previous maintenance at this site.",
+      "historyError": "Could not load maintenance history.",
+      "by": "by {{name}}",
+      "unknownTech": "Unknown technician",
+      "accept": "Accept Job Ticket",
+      "acceptErrorTitle": "Could not accept job",
+      "acceptErrorBody": "Please try again.",
+      "acceptedByYou": "You accepted this job on {{date}}.",
+      "acceptedBy": "Accepted by {{name}}.",
+      "completedOn": "Completed on {{date}}."
+    },
+    "alert": {
+      "sectionTitle": "Open Fault Alerts",
+      "critical": "Critical Alert",
+      "fault": "Fault Alert",
+      "errorCode": "Error Code: {{code}}",
+      "location": "Location: {{location}}",
+      "checklist": "Diagnostic Checklist",
+      "noChecklist": "No checklist for this job.",
+      "acceptToStart": "Accept this job to start the checklist.",
+      "viewFullTicket": "View Full Job Ticket",
+      "saveErrorTitle": "Could not save checklist",
+      "saveErrorBody": "Please try again.",
+      "noneTitle": "All systems healthy",
+      "noneBody": "No open fault alerts right now."
+    },
+    "closure": {
+      "activeJob": "Active Job: {{title}}",
+      "title": "Close Job Ticket",
+      "subtitle": "Confirm the repair steps and record what was done.",
+      "checklist": "Parts & Repair Checklist",
+      "checkedCount": "{{done}} / {{total}} done",
+      "notes": "Resolution Notes",
+      "notesPlaceholder": "e.g. Replaced damaged MC4 connector on string 2. System verified stable.",
+      "notesHint": "Write at least {{min}} characters describing the repair.",
+      "complete": "Complete Repair & Close Ticket",
+      "errorTitle": "Could not close ticket",
+      "errorBody": "Please try again."
+    }
   }
 }
