@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownToLine, ArrowDownWideNarrow, ChevronRight, Clock, History } from 'lucide-react-native';
 
@@ -15,6 +15,7 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
     households,
     providersLoading,
     providersError,
+    refreshProviders,
     requestedIds,
     pool,
     pendingCount,
@@ -23,6 +24,10 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
   const { navigate } = useNavigation();
   const [query, setQuery] = useState('');
   const [sortIndex, setSortIndex] = useState(0);
+
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -51,11 +56,10 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
           <ActivityIndicator color={colors.tealLight} />
         </Card>
       ) : providersError ? (
-        <EmptyState
-          title="Couldn't load available energy"
-          body={providersError}
-          style={styles.empty}
-        />
+        <View style={styles.empty}>
+          <EmptyState title="Couldn't load available energy" body={providersError} />
+          <PrimaryButton label="Try Again" variant="ghost" onPress={refreshProviders} />
+        </View>
       ) : (
         <>
           {showPoolSummary ? <PoolSummaryCard pool={pool} /> : null}
