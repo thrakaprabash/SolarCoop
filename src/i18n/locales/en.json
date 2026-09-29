@@ -327,5 +327,46 @@
         "errorCreateGeneric": "Could not create this alert. Please try again."
       }
     }
+  },
+  "technician": {
+    "header": {
+      "appName": "SolarCoop Tech",
+      "subtitle": "Technician Portal",
+      "apiConnected": "API Connected",
+      "apiConnecting": "Connecting",
+      "apiOffline": "API Offline"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "diagnostics": "Diagnostics",
+      "profile": "Profile"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "active": "Active",
+      "completed": "Completed",
+      "withCount": "{{label}} ({{count}})"
+    },
+    "urgency": {
+      "urgent": "Urgent",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "dashboard": {
+      "activeTicket": "Active Job Ticket",
+      "pendingJobs": "Pending Jobs",
+      "completedJobs": "Completed Jobs",
+      "noActive": "No active job. Accept a pending job to start.",
+      "noPending": "No pending jobs. The queue is clear.",
+      "noCompleted": "No completed jobs yet."
+    },
+    "job": {
+      "household": "Household",
+      "distance": "Distance",
+      "distanceValue": "{{km}} km ({{area}})",
+      "statusInactive": "Status: Inactive (Error {{code}})",
+      "statusDegraded": "Status: Degraded",
+      "viewJob": "View Job"
+    }
   }
 }
