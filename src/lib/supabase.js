@@ -111,3 +111,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+/**
+ * A second, session-isolated client — same public URL/anon key, but never
+ * persists or restores a session. Used only for admin-initiated
+ * `supabase.auth.*` calls (e.g. inviting a new member) where calling
+ * `signUp()` on the main `supabase` client above would overwrite the
+ * currently logged-in admin's session with the newly created user's
+ * session. Nothing about this client is more privileged than the main one —
+ * it just never touches AsyncStorage or the app's auth state.
+ */
+export const supabaseAdminInvite = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+});

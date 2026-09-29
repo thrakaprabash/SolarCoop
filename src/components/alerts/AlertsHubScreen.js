@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { COLORS, GLASS } from '../../theme/colors';
 import { timeAgo } from '../../admin/data/mockAdminData';
+import { FaultAlertCard } from './FaultAlertCard';
 import {
   Bell,
   ChevronDown,
@@ -232,7 +233,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
-export const AlertsHubScreen = ({ onNavigate, complaints, loading = false, onEdit, onDelete }) => {
+export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], loading = false, onEdit, onDelete }) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       
@@ -244,6 +245,9 @@ export const AlertsHubScreen = ({ onNavigate, complaints, loading = false, onEdi
         <Text style={styles.title}>Alerts & Support</Text>
         <Text style={styles.subtitle}>System Incidents, Complaints & Ticket Resolution</Text>
       </View>
+
+      {/* Maintenance status — shown only while a job is open at this household */}
+      {faultAlerts.map(a => <FaultAlertCard key={a.id} alert={a} />)}
 
       {/* Action Button */}
       <TouchableOpacity 

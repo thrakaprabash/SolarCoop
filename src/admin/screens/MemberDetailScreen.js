@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { MOCK_TRANSACTIONS, timeAgo } from '../data/mockAdminData';
+import { timeAgo } from '../data/mockAdminData';
+import { fetchTransactionsForMember } from '../services/adminTransactionService';
 import {
   ArrowLeft,
   Sun,
@@ -32,13 +34,45 @@ import {
 
 const STATUS_COLORS = {
   Active:    COLORS.tealLight,
+  Pending:   COLORS.blueLight,
   Inactive:  COLORS.amberLight,
   Suspended: COLORS.red,
 };
 
+// Canonical status values stay in English — only the label shown is translated.
+const STATUS_LABEL_KEY = {
+  Active:    'common.status.active',
+  Pending:   'common.status.pending',
+  Inactive:  'common.status.inactive',
+  Suspended: 'common.status.suspended',
+};
+
 export default function MemberDetailScreen() {
+  const { t } = useTranslation();
   const { selectedMember, setSelectedMember, setAdminBottomTab, updateMemberStatus } = useAdmin();
   const [updating, setUpdating] = useState(false);
+  const [relatedTx, setRelatedTx] = useState([]);
+  const [relatedTxLoading, setRelatedTxLoading] = useState(true);
+  const [relatedTxError, setRelatedTxError] = useState(null);
+
+  const memberId = selectedMember?.id;
+
+  // Fetched independently of TransactionMonitoringScreen's list, so this
+  // section works correctly even if the admin opens a member's detail page
+  // without having visited the Ledger tab first.
+  useEffect(() => {
+    if (!memberId) return;
+    let cancelled = false;
+
+    setRelatedTxLoading(true);
+    setRelatedTxError(null);
+    fetchTransactionsForMember(memberId, 5)
+      .then(data => { if (!cancelled) setRelatedTx(data); })
+      .catch(err => { if (!cancelled) setRelatedTxError(err.message || t('admin.memberDetail.loadTxError')); })
+      .finally(() => { if (!cancelled) setRelatedTxLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [memberId]);
 
   if (!selectedMember) return null;
 
@@ -48,11 +82,6 @@ export default function MemberDetailScreen() {
   const accentColor  = STATUS_COLORS[memberStatus];
   const hasSurplus   = member.todaySurplus > 0;
 
-  // Related transactions (mock: sender or receiver matches household)
-  const relatedTx = MOCK_TRANSACTIONS.filter(
-    t => t.sender === member.household || t.receiver === member.household
-  ).slice(0, 5);
-
   const handleBack = () => {
     setSelectedMember(null);
     setAdminBottomTab('members');
@@ -60,19 +89,21 @@ export default function MemberDetailScreen() {
 
   const performStatusChange = async (newStatus) => {
     setUpdating(true);
+    const statusLabel = t(STATUS_LABEL_KEY[newStatus] ?? newStatus);
     try {
       await updateMemberStatus(member.id, newStatus);
+      const msg = t('admin.memberDetail.statusUpdatedMessage', { name: member.name, status: statusLabel });
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`Member ${member.name} status updated to ${newStatus}.`);
+        window.alert(msg);
       } else {
-        Alert.alert('Status Updated', `Member ${member.name} is now ${newStatus}.`);
+        Alert.alert(t('admin.memberDetail.statusUpdatedTitle'), msg);
       }
     } catch (err) {
-      const errMsg = err?.message || 'Failed to update member status.';
+      const errMsg = err?.message || t('admin.memberDetail.updateFailedDefault');
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`Update failed: ${errMsg}`);
+        window.alert(t('admin.memberDetail.updateFailedInline', { message: errMsg }));
       } else {
-        Alert.alert('Update failed', errMsg);
+        Alert.alert(t('admin.memberDetail.updateFailedTitle'), errMsg);
       }
     } finally {
       setUpdating(false);
@@ -81,9 +112,11 @@ export default function MemberDetailScreen() {
 
   const handleStatusChange = (newStatus) => {
     if (updating) return;
+    const statusLabel = t(STATUS_LABEL_KEY[newStatus] ?? newStatus);
+    const confirmTitle = t('admin.memberDetail.confirmStatusTitle', { status: statusLabel });
+    const confirmText = t('admin.memberDetail.confirmStatusMessage', { name: member.name, status: statusLabel });
 
     if (Platform.OS === 'web') {
-      const confirmText = `Are you sure you want to set ${member.name} to "${newStatus}"?`;
       if (typeof window !== 'undefined' && window.confirm ? window.confirm(confirmText) : true) {
         performStatusChange(newStatus);
       }
@@ -91,12 +124,12 @@ export default function MemberDetailScreen() {
     }
 
     Alert.alert(
-      `${newStatus} Member`,
-      `Are you sure you want to set ${member.name} to "${newStatus}"?`,
+      confirmTitle,
+      confirmText,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('admin.memberDetail.confirm'),
           onPress: () => performStatusChange(newStatus),
         },
       ]
@@ -109,7 +142,7 @@ export default function MemberDetailScreen() {
       {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
         <ArrowLeft size={16} color={COLORS.textSecondary} />
-        <Text style={styles.backText}>Back to Members</Text>
+        <Text style={styles.backText}>{t('admin.memberDetail.backToMembers')}</Text>
       </TouchableOpacity>
 
       {/* Profile Header Card */}
@@ -126,7 +159,7 @@ export default function MemberDetailScreen() {
         <Text style={styles.profileName}>{member.name}</Text>
         <View style={[styles.statusBadgeLarge, { backgroundColor: `${accentColor}18`, borderColor: `${accentColor}40` }]}>
           <View style={[styles.statusDot, { backgroundColor: accentColor }]} />
-          <Text style={[styles.statusBadgeText, { color: accentColor }]}>{memberStatus}</Text>
+          <Text style={[styles.statusBadgeText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[memberStatus] ?? memberStatus)}</Text>
         </View>
 
         <View style={styles.profileInfoGrid}>
@@ -140,18 +173,22 @@ export default function MemberDetailScreen() {
           </View>
           <View style={styles.infoItem}>
             <Cpu size={13} color={COLORS.textMuted} />
-            <Text style={styles.infoText}>{member.solarCapacity} kW capacity</Text>
+            <Text style={styles.infoText}>{t('admin.memberDetail.capacityLabel', { capacity: member.solarCapacity })}</Text>
           </View>
           <View style={styles.infoItem}>
             <Calendar size={13} color={COLORS.textMuted} />
-            <Text style={styles.infoText}>Joined {new Date(member.joinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+            <Text style={styles.infoText}>
+              {t('admin.memberDetail.joined', {
+                date: new Date(member.joinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+              })}
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Energy Overview */}
       <View style={[GLASS.card, styles.sectionCard]}>
-        <Text style={styles.sectionTitle}>Energy Overview — Today</Text>
+        <Text style={styles.sectionTitle}>{t('admin.memberDetail.energyOverviewToday')}</Text>
         <View style={styles.energyGrid}>
           <View style={styles.energyCell}>
             <View style={[styles.energyIcon, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
@@ -159,7 +196,7 @@ export default function MemberDetailScreen() {
             </View>
             <Text style={styles.energyValue}>{member.todayProduction}</Text>
             <Text style={styles.energyUnit}>kWh</Text>
-            <Text style={styles.energyLabel}>Produced</Text>
+            <Text style={styles.energyLabel}>{t('admin.memberDetail.produced')}</Text>
           </View>
           <View style={styles.energyCell}>
             <View style={[styles.energyIcon, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
@@ -167,7 +204,7 @@ export default function MemberDetailScreen() {
             </View>
             <Text style={styles.energyValue}>{member.todayConsumption}</Text>
             <Text style={styles.energyUnit}>kWh</Text>
-            <Text style={styles.energyLabel}>Consumed</Text>
+            <Text style={styles.energyLabel}>{t('admin.memberDetail.consumed')}</Text>
           </View>
           <View style={styles.energyCell}>
             <View style={[styles.energyIcon, { backgroundColor: hasSurplus ? 'rgba(45,212,191,0.12)' : 'rgba(239,68,68,0.1)' }]}>
@@ -177,18 +214,18 @@ export default function MemberDetailScreen() {
               {hasSurplus ? '+' : ''}{member.todaySurplus.toFixed(1)}
             </Text>
             <Text style={styles.energyUnit}>kWh</Text>
-            <Text style={styles.energyLabel}>{hasSurplus ? 'Surplus' : 'Deficit'}</Text>
+            <Text style={styles.energyLabel}>{hasSurplus ? t('admin.memberDetail.surplus') : t('admin.memberDetail.deficit')}</Text>
           </View>
         </View>
 
         {/* Weekly stats */}
         <View style={styles.weeklyRow}>
           <View style={styles.weeklyItem}>
-            <Text style={styles.weeklyLabel}>Weekly Production</Text>
+            <Text style={styles.weeklyLabel}>{t('admin.memberDetail.weeklyProduction')}</Text>
             <Text style={styles.weeklyValue}>{member.weeklyProduction} kWh</Text>
           </View>
           <View style={styles.weeklyItem}>
-            <Text style={styles.weeklyLabel}>Weekly Consumption</Text>
+            <Text style={styles.weeklyLabel}>{t('admin.memberDetail.weeklyConsumption')}</Text>
             <Text style={styles.weeklyValue}>{member.weeklyConsumption} kWh</Text>
           </View>
         </View>
@@ -196,8 +233,8 @@ export default function MemberDetailScreen() {
 
       {/* Account Actions */}
       <View style={[GLASS.card, styles.sectionCard]}>
-        <Text style={styles.sectionTitle}>Account Management</Text>
-        <Text style={styles.sectionSubtext}>Change this member's account status</Text>
+        <Text style={styles.sectionTitle}>{t('admin.memberDetail.accountManagement')}</Text>
+        <Text style={styles.sectionSubtext}>{t('admin.memberDetail.accountManagementSubtitle')}</Text>
         <View style={styles.actionBtnsCol}>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.15)', borderColor: 'rgba(45,212,191,0.3)' }, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
@@ -209,8 +246,8 @@ export default function MemberDetailScreen() {
               ? <ActivityIndicator size="small" color={COLORS.tealLight} />
               : <UserCheck size={16} color={COLORS.tealLight} />
             }
-            <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>Activate Account</Text>
-            {memberStatus === 'Active' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
+            <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.memberDetail.activateAccount')}</Text>
+            {memberStatus === 'Active' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
@@ -222,8 +259,8 @@ export default function MemberDetailScreen() {
               ? <ActivityIndicator size="small" color={COLORS.amberLight} />
               : <UserX size={16} color={COLORS.amberLight} />
             }
-            <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>Deactivate Account</Text>
-            {memberStatus === 'Inactive' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
+            <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.memberDetail.deactivateAccount')}</Text>
+            {memberStatus === 'Inactive' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.3)' }, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
@@ -235,21 +272,25 @@ export default function MemberDetailScreen() {
               ? <ActivityIndicator size="small" color={COLORS.red} />
               : <ShieldOff size={16} color={COLORS.red} />
             }
-            <Text style={[styles.actionBtnText, { color: COLORS.red }]}>Suspend Account</Text>
-            {memberStatus === 'Suspended' && <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View>}
+            <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.memberDetail.suspendAccount')}</Text>
+            {memberStatus === 'Suspended' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Recent Transactions */}
       <View style={[GLASS.card, styles.sectionCard]}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        {relatedTx.length === 0 ? (
-          <Text style={styles.emptyText}>No transactions found.</Text>
+        <Text style={styles.sectionTitle}>{t('admin.memberDetail.recentTransactions')}</Text>
+        {relatedTxLoading ? (
+          <ActivityIndicator size="small" color={COLORS.amberLight} />
+        ) : relatedTxError ? (
+          <Text style={styles.emptyText}>{relatedTxError}</Text>
+        ) : relatedTx.length === 0 ? (
+          <Text style={styles.emptyText}>{t('admin.memberDetail.noTransactions')}</Text>
         ) : (
           relatedTx.map(tx => {
-            const isSender   = tx.sender === member.household;
-            const txColor    = tx.status === 'Completed' ? COLORS.tealLight : tx.status === 'Pending' ? COLORS.amberLight : COLORS.red;
+            const isSender   = tx.senderId === member.id;
+            const txColor    = tx.status === 'Completed' ? COLORS.tealLight : COLORS.red;
             return (
               <View key={tx.id} style={styles.txRow}>
                 <View style={[styles.txIcon, { backgroundColor: `${txColor}18` }]}>
@@ -257,7 +298,7 @@ export default function MemberDetailScreen() {
                 </View>
                 <View style={styles.txInfo}>
                   <Text style={styles.txDesc}>
-                    {isSender ? `To ${tx.receiver}` : `From ${tx.sender}`}
+                    {isSender ? t('admin.memberDetail.toMember', { name: tx.receiver }) : t('admin.memberDetail.fromMember', { name: tx.sender })}
                   </Text>
                   <Text style={styles.txTime}>{timeAgo(tx.timestamp)}</Text>
                 </View>
@@ -266,7 +307,7 @@ export default function MemberDetailScreen() {
                     {isSender ? '-' : '+'}{tx.amount} kWh
                   </Text>
                   <View style={[styles.txStatus, { backgroundColor: `${txColor}18` }]}>
-                    <Text style={[styles.txStatusText, { color: txColor }]}>{tx.status}</Text>
+                    <Text style={[styles.txStatusText, { color: txColor }]}>{t(tx.status === 'Completed' ? 'common.status.completed' : 'common.status.reversed')}</Text>
                   </View>
                 </View>
               </View>

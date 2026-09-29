@@ -1,11 +1,35 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { ShieldCheck, LogOut } from 'lucide-react-native';
 
 export default function AdminHeader() {
-  const { adminHeaderToggle, setAdminHeaderToggle, setAdminBottomTab, onExit } = useAdmin();
+  const { t } = useTranslation();
+  const {
+    adminHeaderToggle,
+    setAdminHeaderToggle,
+    setAdminBottomTab,
+    onExit,
+    alerts,
+    alertsError,
+    openAlertCount,
+    urgentAlertCount,
+  } = useAdmin();
+
+  // The pill reflects real alert state instead of a hardcoded "System OK":
+  // red for open Critical/High alerts, amber for lesser open ones, teal only
+  // when nothing needs attention. If alerts couldn't load at all we say so
+  // rather than claim everything is fine.
+  const pill =
+    alertsError && alerts.length === 0
+      ? { text: t('admin.header.alertsUnavailable'), color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+      : urgentAlertCount > 0
+        ? { text: t('admin.header.urgent', { count: urgentAlertCount }), color: COLORS.red, bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' }
+        : openAlertCount > 0
+          ? { text: t('admin.header.openAlerts', { count: openAlertCount }), color: COLORS.amberLight, bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)' }
+          : { text: t('admin.header.systemOk'), color: COLORS.tealLight, bg: 'rgba(20,184,166,0.12)', border: 'rgba(20,184,166,0.25)' };
 
   const handleToggle = (toggleKey) => {
     setAdminHeaderToggle(toggleKey);
@@ -15,7 +39,7 @@ export default function AdminHeader() {
   const handleLogout = () => {
     if (Platform.OS === 'web') {
       const confirmed = typeof window !== 'undefined' && window.confirm
-        ? window.confirm('Are you sure you want to log out?')
+        ? window.confirm(t('admin.header.logoutConfirmWeb'))
         : true;
       if (confirmed) {
         onExit();
@@ -24,11 +48,11 @@ export default function AdminHeader() {
     }
 
     Alert.alert(
-      'Logout',
-      'Are you sure you want to log out of the Admin Panel?',
+      t('admin.settings.logout'),
+      t('admin.header.logoutConfirmNative'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: onExit },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.settings.logout'), style: 'destructive', onPress: onExit },
       ]
     );
   };
@@ -43,20 +67,24 @@ export default function AdminHeader() {
           </View>
           <View>
             <View style={styles.titleRow}>
-              <Text style={styles.appName}>SolarCoop</Text>
+              <Text style={styles.appName}>{t('common.appName')}</Text>
               <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>ADMIN</Text>
+                <Text style={styles.adminBadgeText}>{t('admin.header.adminBadge')}</Text>
               </View>
             </View>
-            <Text style={styles.subTitle}>Community Management Portal</Text>
+            <Text style={styles.subTitle}>{t('admin.header.subtitle')}</Text>
           </View>
         </View>
 
-        {/* System Status Pill */}
-        <View style={styles.statusPill}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>System OK</Text>
-        </View>
+        {/* System Status Pill — links to the alerts inbox */}
+        <TouchableOpacity
+          style={[styles.statusPill, { backgroundColor: pill.bg, borderColor: pill.border }]}
+          onPress={() => setAdminBottomTab('alerts')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.statusDot, { backgroundColor: pill.color }]} />
+          <Text style={[styles.statusText, { color: pill.color }]}>{pill.text}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Second Row — Toggle + Logout */}
@@ -68,7 +96,7 @@ export default function AdminHeader() {
             onPress={() => handleToggle('overview')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'overview' && styles.toggleTextActive]}>
-              Overview
+              {t('admin.header.overview')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -76,7 +104,7 @@ export default function AdminHeader() {
             onPress={() => handleToggle('health')}
           >
             <Text style={[styles.toggleText, adminHeaderToggle === 'health' && styles.toggleTextActive]}>
-              System Health
+              {t('admin.dashboard.systemHealth')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -84,7 +112,7 @@ export default function AdminHeader() {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutHeaderBtn} onPress={handleLogout} activeOpacity={0.7}>
           <LogOut size={13} color={COLORS.red} />
-          <Text style={styles.logoutHeaderText}>Logout</Text>
+          <Text style={styles.logoutHeaderText}>{t('admin.settings.logout')}</Text>
         </TouchableOpacity>
       </View>
     </View>

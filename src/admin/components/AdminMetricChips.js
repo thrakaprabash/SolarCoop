@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import {
@@ -10,13 +11,14 @@ import {
 } from 'lucide-react-native';
 
 const CHIPS = [
-  { id: 'all',         label: 'All Metrics',  Icon: LayoutGrid },
-  { id: 'production',  label: 'Production',   Icon: Sun },
-  { id: 'consumption', label: 'Consumption',  Icon: Zap },
-  { id: 'surplus',     label: 'Surplus',      Icon: BatteryCharging },
+  { id: 'all',         labelKey: 'admin.dashboard.metricChip.all', Icon: LayoutGrid },
+  { id: 'production',  labelKey: 'admin.dashboard.stat.production',   Icon: Sun },
+  { id: 'consumption', labelKey: 'admin.dashboard.stat.consumption',  Icon: Zap },
+  { id: 'surplus',     labelKey: 'admin.dashboard.stat.surplus',      Icon: BatteryCharging },
 ];
 
 export default function AdminMetricChips() {
+  const { t } = useTranslation();
   const { adminMetricChip, setAdminMetricChip } = useAdmin();
 
   return (
@@ -38,7 +40,7 @@ export default function AdminMetricChips() {
             >
               <IconComponent size={13} color={isActive ? COLORS.amberLight : COLORS.textMuted} />
               <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>
-                {chip.label}
+                {t(chip.labelKey)}
               </Text>
             </TouchableOpacity>
           );

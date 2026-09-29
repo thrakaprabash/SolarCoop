@@ -11,7 +11,7 @@
  *   2. ROLE ROUTER (active session)
  *      Resolves `profile.role` (+ status) and mounts the matching shell:
  *        admin       → AdminApp      (SOL-95 Member Management dashboard)
- *        technician  → TechnicianApp (SOL-113 Fault Diagnostics portal)
+ *        technician  → TechnicianPortal (SOL-191 Technician Portal)
  *        owner / consumer → MemberApp (Household energy sharing dashboard)
  *      A Solar Owner with status 'pending_approval' can open their Profile,
  *      but every other tab shows a styled lock screen:
@@ -42,6 +42,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './src/i18n';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
 import { TradeProvider } from './src/trade/context/TradeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -63,23 +65,19 @@ import { LoginScreen } from './src/screens/LoginScreen';
 import { RegistrationScreen } from './src/screens/RegistrationScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import AdminPortal from './src/admin/AdminPortal';
+import TechnicianPortal from './src/technician/TechnicianPortal';
 import { useTheme } from './src/theme/useTheme';
 import {
   BadgeCheck,
   Ban,
-  BatteryCharging,
-  Gauge,
   Lock,
   RefreshCw,
-  ServerCog,
   ShieldAlert,
-  ShieldCheck,
   Sun,
   TriangleAlert,
   User,
   UserCheck,
   Users,
-  Wrench,
 } from 'lucide-react-native';
 
 /* ─── Shared presentational helpers ────────────────────────────────────────── */
@@ -634,152 +632,6 @@ function AdminApp() {
   );
 }
 
-/* ─── Technician shell — SOL-113 Fault Diagnostics portal ──────────────────── */
-
-const FAULT_TASKS = [
-  {
-    id: 'FLT-1042',
-    household: 'Household H-0091',
-    device: 'Grid-Tie Inverter',
-    severity: 'High',
-    status: 'open',
-    icon: ServerCog,
-  },
-  {
-    id: 'FLT-1038',
-    household: 'Household H-0114',
-    device: 'Battery Bank',
-    severity: 'Medium',
-    status: 'assigned',
-    icon: BatteryCharging,
-  },
-  {
-    id: 'FLT-1031',
-    household: 'Household H-0087',
-    device: 'Net Meter',
-    severity: 'Low',
-    status: 'resolved',
-    icon: Gauge,
-  },
-];
-
-const FAULT_STATUS_META = {
-  open: { label: 'Open', color: '#EF4444' },
-  assigned: { label: 'Assigned', color: '#F59E0B' },
-  resolved: { label: 'Resolved', color: '#22C55E' },
-};
-
-function TechnicianApp() {
-  const [tab, setTab] = useState('diagnostics'); // 'diagnostics' | 'profile'
-
-  if (tab === 'profile') {
-    return (
-      <ShellFrame
-        header={
-          <PortalHeader
-            title="My Profile"
-            subtitle="Your technician account details"
-            accentColor={ROLE_COLORS.technician}
-          />
-        }
-      >
-        <ProfileScreen />
-        <ShellTabBar
-          tabs={[
-            { id: 'diagnostics', label: 'Diagnostics', icon: Wrench },
-            { id: 'profile', label: 'My Profile', icon: User },
-          ]}
-          activeKey={tab}
-          onSelect={setTab}
-        />
-      </ShellFrame>
-    );
-  }
-
-  const openCount = FAULT_TASKS.filter((f) => f.status === 'open').length;
-
-  return (
-    <ShellFrame
-      header={
-        <PortalHeader
-          title="Technician Portal"
-          subtitle="Fault Diagnostics (SOL-113)"
-          accentColor={ROLE_COLORS.technician}
-        />
-      }
-    >
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.techScroll}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.techSummaryCard}>
-          <View style={styles.techSummaryIcon}>
-            <ShieldCheck size={22} color="#22C55E" />
-          </View>
-          <View style={styles.techSummaryBody}>
-            <Text style={styles.techSummaryTitle}>
-              {openCount} open fault{openCount === 1 ? '' : 's'}
-            </Text>
-            <Text style={styles.techSummarySub}>
-              Assigned maintenance jobs across the community grid
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.techSectionLabel}>Fault Diagnostics</Text>
-        {FAULT_TASKS.map((fault) => {
-          const FaultIcon = fault.icon;
-          const meta = FAULT_STATUS_META[fault.status] || FAULT_STATUS_META.open;
-          return (
-            <View key={fault.id} style={styles.faultCard}>
-              <View
-                style={[
-                  styles.faultIconWrap,
-                  { backgroundColor: `${meta.color}22`, borderColor: `${meta.color}55` },
-                ]}
-              >
-                <FaultIcon size={20} color={meta.color} />
-              </View>
-              <View style={styles.faultBody}>
-                <View style={styles.faultIdRow}>
-                  <Text style={styles.faultId}>{fault.id}</Text>
-                  <View
-                    style={[
-                      styles.faultStatusTag,
-                      { backgroundColor: `${meta.color}22`, borderColor: `${meta.color}55` },
-                    ]}
-                  >
-                    <Text style={[styles.faultStatusText, { color: meta.color }]}>
-                      {meta.label}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.faultDevice}>{fault.device}</Text>
-                <Text style={styles.faultHousehold}>{fault.household}</Text>
-              </View>
-            </View>
-          );
-        })}
-
-        <Text style={styles.techNote}>
-          Portal scaffold — live fault ingestion from the community grid will
-          be wired to the backend in a later sprint.
-        </Text>
-      </ScrollView>
-
-      <ShellTabBar
-        tabs={[
-          { id: 'diagnostics', label: 'Diagnostics', icon: Wrench },
-          { id: 'profile', label: 'My Profile', icon: User },
-        ]}
-        activeKey={tab}
-        onSelect={setTab}
-      />
-    </ShellFrame>
-  );
-}
-
 /* ─── Role router — the top-level authenticated gate ───────────────────────── */
 
 function RoleRouter() {
@@ -814,7 +666,7 @@ function RoleRouter() {
     case 'admin':
       return <AdminPortal onExit={signOut} />;
     case 'technician':
-      return <TechnicianApp />;
+      return <TechnicianPortal onExit={signOut} />;
     case 'owner':
     case 'consumer':
     default:
@@ -826,13 +678,15 @@ function RoleRouter() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <EnergyProvider>
-        <TradeProvider>
-          <RoleRouter />
-        </TradeProvider>
-      </EnergyProvider>
-    </AuthProvider>
+    <I18nextProvider i18n={i18n}>
+      <AuthProvider>
+        <EnergyProvider>
+          <TradeProvider>
+            <RoleRouter />
+          </TradeProvider>
+        </EnergyProvider>
+      </AuthProvider>
+    </I18nextProvider>
   );
 }
 
@@ -1122,77 +976,4 @@ const styles = StyleSheet.create({
   },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusPillText: { fontSize: 10, fontWeight: '800' },
-
-  /* Technician portal */
-  techScroll: { padding: 16, paddingBottom: 32, gap: 12 },
-  techSummaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-    borderRadius: 16,
-    padding: 14,
-  },
-  techSummaryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  techSummaryBody: { flex: 1 },
-  techSummaryTitle: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
-  techSummarySub: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.55)',
-    marginTop: 2,
-  },
-  techSectionLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    color: 'rgba(255, 255, 255, 0.55)',
-    marginTop: 4,
-  },
-  faultCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 12,
-  },
-  faultIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  faultBody: { flex: 1, gap: 2, minWidth: 0 },
-  faultIdRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  faultId: { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
-  faultStatusTag: {
-    borderWidth: 1,
-    paddingHorizontal: 7,
-    paddingVertical: 1,
-    borderRadius: 9,
-  },
-  faultStatusText: { fontSize: 9.5, fontWeight: '800' },
-  faultDevice: { fontSize: 13, fontWeight: '700', color: 'rgba(255, 255, 255, 0.85)' },
-  faultHousehold: { fontSize: 11.5, color: 'rgba(255, 255, 255, 0.5)' },
-  techNote: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.4)',
-    textAlign: 'center',
-    lineHeight: 16,
-    marginTop: 4,
-  },
 });

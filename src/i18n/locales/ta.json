@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "SolarCoop",
+    "ok": "சரி",
+    "cancel": "ரத்து செய்",
+    "loading": "ஏற்றுகிறது…",
+    "welcomeMessage": "SolarCoop-க்கு வரவேற்கிறோம்"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "நிர்வாக டாஷ்போர்டு"
+    }
+  }
+}
