@@ -13,13 +13,17 @@
 
 import { supabase } from '../lib/supabase';
 
-const CONSUMER_JOB_COLUMNS = 'id, status, consumer_message, created_at, updated_at';
+const CONSUMER_JOB_COLUMNS =
+  'id, status, consumer_message, technician_name, accepted_at, created_at, updated_at';
 
 function buildFaultAlert(row) {
   return {
     id:        row.id,
     status:    row.status, // 'pending' | 'active'
     message:   row.consumer_message,
+    // SOL-200 — set when a technician accepts the job; null while pending.
+    technicianName: row.technician_name,
+    acceptedAt:     row.accepted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
