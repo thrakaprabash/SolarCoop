@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 import {
   fetchMetrics,
@@ -11,6 +12,16 @@ import {
 } from '../services/energyService';
 
 const EnergyContext = createContext();
+
+// ─── SOL-185: Default Dashboard Widget Layout ────────────────────────────────
+export const DEFAULT_WIDGET_LAYOUT = [
+  { id: 'powerGrid', label: 'Current Power Grid (2×2)', visible: true, locked: true },
+  { id: 'environmental', label: 'Environmental Benefits', visible: true, locked: false },
+  { id: 'sitePower', label: 'Site Power & Flow Diagram', visible: true, locked: false },
+  { id: 'coopActivity', label: 'Co-op Community Activity', visible: true, locked: false },
+  { id: 'quickActions', label: 'Quick Actions (Share & Borrow)', visible: true, locked: false },
+];
+export const WIDGET_STORAGE_KEY = '@solarcoop_widget_layout_v1';
 
 // ─── Offline / fallback mock data ────────────────────────────────────────────
 // Kept as defaults so the dashboard renders even when Supabase is unreachable.
@@ -142,6 +153,9 @@ export const EnergyProvider = ({ children }) => {
   const [historyLogs, setHistoryLogs] = useState(initialHistoryLogs);
   const [chartData, setChartData]   = useState(initialChartData);
 
+  // ── SOL-185: Widget Customization Layout State ──
+  const [widgetLayout, setWidgetLayout] = useState(DEFAULT_WIDGET_LAYOUT);
+
   // ── Loading / error / pagination ──
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
@@ -155,6 +169,52 @@ export const EnergyProvider = ({ children }) => {
 
   // Polling interval ref
   const pollRef = useRef(null);
+
+  // ── SOL-185: Load saved widget layout from AsyncStorage on mount ──
+  useEffect(() => {
+    const loadSavedLayout = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(WIDGET_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Merge with default to guarantee new widgets are present
+            const merged = parsed.map(item => {
+              const def = DEFAULT_WIDGET_LAYOUT.find(d => d.id === item.id);
+              return def ? { ...def, ...item } : item;
+            });
+            DEFAULT_WIDGET_LAYOUT.forEach(def => {
+              if (!merged.some(m => m.id === def.id)) {
+                merged.push(def);
+              }
+            });
+            setWidgetLayout(merged);
+          }
+        }
+      } catch (e) {
+        console.warn('[EnergyContext] Failed to load widget layout:', e);
+      }
+    };
+    loadSavedLayout();
+  }, []);
+
+  const updateWidgetLayout = useCallback(async (newLayout) => {
+    setWidgetLayout(newLayout);
+    try {
+      await AsyncStorage.setItem(WIDGET_STORAGE_KEY, JSON.stringify(newLayout));
+    } catch (e) {
+      console.warn('[EnergyContext] Failed to save widget layout:', e);
+    }
+  }, []);
+
+  const resetWidgetLayout = useCallback(async () => {
+    setWidgetLayout(DEFAULT_WIDGET_LAYOUT);
+    try {
+      await AsyncStorage.removeItem(WIDGET_STORAGE_KEY);
+    } catch (e) {
+      console.warn('[EnergyContext] Failed to reset widget layout:', e);
+    }
+  }, []);
 
   // ── Initial data load ──────────────────────────────────────────────────────
   const loadAllData = useCallback(async () => {
@@ -386,6 +446,11 @@ export const EnergyProvider = ({ children }) => {
 
         // Chart range
         loadChartData,
+
+        // Widget Customization (SOL-185)
+        widgetLayout,
+        updateWidgetLayout,
+        resetWidgetLayout,
 
         // Auto-share settings
         autoShareEnabled,
