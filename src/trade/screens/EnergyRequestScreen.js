@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ArrowUpRight, Home, Minus, Plus } from 'lucide-react-native';
 
@@ -11,7 +11,7 @@ import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } 
 const STEP = 0.5;
 
 export default function EnergyRequestScreen() {
-  const { getHousehold, submitRequest, showToast } = useTrade();
+  const { getHousehold, refreshProviders, submitRequest, showToast } = useTrade();
   const { params } = useNavigation();
   const provider = getHousehold(params.providerId);
 
@@ -19,34 +19,49 @@ export default function EnergyRequestScreen() {
   const [confirmation, setConfirmation] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const submitInFlight = useRef(false);
+  const submitted = useRef(false);
 
-  const value = parseFloat(amount);
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
+
+  const cleanAmount = amount.trim();
+  const value = Number(cleanAmount.replace(',', '.'));
   const error = useMemo(() => {
-    if (amount.trim() === '' || isNaN(value) || value <= 0) return 'Enter an amount greater than 0.';
+    if (!/^\d+(?:[.,]\d+)?$/.test(cleanAmount) || !Number.isFinite(value) || value <= 0)
+      return 'Enter an amount greater than 0.';
     if (provider && value > provider.kwh)
       return 'Only ' + kwh(provider.kwh) + ' kWh available from ' + provider.name + '.';
     return '';
-  }, [amount, value, provider]);
+  }, [cleanAmount, value, provider]);
 
   const step = (delta) => {
     const max = provider ? provider.kwh : 10;
     const current = isNaN(value) ? 0 : value;
     setAmount(Math.min(max, Math.max(STEP, current + delta)).toFixed(1));
+    submitted.current = false;
     setConfirmation('');
+    setSubmitError('');
   };
 
   const onSubmit = async () => {
-    if (error || !provider) return;
+    if (error || !provider || submitInFlight.current || submitted.current) return;
+    submitInFlight.current = true;
     setSubmitting(true);
     setSubmitError('');
-    const { error: requestError } = await submitRequest(provider.id, value);
-    setSubmitting(false);
-    if (requestError) {
-      setSubmitError(requestError.message || 'Could not send request.');
-      return;
+    try {
+      const { error: requestError } = await submitRequest(provider.id, value);
+      if (requestError) throw requestError;
+      submitted.current = true;
+      setConfirmation('Request for ' + kwh(value) + ' kWh sent to ' + provider.name);
+      showToast('Request sent to ' + provider.name);
+    } catch (requestError) {
+      setSubmitError(requestError?.message || 'Could not send request.');
+    } finally {
+      submitInFlight.current = false;
+      setSubmitting(false);
     }
-    setConfirmation('Request for ' + kwh(value) + ' kWh sent to ' + provider.name);
-    showToast('Request sent to ' + provider.name);
   };
 
   if (!provider) {
@@ -103,7 +118,9 @@ export default function EnergyRequestScreen() {
                 value={amount}
                 onChangeText={(text) => {
                   setAmount(text);
+                  submitted.current = false;
                   setConfirmation('');
+                  setSubmitError('');
                 }}
                 keyboardType="decimal-pad"
                 style={styles.inputText}
@@ -127,7 +144,7 @@ export default function EnergyRequestScreen() {
           label="Submit Request"
           icon={ArrowUpRight}
           onPress={onSubmit}
-          disabled={!!error || submitting}
+          disabled={!!error || submitting || !!confirmation}
           background={error || confirmation ? colors.tealTintStrong : colors.teal}
           style={styles.submit}
         />
