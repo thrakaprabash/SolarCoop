@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   fetchTechnicianJobs,
   acceptJob as serviceAcceptJob,
+  updateChecklist as serviceUpdateChecklist,
 } from '../services/jobService';
 
 const TechnicianContext = createContext(null);
@@ -39,6 +40,19 @@ export const TechnicianProvider = ({ children, onExit }) => {
     () => jobs.find(j => j.id === selectedJobId) ?? null,
     [jobs, selectedJobId],
   );
+
+  // Open fault alerts for the Diagnostics tab — the technician's own active
+  // jobs first, then the pending queue, most urgent first within each.
+  const openAlerts = useMemo(() => {
+    const rank = { urgent: 0, medium: 1, low: 2 };
+    return jobs
+      .filter(j => j.status === 'active' || j.status === 'pending')
+      .sort((a, b) =>
+        (a.status === 'active' ? 0 : 1) - (b.status === 'active' ? 0 : 1) ||
+        (rank[a.urgency] ?? 3) - (rank[b.urgency] ?? 3)
+      );
+  }, [jobs]);
+  const urgentAlertCount = openAlerts.filter(j => j.urgency === 'urgent').length;
 
   const openJob  = useCallback((jobId) => setSelectedJobId(jobId), []);
   const closeJob = useCallback(() => setSelectedJobId(null), []);
@@ -89,6 +103,28 @@ export const TechnicianProvider = ({ children, onExit }) => {
     }
   }, [technicianId, profile?.name, user?.user_metadata?.name, loadJobs]);
 
+  // ─── toggleChecklistItem ────────────────────────────────────────────────────
+  /**
+   * SOL-198 — tick / untick one diagnostic step. Optimistic: the box flips
+   * immediately and is put back if the save fails.
+   */
+  const toggleChecklistItem = useCallback(async (jobId, index) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (!job || !job.checklist[index]) return;
+
+    const previous = job.checklist;
+    const next = previous.map((item, i) => (i === index ? { ...item, done: !item.done } : item));
+    setJobs(prev => prev.map(j => (j.id === jobId ? { ...j, checklist: next } : j)));
+
+    try {
+      const updated = await serviceUpdateChecklist(jobId, next);
+      setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    } catch (err) {
+      setJobs(prev => prev.map(j => (j.id === jobId ? { ...j, checklist: previous } : j)));
+      throw err;
+    }
+  }, [jobs]);
+
   return (
     <TechnicianContext.Provider
       value={{
@@ -110,6 +146,10 @@ export const TechnicianProvider = ({ children, onExit }) => {
         connectionStatus,
         loadJobs,
         acceptJob,
+        // Diagnostics
+        openAlerts,
+        urgentAlertCount,
+        toggleChecklistItem,
       }}
     >
       {children}

@@ -127,6 +127,32 @@ export async function acceptJob(jobId, { id: technicianId, name: technicianName 
 }
 
 /**
+ * Save the diagnostic checklist (SOL-198). The whole array is written, which
+ * is fine: only the assigned technician can update the job (RLS), so there's
+ * no one else editing it concurrently.
+ *
+ * @param {string} jobId
+ * @param {{label: string, done: boolean}[]} checklist
+ * @returns {Promise<object>} the updated job
+ */
+export async function updateChecklist(jobId, checklist) {
+  const { data, error } = await supabase
+    .from('jobs')
+    .update({ diagnostic_checklist: checklist.map(({ label, done }) => ({ label, done })) })
+    .eq('id', jobId)
+    .select(JOB_COLUMNS)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('Only the technician assigned to this job can update its checklist.');
+    }
+    throw error;
+  }
+  return buildJob(data);
+}
+
+/**
  * Past completed jobs at one household — the Maintenance History timeline
  * on the Diagnostic Dossier. Most recent first.
  *

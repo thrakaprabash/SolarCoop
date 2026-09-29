@@ -401,6 +401,21 @@
       "acceptedByYou": "You accepted this job on {{date}}.",
       "acceptedBy": "Accepted by {{name}}.",
       "completedOn": "Completed on {{date}}."
+    },
+    "alert": {
+      "sectionTitle": "Open Fault Alerts",
+      "critical": "Critical Alert",
+      "fault": "Fault Alert",
+      "errorCode": "Error Code: {{code}}",
+      "location": "Location: {{location}}",
+      "checklist": "Diagnostic Checklist",
+      "noChecklist": "No checklist for this job.",
+      "acceptToStart": "Accept this job to start the checklist.",
+      "viewFullTicket": "View Full Job Ticket",
+      "saveErrorTitle": "Could not save checklist",
+      "saveErrorBody": "Please try again.",
+      "noneTitle": "All systems healthy",
+      "noneBody": "No open fault alerts right now."
     }
   }
 }

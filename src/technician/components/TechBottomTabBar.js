@@ -1,11 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { User, Wrench } from 'lucide-react-native';
+import { Stethoscope, User, Wrench } from 'lucide-react-native';
 import { TECH } from '../theme';
 
 const TABS = [
   { key: 'dashboard',   labelKey: 'technician.nav.dashboard',   icon: Wrench },
+  { key: 'diagnostics', labelKey: 'technician.nav.diagnostics', icon: Stethoscope },
   { key: 'profile',     labelKey: 'technician.nav.profile',     icon: User },
 ];
 

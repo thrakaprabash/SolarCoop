@@ -16,10 +16,13 @@ import TechHeader from './components/TechHeader';
 import TechBottomTabBar from './components/TechBottomTabBar';
 import TechnicianDashboardScreen from './screens/TechnicianDashboardScreen';
 import JobTicketDetailScreen from './screens/JobTicketDetailScreen';
+import DiagnosticsScreen from './screens/DiagnosticsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 function TechnicianShell() {
-  const { techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob } = useTechnician();
+  const {
+    techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob, urgentAlertCount,
+  } = useTechnician();
 
   // Load the job board as soon as the portal mounts.
   useEffect(() => {
@@ -46,6 +49,7 @@ function TechnicianShell() {
 
   const renderScreen = () => {
     switch (techBottomTab) {
+      case 'diagnostics': return <DiagnosticsScreen />;
       case 'profile':   return <ProfileScreen />;
       case 'dashboard':
       default:          return <TechnicianDashboardScreen />;
@@ -58,7 +62,11 @@ function TechnicianShell() {
       <View style={styles.safeArea}>
         {techBottomTab !== 'profile' && <TechHeader />}
         <View style={styles.screen}>{renderScreen()}</View>
-        <TechBottomTabBar activeKey={techBottomTab} onSelect={handleTabSelect} />
+        <TechBottomTabBar
+          activeKey={techBottomTab}
+          onSelect={handleTabSelect}
+          badges={{ diagnostics: urgentAlertCount }}
+        />
       </View>
     </View>
   );
