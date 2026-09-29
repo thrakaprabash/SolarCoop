@@ -22,6 +22,7 @@ import {
   CheckCircle2, 
   SlidersHorizontal 
 } from 'lucide-react-native';
+import { LiveTelemetryWidget } from './LiveTelemetryWidget';
 import { WidgetCustomizerModal } from './WidgetCustomizerModal';
 
 // ─── Sub-component: SVG Arc Progress Ring (Issue #2) ───
@@ -425,6 +426,8 @@ export const HomeDashboard = () => {
 
   const renderWidget = (widgetId) => {
     switch (widgetId) {
+      case 'telemetry':
+        return <LiveTelemetryWidget key="telemetry" />;
       case 'powerGrid':
         return renderPowerGrid();
       case 'environmental':
