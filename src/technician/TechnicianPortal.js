@@ -8,7 +8,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { TechnicianProvider, useTechnician } from './context/TechnicianContext';
 import { TECH } from './theme';
@@ -18,7 +18,12 @@ import TechnicianDashboardScreen from './screens/TechnicianDashboardScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 function TechnicianShell() {
-  const { techBottomTab, setTechBottomTab } = useTechnician();
+  const { techBottomTab, setTechBottomTab, loadJobs } = useTechnician();
+
+  // Load the job board as soon as the portal mounts.
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   const renderScreen = () => {
     switch (techBottomTab) {

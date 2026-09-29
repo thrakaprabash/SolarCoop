@@ -358,7 +358,8 @@
       "completedJobs": "Completed Jobs",
       "noActive": "No active job. Accept a pending job to start.",
       "noPending": "No pending jobs. The queue is clear.",
-      "noCompleted": "No completed jobs yet."
+      "noCompleted": "No completed jobs yet.",
+      "loading": "Loading job tickets…"
     },
     "job": {
       "household": "Household",

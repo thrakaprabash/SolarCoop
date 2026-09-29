@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
@@ -36,7 +36,11 @@ function Empty({ text }) {
  */
 export default function TechnicianDashboardScreen() {
   const { t } = useTranslation();
-  const { jobs, jobCounts, jobFilter, setJobFilter } = useTechnician();
+  const {
+    jobs, jobCounts, jobFilter, setJobFilter,
+    jobsLoading, jobsError, loadJobs,
+  } = useTechnician();
+  const firstLoad = jobsLoading && jobs.length === 0;
 
   const active    = jobs.filter(j => j.status === 'active').sort(byUrgency);
   const pending   = jobs.filter(j => j.status === 'pending').sort(byUrgency);
@@ -55,10 +59,34 @@ export default function TechnicianDashboardScreen() {
       style={styles.flex}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={jobsLoading && jobs.length > 0}
+          onRefresh={loadJobs}
+          tintColor={TECH.orange}
+          colors={[TECH.orange]}
+        />
+      }
     >
       <JobStatusTabs value={jobFilter} onChange={setJobFilter} counts={jobCounts} />
 
-      {jobFilter === 'active' && (
+      {jobsError ? (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>{jobsError}</Text>
+          <Pressable style={styles.retryBtn} onPress={loadJobs}>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {firstLoad ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={TECH.orange} />
+          <Text style={styles.loadingText}>{t('technician.dashboard.loading')}</Text>
+        </View>
+      ) : null}
+
+      {!firstLoad && jobFilter === 'active' && (
         <>
           <Section label={t('technician.dashboard.activeTicket')}>
             {active.length === 0
@@ -69,9 +97,9 @@ export default function TechnicianDashboardScreen() {
         </>
       )}
 
-      {jobFilter === 'pending' && pendingSection}
+      {!firstLoad && jobFilter === 'pending' && pendingSection}
 
-      {jobFilter === 'completed' && (
+      {!firstLoad && jobFilter === 'completed' && (
         <Section label={t('technician.dashboard.completedJobs')}>
           {completed.length === 0
             ? <Empty text={t('technician.dashboard.noCompleted')} />
@@ -102,4 +130,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: { fontSize: 12, color: TECH.textMuted },
+  loading: { alignItems: 'center', paddingVertical: 40, gap: 10 },
+  loadingText: { fontSize: 12, fontWeight: '600', color: TECH.textSecondary },
+  errorCard: {
+    backgroundColor: TECH.redSoft,
+    borderWidth: 1,
+    borderColor: TECH.redBorder,
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+  },
+  errorText: { fontSize: 12, lineHeight: 17, color: TECH.text },
+  retryBtn: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: TECH.red,
+  },
+  retryText: { fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' },
 });
