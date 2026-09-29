@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator, Alert, BackHandler, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Cpu, History, TriangleAlert, User } from 'lucide-react-native';
+import { ArrowLeft, Cpu, History, MapPin, TriangleAlert, User } from 'lucide-react-native';
 import { TECH, urgencyColor } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
+import { buildDirectionsUrl } from '../utils/maps';
+
+const notify = (title, message) => {
+  if (Platform.OS === 'web') window.alert(`${title}
+
+${message}`);
+  else Alert.alert(title, message);
+};
 
 const isoDate = (iso) => (iso ? String(iso).slice(0, 10) : '—');
 
@@ -61,6 +71,17 @@ export default function JobTicketDetailScreen() {
   }, [job.householdUserId, job.id]);
 
   const faultColor = job.errorCode ? TECH.red : TECH.amber;
+  const directionsUrl = buildDirectionsUrl(job.siteAddress);
+
+  // SOL-196 — hand off to Google Maps for turn-by-turn directions to the site.
+  const handleNavigate = async () => {
+    if (!directionsUrl) return;
+    try {
+      await Linking.openURL(directionsUrl);
+    } catch (err) {
+      notify(t('technician.detail.mapsErrorTitle'), err?.message || t('technician.detail.mapsErrorBody'));
+    }
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -84,6 +105,16 @@ export default function JobTicketDetailScreen() {
         <InfoLine label={t('technician.detail.name')} value={job.clientName} />
         <InfoLine label={t('technician.detail.contact')} value={job.clientPhone} />
         <InfoLine value={job.siteAddress || t('technician.detail.noAddress')} />
+
+        <Pressable
+          style={({ pressed }) => [styles.mapsBtn, !directionsUrl && styles.btnDisabled, pressed && styles.pressed]}
+          onPress={handleNavigate}
+          disabled={!directionsUrl}
+          accessibilityRole="link"
+        >
+          <MapPin size={15} color="#FFFFFF" />
+          <Text style={styles.mapsBtnText}>{t('technician.detail.navigate')}</Text>
+        </Pressable>
       </DossierCard>
 
       {/* ── System telemetry ── */}
@@ -157,6 +188,19 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
   infoLine: { fontSize: 12.5, color: TECH.textSecondary, lineHeight: 19 },
   infoValue: { color: TECH.text },
+  mapsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: TECH.orange,
+    borderRadius: 8,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  mapsBtnText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, color: '#FFFFFF', textTransform: 'uppercase' },
+  btnDisabled: { opacity: 0.4 },
+  pressed: { opacity: 0.85 },
   faultBox: {
     flexDirection: 'row',
     alignItems: 'center',
