@@ -1,15 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../theme';
 import { STATUS_STYLE } from '../data/requests';
 import { kwh, money } from '../utils/format';
 
-export default function RequestRow({ request, last }) {
+export default function RequestRow({ request, last, onPress }) {
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
   return (
-    <View style={[styles.row, !last && styles.divided]}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? `View transaction for ${request.name}` : undefined}
+      style={({ pressed }) => [styles.row, !last && styles.divided, pressed && { opacity: 0.8 }]}
+    >
       <View style={styles.left}>
         <View style={styles.statusRow}>
           <View style={[styles.dot, { backgroundColor: tone.color }]} />
@@ -25,7 +32,8 @@ export default function RequestRow({ request, last }) {
           <Text style={[styles.costText, { color: tone.color }]}>{money(request.kwh * request.rate)}</Text>
         </View>
       ) : null}
-    </View>
+      {onPress ? <ChevronRight size={15} color={colors.textFaint} strokeWidth={2.4} /> : null}
+    </Pressable>
   );
 }
 

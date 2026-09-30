@@ -27,7 +27,11 @@ export const BACK_LABELS = {
 
 /** Transaction Details is reachable from two places, so its parent is contextual. */
 function parentOf(screen, params) {
-  if (screen === 'transaction') return params.source === 'history' ? 'history' : 'incoming';
+  if (screen === 'transaction') {
+    if (params.source === 'history') return 'history';
+    if (params.source === 'requests') return 'requests';
+    return 'incoming';
+  }
   return PARENT[screen] || null;
 }
 
