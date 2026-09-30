@@ -42,7 +42,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { I18nextProvider } from 'react-i18next';
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './src/i18n';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
 import { TradeProvider } from './src/trade/context/TradeContext';
@@ -207,6 +207,7 @@ function ShellFrame({ header, children }) {
 }
 
 function PortalHeader({ title, subtitle, accentColor }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <View style={styles.portalHeader}>
@@ -220,9 +221,9 @@ function PortalHeader({ title, subtitle, accentColor }) {
           <Sun size={18} color={accentColor} />
         </View>
         <View>
-          <Text style={styles.portalBrandName}>SolarCoop</Text>
+          <Text style={styles.portalBrandName}>{t('common.appName')}</Text>
           <Text style={[styles.portalBrandSub, { color: theme.colors.textSecondary }]}>
-            Community Energy Sharing
+            {t('app.communityEnergySharing')}
           </Text>
         </View>
       </View>
@@ -239,6 +240,7 @@ function PortalHeader({ title, subtitle, accentColor }) {
 /* ─── Pending-approval lock screen (Solar Owners awaiting Admin validation) ── */
 
 function PendingApprovalLock() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { refreshProfile } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
@@ -258,14 +260,13 @@ function PendingApprovalLock() {
         <Lock size={34} color={theme.colors.primary} strokeWidth={2.2} />
       </View>
       <Text style={[styles.lockTitle, { color: theme.colors.text }]}>
-        Pending Admin Validation
+        {t('app.pendingLock.title')}
       </Text>
       <Text style={[styles.lockMessage, { color: theme.colors.textSecondary }]}>
-        Your solar assets are currently pending Admin validation.
+        {t('app.pendingLock.message')}
       </Text>
       <Text style={[styles.lockHint, { color: theme.colors.textMuted }]}>
-        You can still open your Profile. Energy sharing &amp; trading tabs
-        unlock automatically as soon as an administrator activates your account.
+        {t('app.pendingLock.hint')}
       </Text>
       <TouchableOpacity
         style={[styles.lockRefreshBtn, { backgroundColor: theme.colors.primary }]}
@@ -278,7 +279,7 @@ function PendingApprovalLock() {
         ) : (
           <>
             <RefreshCw size={16} color="#FFFFFF" />
-            <Text style={styles.lockRefreshText}>Check Status</Text>
+            <Text style={styles.lockRefreshText}>{t('app.pendingLock.checkStatus')}</Text>
           </>
         )}
       </TouchableOpacity>

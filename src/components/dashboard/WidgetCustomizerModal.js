@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Modal, 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
   Switch,
-  TouchableWithoutFeedback 
+  TouchableWithoutFeedback
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { 
   SlidersHorizontal, 
@@ -33,6 +34,7 @@ export const WidgetCustomizerModal = ({
   onSaveLayout,
   onResetLayout,
 }) => {
+  const { t } = useTranslation();
   const [currentLayout, setCurrentLayout] = useState(layout);
 
   useEffect(() => {
@@ -101,8 +103,8 @@ export const WidgetCustomizerModal = ({
                     <SlidersHorizontal size={16} color={COLORS.amberLight} />
                   </View>
                   <View>
-                    <Text style={styles.title}>Customize Dashboard</Text>
-                    <Text style={styles.subtitle}>Reorder & toggle your widgets</Text>
+                    <Text style={styles.title}>{t('member.widgetCustomizer.title')}</Text>
+                    <Text style={styles.subtitle}>{t('member.widgetCustomizer.subtitle')}</Text>
                   </View>
                 </View>
                 <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
@@ -146,16 +148,16 @@ export const WidgetCustomizerModal = ({
                       <View style={styles.widgetInfo}>
                         <View style={styles.labelLine}>
                           <Text style={[styles.widgetLabel, !item.visible && styles.textMuted]}>
-                            {item.label}
+                            {t(item.labelKey)}
                           </Text>
                           {item.locked && (
                             <View style={styles.lockedBadge}>
                               <Lock size={10} color={COLORS.amberLight} />
-                              <Text style={styles.lockedText}>Core</Text>
+                              <Text style={styles.lockedText}>{t('member.widgetCustomizer.core')}</Text>
                             </View>
                           )}
                         </View>
-                        <Text style={styles.widgetIndexText}>Position #{index + 1}</Text>
+                        <Text style={styles.widgetIndexText}>{t('member.widgetCustomizer.position', { number: index + 1 })}</Text>
                       </View>
 
                       {/* Visibility Switch */}
@@ -186,7 +188,7 @@ export const WidgetCustomizerModal = ({
                   activeOpacity={0.7}
                 >
                   <RotateCcw size={14} color={COLORS.textSecondary} />
-                  <Text style={styles.resetBtnText}>Reset</Text>
+                  <Text style={styles.resetBtnText}>{t('member.widgetCustomizer.reset')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -195,7 +197,7 @@ export const WidgetCustomizerModal = ({
                   activeOpacity={0.8}
                 >
                   <Check size={16} color="#FFFFFF" />
-                  <Text style={styles.saveBtnText}>Apply Layout</Text>
+                  <Text style={styles.saveBtnText}>{t('member.widgetCustomizer.applyLayout')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

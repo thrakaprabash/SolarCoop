@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import { Mail, Lock, Check } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { showAlert } from '../utils/alert';
 import { getRememberMe, setRememberMe as persistRememberMe } from '../lib/supabase';
@@ -32,6 +33,7 @@ import { useTheme } from '../theme/useTheme';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
+  const { t } = useTranslation();
   const { signIn } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
@@ -72,18 +74,18 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
     const nextErrors = {};
 
     if (!trimmedEmail) {
-      nextErrors.email = 'Email is required.';
+      nextErrors.email = t('auth.field.emailRequired');
     } else if (!EMAIL_REGEX.test(trimmedEmail)) {
-      nextErrors.email = 'Please enter a valid email address.';
+      nextErrors.email = t('auth.field.emailInvalid');
     }
     if (!password) {
-      nextErrors.password = 'Password is required.';
+      nextErrors.password = t('auth.field.passwordRequired');
     }
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       showAlert(
-        'Check your details',
+        t('auth.checkDetailsTitle'),
         Object.values(nextErrors).join('\n'),
       );
       return;
@@ -97,8 +99,8 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
       // "Invalid login credentials") instead of failing silently.
       if (result.error) {
         showAlert(
-          'Login Failed',
-          result.error.message || 'An unexpected error occurred. Please try again.',
+          t('auth.login.failedTitle'),
+          result.error.message || t('auth.genericError'),
         );
         return;
       }
@@ -107,8 +109,8 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
       // shell uses to move past the auth gate — no manual navigation here.
     } catch (error) {
       showAlert(
-        'Login Failed',
-        error?.message || 'An unexpected error occurred. Please try again.',
+        t('auth.login.failedTitle'),
+        error?.message || t('auth.genericError'),
       );
     } finally {
       setLoading(false);
@@ -117,12 +119,12 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
 
   return (
     <AuthLayout
-      title="Welcome Back"
-      subtitle="Sign in to manage your shared clean energy."
+      title={t('auth.login.title')}
+      subtitle={t('auth.login.subtitle')}
       footer={
         <View style={styles.footerRow}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            New to SolarCoop?
+            {t('auth.login.newToApp')}
           </Text>
           <TouchableOpacity
             onPress={onCreateAccount}
@@ -130,21 +132,21 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
             accessibilityRole="link"
           >
             <Text style={[styles.footerLink, { color: colors.primary }]}>
-              Create Account
+              {t('auth.register.title')}
             </Text>
           </TouchableOpacity>
         </View>
       }
     >
       <AuthField
-        label="Email Address"
+        label={t('auth.field.emailLabel')}
         icon={Mail}
         value={email}
         onChangeText={(text) => {
           setEmail(text);
           if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
         }}
-        placeholder="Enter your email"
+        placeholder={t('auth.login.emailPlaceholder')}
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -154,7 +156,7 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
       />
 
       <AuthField
-        label="Password"
+        label={t('auth.field.passwordLabel')}
         icon={Lock}
         value={password}
         onChangeText={(text) => {
@@ -163,7 +165,7 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
             setErrors((prev) => ({ ...prev, password: undefined }));
           }
         }}
-        placeholder="Enter your password"
+        placeholder={t('auth.login.passwordPlaceholder')}
         secureTextEntry
         autoComplete="password"
         textContentType="password"
@@ -208,7 +210,7 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
             </Animated.View>
           </Animated.View>
           <Text style={[styles.rememberLabel, { color: colors.textSecondary }]}>
-            Remember me
+            {t('auth.login.rememberMe')}
           </Text>
         </TouchableOpacity>
 
@@ -218,13 +220,13 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
           accessibilityRole="link"
         >
           <Text style={[styles.forgotLink, { color: colors.primary }]}>
-            Forgot Password?
+            {t('auth.login.forgotPassword')}
           </Text>
         </TouchableOpacity>
       </View>
 
       <PrimaryButton
-        label="Login"
+        label={t('auth.login.submitButton')}
         onPress={handleSubmit}
         loading={loading}
         disabled={loading}

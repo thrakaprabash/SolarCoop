@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Zap, Wind, Repeat, Droplet, Box, Tv, AlertTriangle, Sparkles, Clock } from 'lucide-react-native';
 
 // SOL-98: Consumption View Component
 export const ConsumptionView = () => {
+  const { t } = useTranslation();
   const { metrics, appliances, toggleAppliance } = useEnergy();
 
   const getIcon = (iconName) => {
@@ -24,7 +26,7 @@ export const ConsumptionView = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Household Energy Load</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.consumption.header')}</Text>
       </View>
 
       {/* Main Load Card */}
@@ -34,7 +36,7 @@ export const ConsumptionView = () => {
             <Zap size={28} color={COLORS.amber} />
           </View>
           <View>
-            <Text style={styles.loadLabel}>Active Load Demand</Text>
+            <Text style={styles.loadLabel}>{t('member.consumption.activeLoad')}</Text>
             <Text style={styles.loadValue}>
               {metrics.instantConsumption} <Text style={styles.unit}>kW</Text>
             </Text>
@@ -43,18 +45,18 @@ export const ConsumptionView = () => {
 
         <View style={styles.loadFooter}>
           <View style={styles.statCol}>
-            <Text style={styles.statLabel}>Daily Consumption</Text>
+            <Text style={styles.statLabel}>{t('member.consumption.dailyConsumption')}</Text>
             <Text style={styles.statVal}>{metrics.dailyConsumption} kWh</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statCol}>
-            <Text style={styles.statLabel}>Peak Usage Hour</Text>
+            <Text style={styles.statLabel}>{t('member.consumption.peakUsageHour')}</Text>
             <Text style={[styles.statVal, { color: COLORS.amberLight }]}>18:30 (6.2 kW)</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statCol}>
-            <Text style={styles.statLabel}>Solar Coverage</Text>
-            <Text style={[styles.statVal, { color: COLORS.tealLight }]}>100% Free</Text>
+            <Text style={styles.statLabel}>{t('member.consumption.solarCoverage')}</Text>
+            <Text style={[styles.statVal, { color: COLORS.tealLight }]}>{t('member.consumption.solarCoverageFree')}</Text>
           </View>
         </View>
       </View>
@@ -63,16 +65,16 @@ export const ConsumptionView = () => {
       <View style={styles.recommendCard}>
         <View style={styles.recommendHeader}>
           <Sparkles size={20} color={COLORS.tealLight} />
-          <Text style={styles.recommendTitle}>Smart Solar Load Schedule Recommendation</Text>
+          <Text style={styles.recommendTitle}>{t('member.consumption.recommendTitle')}</Text>
         </View>
         <Text style={styles.recommendText}>
-          High solar output predicted between 12:00 PM - 3:00 PM. Turn on Washer / Dryer & Water Heater during this window to utilize 100% clean solar power.
+          {t('member.consumption.recommendText')}
         </Text>
       </View>
 
       {/* Interactive Appliance Control List */}
       <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Connected Home Appliances</Text>
+        <Text style={styles.sectionTitle}>{t('member.consumption.connectedAppliances')}</Text>
 
         <View style={styles.appliancesList}>
           {appliances.map(app => (
@@ -83,7 +85,7 @@ export const ConsumptionView = () => {
                 </View>
                 <View>
                   <Text style={styles.appName}>{app.name}</Text>
-                  <Text style={styles.appCategory}>{app.category} • Power Draw: {app.power}</Text>
+                  <Text style={styles.appCategory}>{t('member.consumption.powerDraw', { category: app.category, power: app.power })}</Text>
                 </View>
               </View>
 

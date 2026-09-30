@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
@@ -66,8 +67,9 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 // ─── Main Dashboard Component ───
 // SOL-96 / SOL-185 / SOL-187: Home DashBoard View Component
 export const HomeDashboard = () => {
-  const { 
-    metrics, 
+  const { t } = useTranslation();
+  const {
+    metrics,
     setActiveTab, 
     executeShareEnergy, 
     executeBorrowEnergy, 
@@ -143,7 +145,7 @@ export const HomeDashboard = () => {
         >
           <View style={styles.cellIconRow}>
             <Sun size={16} color={COLORS.amberLight} />
-            <Text style={styles.cellLabel}>Solar</Text>
+            <Text style={styles.cellLabel}>{t('member.dashboard.cell.solar')}</Text>
             <View style={{ flex: 1 }} />
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
@@ -152,19 +154,19 @@ export const HomeDashboard = () => {
           </Text>
           <View style={styles.cellTrend}>
             <TrendingUp size={10} color={COLORS.tealLight} />
-            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>+12%</Text>
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{t('member.dashboard.cell.solarTrend')}</Text>
           </View>
         </TouchableOpacity>
 
         {/* Grid — tappable, navigates to Deficit */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.gridCell}
           onPress={() => setActiveTab('deficit')}
           activeOpacity={0.7}
         >
           <View style={styles.cellIconRow}>
             <Globe size={16} color={COLORS.textSecondary} />
-            <Text style={styles.cellLabel}>Grid</Text>
+            <Text style={styles.cellLabel}>{t('member.dashboard.cell.grid')}</Text>
             <View style={{ flex: 1 }} />
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
@@ -173,7 +175,7 @@ export const HomeDashboard = () => {
           </Text>
           <View style={styles.cellTrend}>
             <Activity size={10} color={COLORS.textMuted} />
-            <Text style={styles.cellTrendText}>Offline</Text>
+            <Text style={styles.cellTrendText}>{t('member.dashboard.cell.offline')}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -187,7 +189,7 @@ export const HomeDashboard = () => {
           <View style={styles.cellIconRow}>
             <Zap size={16} color={isSurplus ? COLORS.amber : COLORS.red} />
             <Text style={[styles.cellLabel, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>
-              {isSurplus ? 'Net Output' : 'Net Draw'}
+              {isSurplus ? t('member.dashboard.cell.netOutput') : t('member.dashboard.cell.netDraw')}
             </Text>
           </View>
           <Text style={[styles.cellValue, { color: COLORS.textBright }]}>
@@ -200,20 +202,20 @@ export const HomeDashboard = () => {
               : <TrendingDown size={10} color={COLORS.red} />
             }
             <Text style={[styles.cellTrendText, { color: isSurplus ? COLORS.tealLight : COLORS.red }]}>
-              {isSurplus ? 'Exporting' : 'Importing'}
+              {isSurplus ? t('member.dashboard.cell.exporting') : t('member.dashboard.cell.importing')}
             </Text>
           </View>
         </View>
 
         {/* Battery — tappable, navigates to Surplus */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.gridCell}
           onPress={() => setActiveTab('surplus')}
           activeOpacity={0.7}
         >
           <View style={styles.cellIconRow}>
             <Battery size={16} color={COLORS.tealLight} />
-            <Text style={styles.cellLabel}>Battery</Text>
+            <Text style={styles.cellLabel}>{t('member.dashboard.cell.battery')}</Text>
             <View style={{ flex: 1 }} />
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
@@ -232,7 +234,7 @@ export const HomeDashboard = () => {
   const renderEnvironmental = () => (
     <View key="environmental" style={[GLASS.card, styles.sectionCard]}>
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>Environmental Benefits</Text>
+        <Text style={styles.sectionTitle}>{t('member.dashboard.environmental.title')}</Text>
         <Info size={14} color={COLORS.textMuted} />
       </View>
 
@@ -243,11 +245,11 @@ export const HomeDashboard = () => {
             <Leaf size={11} color={COLORS.tealLight} style={{ position: 'absolute', top: 8 }} />
             <Text style={styles.gaugeNum}>{metrics.co2SavedKg.toFixed(0)}</Text>
           </ProgressRing>
-          <Text style={styles.benefitLabel}>CO₂ Saved</Text>
+          <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.co2Saved')}</Text>
           <Text style={styles.benefitUnit}>kg</Text>
           <View style={styles.benefitDelta}>
             <TrendingUp size={8} color={COLORS.tealLight} />
-            <Text style={styles.benefitDeltaText}>+12% vs avg</Text>
+            <Text style={styles.benefitDeltaText}>{t('member.dashboard.environmental.co2Delta')}</Text>
           </View>
         </View>
 
@@ -257,11 +259,11 @@ export const HomeDashboard = () => {
             <Sun size={11} color={COLORS.amber} style={{ position: 'absolute', top: 8 }} />
             <Text style={styles.gaugeNum}>98</Text>
           </ProgressRing>
-          <Text style={styles.benefitLabel}>Sunshine</Text>
+          <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.sunshine')}</Text>
           <Text style={styles.benefitUnit}>%</Text>
           <View style={styles.benefitDelta}>
             <TrendingUp size={8} color={COLORS.amberLight} />
-            <Text style={[styles.benefitDeltaText, { color: COLORS.amberLight }]}>Peak day</Text>
+            <Text style={[styles.benefitDeltaText, { color: COLORS.amberLight }]}>{t('member.dashboard.environmental.sunshineDelta')}</Text>
           </View>
         </View>
 
@@ -271,11 +273,11 @@ export const HomeDashboard = () => {
             <Globe size={11} color={COLORS.amberLight} style={{ position: 'absolute', top: 8 }} />
             <Text style={styles.gaugeNum}>{metrics.gridIndependence}</Text>
           </ProgressRing>
-          <Text style={styles.benefitLabel}>Grid Free</Text>
+          <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.gridFree')}</Text>
           <Text style={styles.benefitUnit}>%</Text>
           <View style={styles.benefitDelta}>
             <TrendingUp size={8} color={COLORS.tealLight} />
-            <Text style={styles.benefitDeltaText}>+3% this week</Text>
+            <Text style={styles.benefitDeltaText}>{t('member.dashboard.environmental.gridFreeDelta')}</Text>
           </View>
         </View>
       </View>
@@ -286,7 +288,7 @@ export const HomeDashboard = () => {
     <View key="sitePower" style={[GLASS.card, styles.sectionCard]}>
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>
-          {powerEnergyToggle === 'power' ? 'Site Power' : 'Site Energy'}
+          {powerEnergyToggle === 'power' ? t('member.dashboard.sitePower.titlePower') : t('member.dashboard.sitePower.titleEnergy')}
         </Text>
         <View style={styles.togglePillContainer}>
           <TouchableOpacity
@@ -294,7 +296,7 @@ export const HomeDashboard = () => {
             onPress={() => setPowerEnergyToggle('power')}
           >
             <Text style={[styles.togglePillText, powerEnergyToggle === 'power' && styles.togglePillTextActive]}>
-              Power
+              {t('member.dashboard.sitePower.togglePower')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -302,7 +304,7 @@ export const HomeDashboard = () => {
             onPress={() => setPowerEnergyToggle('energy')}
           >
             <Text style={[styles.togglePillText, powerEnergyToggle === 'energy' && styles.togglePillTextActive]}>
-              Energy
+              {t('member.dashboard.sitePower.toggleEnergy')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -315,11 +317,11 @@ export const HomeDashboard = () => {
         <View style={styles.consDotsRow}>
           <View style={styles.dotLegend}>
             <View style={[styles.dot, { backgroundColor: COLORS.amber }]} />
-            <Text style={styles.dotText}>Solar {solarLegendVal}</Text>
+            <Text style={styles.dotText}>{t('member.dashboard.sitePower.legendSolar', { value: solarLegendVal })}</Text>
           </View>
           <View style={styles.dotLegend}>
             <View style={[styles.dot, { backgroundColor: COLORS.tealLight }]} />
-            <Text style={styles.dotText}>Co-op {coopLegendVal}</Text>
+            <Text style={styles.dotText}>{t('member.dashboard.sitePower.legendCoop', { value: coopLegendVal })}</Text>
           </View>
         </View>
       </View>
@@ -331,7 +333,7 @@ export const HomeDashboard = () => {
           <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.amberGlow }]}>
             <Sun size={13} color={COLORS.amber} />
           </View>
-          <Text style={styles.flowNodeLabel}>Solar</Text>
+          <Text style={styles.flowNodeLabel}>{t('member.dashboard.cell.solar')}</Text>
         </View>
 
         {/* Arrow: Solar → Home */}
@@ -345,7 +347,7 @@ export const HomeDashboard = () => {
           <View style={[styles.flowNodeIcon, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
             <Zap size={13} color={COLORS.amberLight} />
           </View>
-          <Text style={styles.flowNodeLabel}>Home</Text>
+          <Text style={styles.flowNodeLabel}>{t('member.dashboard.flow.home')}</Text>
         </View>
 
         {/* Arrow: Home → Battery (color changes based on surplus/deficit) */}
@@ -359,7 +361,7 @@ export const HomeDashboard = () => {
           <View style={[styles.flowNodeIcon, { backgroundColor: COLORS.tealGlow }]}>
             <Battery size={13} color={COLORS.tealLight} />
           </View>
-          <Text style={styles.flowNodeLabel}>Battery</Text>
+          <Text style={styles.flowNodeLabel}>{t('member.dashboard.cell.battery')}</Text>
         </View>
       </View>
     </View>
@@ -370,19 +372,19 @@ export const HomeDashboard = () => {
       <View style={styles.coopStripItem}>
         <Users size={14} color={COLORS.tealLight} />
         <Text style={styles.coopStripValue}>{metrics.coopMembersOnline}</Text>
-        <Text style={styles.coopStripLabel}>Online</Text>
+        <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.online')}</Text>
       </View>
       <View style={styles.coopDivider} />
       <View style={styles.coopStripItem}>
         <Zap size={14} color={COLORS.amber} />
         <Text style={styles.coopStripValue}>{metrics.coopTotalCapacity}</Text>
-        <Text style={styles.coopStripLabel}>kW Pool</Text>
+        <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.kwPool')}</Text>
       </View>
       <View style={styles.coopDivider} />
       <View style={styles.coopStripItem}>
         <Coins size={14} color={COLORS.amberLight} />
         <Text style={styles.coopStripValue}>{metrics.coopTokensEarned}</Text>
-        <Text style={styles.coopStripLabel}>Tokens</Text>
+        <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.tokens')}</Text>
       </View>
     </View>
   );
@@ -395,8 +397,8 @@ export const HomeDashboard = () => {
           <CheckCircle2 size={16} color={COLORS.tealLight} />
           <Text style={styles.successToastText}>
             {actionSuccess === 'share'
-              ? 'Successfully shared 2.5 kWh with House #04!'
-              : 'Successfully borrowed 1.5 kWh from Co-op Pool!'}
+              ? t('member.dashboard.quickActions.shareSuccess', { amount: 2.5, target: 'House #04' })
+              : t('member.dashboard.quickActions.borrowSuccess', { amount: 1.5 })}
           </Text>
         </View>
       )}
@@ -409,16 +411,16 @@ export const HomeDashboard = () => {
           activeOpacity={0.8}
         >
           <ArrowUpRight size={16} color="#FFFFFF" />
-          <Text style={styles.actionBtnPrimaryText}>Share Surplus</Text>
+          <Text style={styles.actionBtnPrimaryText}>{t('member.dashboard.quickActions.shareSurplus')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.actionBtnSecondary}
           onPress={handleBorrow}
           activeOpacity={0.8}
         >
           <ArrowDownLeft size={16} color={COLORS.textPrimary} />
-          <Text style={styles.actionBtnSecondaryText}>Request Draw</Text>
+          <Text style={styles.actionBtnSecondaryText}>{t('member.dashboard.quickActions.requestDraw')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -460,9 +462,9 @@ export const HomeDashboard = () => {
         <View>
           <View style={styles.titleRow}>
             <Animated.View style={[styles.livePulseDot, { opacity: pulseAnim }]} />
-            <Text style={styles.title}>Current Power</Text>
+            <Text style={styles.title}>{t('member.dashboard.title')}</Text>
           </View>
-          <Text style={styles.lastUpdate}>Live • Smart Energy Microgrid</Text>
+          <Text style={styles.lastUpdate}>{t('member.dashboard.subtitle')}</Text>
         </View>
 
         <View style={styles.headerActions}>

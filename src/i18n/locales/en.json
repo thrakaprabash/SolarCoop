@@ -25,6 +25,18 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low"
+    },
+    "role": {
+      "consumer": "Consumer",
+      "owner": "Solar Owner",
+      "technician": "Technician",
+      "admin": "Administrator"
+    },
+    "accountStatus": {
+      "active": "Active",
+      "pendingApproval": "Pending Approval",
+      "blocked": "Blocked",
+      "inactive": "Inactive"
     }
   },
   "admin": {
@@ -326,6 +338,354 @@
         "errorSaveGeneric": "Could not save this alert. Please try again.",
         "errorCreateGeneric": "Could not create this alert. Please try again."
       }
+    }
+  },
+  "app": {
+    "communityEnergySharing": "Community Energy Sharing",
+    "pendingLock": {
+      "title": "Pending Admin Validation",
+      "message": "Your solar assets are currently pending Admin validation.",
+      "hint": "You can still open your Profile. Energy sharing & trading tabs unlock automatically as soon as an administrator activates your account.",
+      "checkStatus": "Check Status"
+    }
+  },
+  "auth": {
+    "checkDetailsTitle": "Check your details",
+    "genericError": "An unexpected error occurred. Please try again.",
+    "field": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "emailLabel": "Email Address",
+      "passwordLabel": "Password",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "passwordRequired": "Password is required.",
+      "fullNameLabel": "Full Name",
+      "mobileLabel": "Mobile Number",
+      "mobilePlaceholder": "e.g. +94 77 123 4567",
+      "mobileRequired": "Mobile number is required.",
+      "mobileInvalid": "Enter a valid mobile number (9–12 digits)."
+    },
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to manage your shared clean energy.",
+      "newToApp": "New to SolarCoop?",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot Password?",
+      "submitButton": "Login",
+      "failedTitle": "Login Failed"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join SolarCoop and manage shared clean energy with your community.",
+      "alreadyMember": "Already a member?",
+      "stepLabel": "Step {{step}} of 2",
+      "role": {
+        "consumer": "CONSUMER",
+        "owner": "SOLAR OWNER",
+        "technician": "TECHNICIAN"
+      },
+      "errorName": "Please enter your full name.",
+      "errorPasswordLength": "Password must be at least 6 characters.",
+      "errorCapacityRequired": "Enter your solar capacity.",
+      "errorCapacityInvalid": "Enter a valid capacity in kW (e.g. 5.6).",
+      "failedTitle": "Registration Failed",
+      "unknownError": "An unknown error occurred. Please try again.",
+      "successTitle": "Success!",
+      "successMessage": "Your account has been created successfully. Please check your inbox if email verification is required.",
+      "namePlaceholder": "e.g. Amara Perera",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Minimum 6 characters",
+      "continueButton": "Continue",
+      "joiningAs": "I am joining as",
+      "capacityLabel": "Solar Capacity (kW)",
+      "capacityPlaceholder": "e.g. 5.6",
+      "backButton": "Back",
+      "completeButton": "Complete Registration"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter the email linked to your SolarCoop account and we'll send you a secure reset link.",
+      "backToLoginLink": "← Back to Login",
+      "sentTitle": "Reset link sent ☀️",
+      "sentMessage": "We've emailed a password reset link to {{email}}. Check your inbox (and spam folder) and follow the link to choose a new password.",
+      "backToLoginAction": "Back to Login",
+      "sendFailedTitle": "Could not send link",
+      "linkSent": "Link Sent",
+      "sendButton": "Send Reset Link"
+    }
+  },
+  "profile": {
+    "errorNameRequired": "Full name is required.",
+    "updateFailedTitle": "Update Failed",
+    "successTitle": "Success!",
+    "successMessage": "Your profile has been updated.",
+    "logoutTitle": "Logout",
+    "logoutConfirm": "Are you sure you want to log out of SolarCoop?",
+    "logoutAction": "Log Out",
+    "welcome": "Welcome, {{name}}",
+    "statusLabel": "Status: {{status}}",
+    "detailsTitle": "Profile Details",
+    "cancelEditingA11y": "Cancel editing",
+    "editProfileA11y": "Edit profile",
+    "edit": "Edit",
+    "registeredRole": "Registered Role",
+    "householdIdLabel": "Household ID",
+    "householdIdPlaceholder": "e.g. H-0091",
+    "solarCapacityLabel": "Solar Capacity",
+    "accountStatusLabel": "Account Status"
+  },
+  "member": {
+    "header": {
+      "surplus": "Surplus",
+      "deficit": "Deficit",
+      "household": "Household",
+      "coop": "Co-op"
+    },
+    "tabs": {
+      "dashboard": "Dashboard",
+      "production": "Production",
+      "consumption": "Consumption",
+      "surplus": "Surplus",
+      "deficit": "Deficit",
+      "history": "History",
+      "charts": "Charts",
+      "summary": "Summary"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "trade": "P2P Trade",
+      "energy": "Energy",
+      "alerts": "Alerts",
+      "profile": "Profile"
+    },
+    "dashboard": {
+      "title": "Current Power",
+      "subtitle": "Live • Smart Energy Microgrid",
+      "cell": {
+        "solar": "Solar",
+        "solarTrend": "+12%",
+        "grid": "Grid",
+        "offline": "Offline",
+        "netOutput": "Net Output",
+        "netDraw": "Net Draw",
+        "exporting": "Exporting",
+        "importing": "Importing",
+        "battery": "Battery"
+      },
+      "environmental": {
+        "title": "Environmental Benefits",
+        "co2Saved": "CO₂ Saved",
+        "co2Delta": "+12% vs avg",
+        "sunshine": "Sunshine",
+        "sunshineDelta": "Peak day",
+        "gridFree": "Grid Free",
+        "gridFreeDelta": "+3% this week"
+      },
+      "sitePower": {
+        "titlePower": "Site Power",
+        "titleEnergy": "Site Energy",
+        "togglePower": "Power",
+        "toggleEnergy": "Energy",
+        "legendSolar": "Solar {{value}}",
+        "legendCoop": "Co-op {{value}}"
+      },
+      "flow": {
+        "home": "Home"
+      },
+      "coopActivity": {
+        "online": "Online",
+        "kwPool": "kW Pool",
+        "tokens": "Tokens"
+      },
+      "quickActions": {
+        "shareSuccess": "Successfully shared {{amount}} kWh with {{target}}!",
+        "borrowSuccess": "Successfully borrowed {{amount}} kWh from Co-op Pool!",
+        "shareSurplus": "Share Surplus",
+        "requestDraw": "Request Draw"
+      },
+      "widget": {
+        "telemetry": "Live Real-Time Telemetry",
+        "powerGrid": "Current Power Grid (2×2)",
+        "sitePower": "Site Power & Flow Diagram",
+        "coopActivity": "Co-op Community Activity",
+        "quickActions": "Quick Actions (Share & Borrow)"
+      }
+    },
+    "widgetCustomizer": {
+      "title": "Customize Dashboard",
+      "subtitle": "Reorder & toggle your widgets",
+      "core": "Core",
+      "position": "Position #{{number}}",
+      "reset": "Reset",
+      "applyLayout": "Apply Layout"
+    },
+    "production": {
+      "header": "Solar Power Generation",
+      "liveGeneration": "Live Instant Generation",
+      "generationCurve": "Today's Generation Curve (06:00 - 18:00)",
+      "dailyTotal": "Daily Total",
+      "peakToday": "Peak Today",
+      "capacityUsed": "Capacity Used",
+      "solarIrradiance": "Solar Irradiance",
+      "panelTemp": "Panel Temp",
+      "inverterEfficiency": "Inverter Efficiency",
+      "arrayBreakdown": "Solar Array Breakdown",
+      "array": {
+        "roofNorth": "Roof North Array (12 Panels)",
+        "roofSouth": "Roof South Array (10 Panels)",
+        "carport": "Carport Solar Canopy (4 Panels)",
+        "ratedCapEfficiency": "Rated Cap: {{capacity}} • Efficiency: {{eff}}"
+      },
+      "status": {
+        "optimal": "Optimal",
+        "partialShade": "Partial Shade"
+      }
+    },
+    "consumption": {
+      "header": "Household Energy Load",
+      "activeLoad": "Active Load Demand",
+      "dailyConsumption": "Daily Consumption",
+      "peakUsageHour": "Peak Usage Hour",
+      "solarCoverage": "Solar Coverage",
+      "solarCoverageFree": "100% Free",
+      "recommendTitle": "Smart Solar Load Schedule Recommendation",
+      "recommendText": "High solar output predicted between 12:00 PM - 3:00 PM. Turn on Washer / Dryer & Water Heater during this window to utilize 100% clean solar power.",
+      "connectedAppliances": "Connected Home Appliances",
+      "powerDraw": "{{category}} • Power Draw: {{power}}"
+    },
+    "surplus": {
+      "header": "Surplus Energy & Co-op Sharing",
+      "currentRate": "Current Solar Surplus Rate",
+      "batteryState": "Tesla Powerwall Battery State (SoC)",
+      "coopSharedToday": "Co-op Shared Today",
+      "tokensEarned": "Tokens Earned",
+      "transferTitle": "Direct Peer-to-Peer Energy Transfer",
+      "transferSubtitle": "Transfer excess solar power directly to co-op neighbors or into the shared community pool.",
+      "amountLabel": "Amount to Transfer (kWh):",
+      "recipientLabel": "Recipient Destination:",
+      "defaultRecipient": "House #04 (Shared Pool)",
+      "successMessage": "Success! Shared {{amount}} kWh to {{recipient}}",
+      "confirmTransfer": "Confirm & Transfer Surplus Energy",
+      "autoShareTitle": "Automated Co-op Pool Sharing",
+      "autoShareSub": "Automatically export surplus when battery > 75%"
+    },
+    "deficit": {
+      "header": "Energy Shortfall & Grid Backup",
+      "currentDeficit": "Current Grid Import Deficit",
+      "zeroDeficit": "kW (Zero Deficit)",
+      "coveredBanner": "Solar generation + home battery capacity are fully covering household load. No grid buy required.",
+      "rateComparison": "Energy Rate Cost Comparison",
+      "recommended": "RECOMMENDED",
+      "coopRate": "Co-op Peer Rate",
+      "coopRateSub": "Clean solar power from neighbors",
+      "highPeak": "HIGH PEAK",
+      "utilityRate": "Utility Main Grid",
+      "utilityRateSub": "Fossil grid peak demand price",
+      "requestDraw": "Request Emergency Co-op Draw",
+      "borrowSub": "Borrow clean energy from community battery reserves at discounted co-op rates during low solar output.",
+      "amountLabel": "Amount to Borrow (kWh):",
+      "successMessage": "Success! Borrowed {{amount}} kWh from Co-op Pool",
+      "executeBorrow": "Execute Co-op Energy Borrow"
+    },
+    "history": {
+      "header": "Energy Logs & Statements",
+      "exportTitle": "Co-op Energy Statement",
+      "exportSub": "Download verified monthly solar ledger (PDF/CSV)",
+      "exportButton": "Export",
+      "searchPlaceholder": "Search transactions...",
+      "filter": {
+        "all": "All Events",
+        "surplus": "⚡ Surplus Shared",
+        "production": "☀️ Solar Gen",
+        "consumption": "🔋 Usage",
+        "deficit": "⚠️ Deficit Draw"
+      },
+      "timeline": "Transaction Timeline ({{count}})",
+      "loadMore": "Load More",
+      "modal": {
+        "title": "Generate Official Co-op Statement",
+        "subtitle": "Includes total kWh generated, community P2P energy trades, grid draws, and carbon offsets for August 2026.",
+        "downloaded": "Statement Downloaded to Device!",
+        "downloadPdf": "Download PDF"
+      }
+    },
+    "charts": {
+      "header": "Interactive Energy Charts",
+      "genVsCons": "Generation vs. Consumption",
+      "tapHint": "Tap points on chart to inspect power balance",
+      "legendSolar": "Solar Production",
+      "legendHousehold": "Household Consumption",
+      "inspectionWindow": "Inspection Window: {{hour}}",
+      "netDelta": "Net Delta",
+      "netDeltaChart": "Net Energy Delta (Surplus / Deficit)"
+    },
+    "summary": {
+      "header": "Energy Summary & Sustainability",
+      "gridIndependenceRating": "Off-Grid Independence Rating",
+      "selfSufficient": "{{percent}}% Self-Sufficient",
+      "scoreSubText": "Your household is producing {{percent}}% of its energy locally through clean solar arrays and co-op sharing, avoiding grid fossil fuel power.",
+      "co2OffsetToday": "CO₂ Offset Today",
+      "equivalentMonthly": "Equivalent to {{value}} kg / month",
+      "treesCount_one": "{{count}} Tree",
+      "treesCount_other": "{{count}} Trees",
+      "treesSavedLabel": "Trees Saved Equivalent",
+      "treesSavedSub": "Forest carbon absorption equal",
+      "billSavingsLabel": "Direct Bill Savings",
+      "billSavingsSub": "Calculated vs grid tariff",
+      "coalAvoidedLabel": "Coal Fuel Avoided",
+      "coalAvoidedSub": "Thermal plant savings"
+    },
+    "dateFilter": {
+      "range": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "last7d": "Last 7 Days",
+        "last30d": "Last 30 Days",
+        "custom": "Custom Range"
+      },
+      "granularity": {
+        "30min": "30 Min",
+        "1hour": "1 Hour",
+        "6hours": "6 Hours",
+        "daily": "Daily",
+        "weekly": "Weekly"
+      },
+      "step": "Step:",
+      "windowToday": "Today (Live 24h)",
+      "windowYesterday": "Yesterday (Full 24h)",
+      "windowPast7d": "Past 7 Days",
+      "windowPast30d": "Past 30 Days",
+      "modalTitle": "Select Custom Time Range",
+      "selectWindow": "Select Window:",
+      "presetMonthToDate": "Month-to-Date",
+      "presetMidMonthWeek": "Mid-Month Week",
+      "presetPreviousMonth": "Previous Month",
+      "startDate": "START DATE",
+      "endDate": "END DATE",
+      "applyFilter": "Apply Filter"
+    },
+    "telemetry": {
+      "justNow": "just now",
+      "secondsAgo": "{{count}}s ago",
+      "minutesAgo": "{{count}}m ago",
+      "widgetTitle": "Live Inverter Telemetry",
+      "status": {
+        "realtime": "Realtime Stream",
+        "polling": "Polling 30s",
+        "offline": "Offline Cached"
+      },
+      "heartbeat": "Heartbeat: {{time}}",
+      "syncing": "Syncing",
+      "sync": "Sync",
+      "inverterHealth": "Inverter Health",
+      "inverterHealthSub": "Optimal (99.2%)",
+      "gridFrequency": "Grid Frequency",
+      "gridFrequencySub": "Synchronized",
+      "telemetryPing": "Telemetry Ping",
+      "telemetryPingSub": "Ultra Low"
     }
   },
   "faultAlert": {
