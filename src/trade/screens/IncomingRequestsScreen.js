@@ -71,7 +71,9 @@ export default function IncomingRequestsScreen() {
               key={request.id}
               request={request}
               last={i === incoming.length - 1}
-              onPress={() => navigate('approval', { incomingId: request.id })}
+              onPress={() => request.status === 'Completed'
+                ? navigate('transaction', { requestId: request.id, source: 'incoming' })
+                : navigate('approval', { incomingId: request.id })}
             />
           ))}
           {incoming.length === 0 ? (

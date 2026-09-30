@@ -51,3 +51,20 @@ export async function fetchTransactionById(transactionId, userId) {
   const names = await loadProfiles([row]);
   return mapTransaction(row, userId, names);
 }
+
+/** Resolve a completed request to its transaction without exposing other members' rows. */
+export async function fetchTransactionByRequestId(requestId, userId) {
+  const id = Number(requestId);
+  if (!userId || !Number.isSafeInteger(id) || id <= 0) return null;
+
+  const { data: row, error } = await supabase
+    .from('transactions')
+    .select('id')
+    .eq('request_id', id)
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!row) return null;
+  return fetchTransactionById(row.id, userId);
+}

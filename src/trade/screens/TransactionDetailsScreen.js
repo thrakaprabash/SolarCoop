@@ -6,7 +6,7 @@ import { colors, weight } from '../theme';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useAuth } from '../../context/AuthContext';
-import { fetchTransactionById } from '../services/transactionService';
+import { fetchTransactionById, fetchTransactionByRequestId } from '../services/transactionService';
 import { kwh, stamp } from '../utils/format';
 import {
   Card,
@@ -27,6 +27,8 @@ export default function TransactionDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  const detailKey = JSON.stringify([user?.id, params.txnId, params.requestId, params.source]);
+  const [loadedKey, setLoadedKey] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -44,16 +46,25 @@ export default function TransactionDetailsScreen() {
         status: 'COMPLETED',
       } : null);
       setLoading(false);
+      setLoadedKey(detailKey);
       return () => { active = false; };
     }
-    fetchTransactionById(params.txnId, user?.id)
+    const load = params.requestId
+      ? fetchTransactionByRequestId(params.requestId, user?.id)
+      : fetchTransactionById(params.txnId, user?.id);
+    load
       .then((data) => { if (active) setTxn(data); })
       .catch((reason) => { if (active) setError(reason?.message || 'Could not load transaction details.'); })
-      .finally(() => { if (active) setLoading(false); });
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+          setLoadedKey(detailKey);
+        }
+      });
     return () => { active = false; };
-  }, [params.txnId, params.source, user?.id, reload, getTransaction]);
+  }, [params.txnId, params.requestId, params.source, user?.id, reload, getTransaction, detailKey]);
 
-  if (loading) {
+  if (loading || loadedKey !== detailKey) {
     return <View style={styles.missing}><ActivityIndicator color={colors.tealLight} /></View>;
   }
 
@@ -69,7 +80,7 @@ export default function TransactionDetailsScreen() {
   if (!txn) {
     return (
       <View style={styles.missing}>
-        <EmptyState title="Transaction unavailable" body="This record is no longer in your ledger." />
+        <EmptyState title="Transaction unavailable" body="This transaction is unavailable or you do not have access to it." />
       </View>
     );
   }
@@ -77,6 +88,8 @@ export default function TransactionDetailsScreen() {
   const sent = txn.dir === 'sent';
   const reversed = txn.status === 'REVERSED';
   const fromHistory = params.source === 'history';
+  const fromRequests = params.source === 'requests';
+  const returnScreen = fromHistory ? 'history' : fromRequests ? 'requests' : 'incoming';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -135,8 +148,8 @@ export default function TransactionDetailsScreen() {
       </Card>
 
       <PrimaryButton
-        label={fromHistory ? 'Back to History' : 'Done'}
-        onPress={() => navigate(fromHistory ? 'history' : 'incoming')}
+        label={fromHistory ? 'Back to History' : fromRequests ? 'Back to My Requests' : 'Done'}
+        onPress={() => navigate(returnScreen)}
         style={styles.done}
       />
 

@@ -67,7 +67,14 @@ export default function MyRequestsScreen() {
       ) : !requestsError || requests.length > 0 ? (
         <Card style={styles.list}>
           {visible.map((request, i) => (
-            <RequestRow key={request.id} request={request} last={i === visible.length - 1} />
+            <RequestRow
+              key={request.id}
+              request={request}
+              last={i === visible.length - 1}
+              onPress={request.status === 'Completed'
+                ? () => navigate('transaction', { requestId: request.id, source: 'requests' })
+                : undefined}
+            />
           ))}
           {visible.length === 0 ? (
             <EmptyState

@@ -7,8 +7,8 @@ function loadService(supabase) {
   const source = fs.readFileSync(path.join(__dirname, 'transactionService.js'), 'utf8');
   const code = source
     .replace("import { supabase } from '../../lib/supabase';", 'const { supabase } = require("../../lib/supabase");')
-    .replace('export async function ', 'async function ')
-    + '\nmodule.exports = { fetchTransactionById };';
+    .replaceAll('export async function ', 'async function ')
+    + '\nmodule.exports = { fetchTransactionById, fetchTransactionByRequestId };';
   const module = { exports: {} };
   new Function('require', 'module', 'exports', code)(
     (specifier) => {
@@ -72,4 +72,61 @@ test('missing participant or inaccessible transaction produces no detail', async
   assert.equal(calls.length, 0);
   assert.equal(await fetchTransactionById('transaction-uuid', 'other-member'), null);
   assert.equal(calls.length, 1);
+});
+
+test('completed request resolves to a participant-scoped transaction UUID', async () => {
+  const { supabase, calls } = fakeSupabase([
+    { data: { id: 'transaction-uuid' }, error: null },
+    { data: {
+      id: 'transaction-uuid', request_id: 18, sender_id: 'owner-1', receiver_id: 'member-1',
+      energy_amount: '0.5', status: 'COMPLETED', reference_code: 'TXN-TEST',
+      created_at: '2026-09-30T10:00:00Z',
+    }, error: null },
+    { data: [{ id: 'owner-1', name: 'Solar Home' }, { id: 'member-1', name: 'Test Requester' }], error: null },
+  ]);
+  const { fetchTransactionByRequestId } = loadService(supabase);
+  const transaction = await fetchTransactionByRequestId('18', 'owner-1');
+
+  assert.deepEqual(calls[0].filters, [
+    ['eq', 'request_id', 18],
+    ['or', 'sender_id.eq.owner-1,receiver_id.eq.owner-1'],
+  ]);
+  assert.deepEqual(calls[1].filters, [
+    ['eq', 'id', 'transaction-uuid'],
+    ['or', 'sender_id.eq.owner-1,receiver_id.eq.owner-1'],
+  ]);
+  assert.equal(transaction.id, 'transaction-uuid');
+  assert.equal(transaction.dir, 'sent');
+});
+
+test('a request with no accessible transaction remains unavailable', async () => {
+  const { supabase, calls } = fakeSupabase([{ data: null, error: null }]);
+  const { fetchTransactionByRequestId } = loadService(supabase);
+  assert.equal(await fetchTransactionByRequestId('bad', 'owner-1'), null);
+  assert.equal(calls.length, 0);
+  assert.equal(await fetchTransactionByRequestId('18', 'other-member'), null);
+  assert.equal(calls.length, 1);
+});
+
+test('reversed transactions preserve their saved status and direction', async () => {
+  const { supabase } = fakeSupabase([
+    { data: {
+      id: 'reversed-uuid', request_id: 20, sender_id: 'owner-1', receiver_id: 'member-1',
+      energy_amount: '1', status: 'REVERSED', reference_code: 'TXN-REVERSED',
+      created_at: '2026-09-30T10:00:00Z',
+    }, error: null },
+    { data: [], error: null },
+  ]);
+  const transaction = await loadService(supabase).fetchTransactionById('reversed-uuid', 'owner-1');
+  assert.equal(transaction.status, 'REVERSED');
+  assert.equal(transaction.dir, 'sent');
+  assert.equal(transaction.kwh, 1);
+});
+
+test('lookup failures are surfaced to the retry state', async () => {
+  const failed = fakeSupabase([{ data: null, error: new Error('connection unavailable') }]);
+  await assert.rejects(
+    loadService(failed.supabase).fetchTransactionByRequestId('18', 'owner-1'),
+    /connection unavailable/,
+  );
 });
