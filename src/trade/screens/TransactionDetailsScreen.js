@@ -21,7 +21,7 @@ import {
 
 export default function TransactionDetailsScreen() {
   const { params, navigate } = useNavigation();
-  const { getTransaction, showToast } = useTrade();
+  const { showToast } = useTrade();
   const { user } = useAuth();
   const [txn, setTxn] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,20 +35,6 @@ export default function TransactionDetailsScreen() {
     setTxn(null);
     setError('');
     setLoading(true);
-    // History still shows its original sample entries until the history phase.
-    // Approval passes a real UUID and always reads the saved transaction.
-    if (params.source === 'history' && /^x[1-6]$/.test(String(params.txnId))) {
-      const sample = getTransaction(params.txnId);
-      setTxn(sample ? {
-        ...sample,
-        sender: sample.dir === 'sent' ? 'You' : sample.party,
-        receiver: sample.dir === 'sent' ? sample.party : 'You',
-        status: 'COMPLETED',
-      } : null);
-      setLoading(false);
-      setLoadedKey(detailKey);
-      return () => { active = false; };
-    }
     const load = params.requestId
       ? fetchTransactionByRequestId(params.requestId, user?.id)
       : fetchTransactionById(params.txnId, user?.id);
@@ -62,7 +48,7 @@ export default function TransactionDetailsScreen() {
         }
       });
     return () => { active = false; };
-  }, [params.txnId, params.requestId, params.source, user?.id, reload, getTransaction, detailKey]);
+  }, [params.txnId, params.requestId, params.source, user?.id, reload, detailKey]);
 
   if (loading || loadedKey !== detailKey) {
     return <View style={styles.missing}><ActivityIndicator color={colors.tealLight} /></View>;

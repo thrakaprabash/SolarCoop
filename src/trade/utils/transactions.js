@@ -24,7 +24,7 @@ export function groupByMonth(list) {
 export function monthTotals(list, now = new Date()) {
   const inMonth = list.filter((t) => {
     const d = new Date(t.ts);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return t.status === 'COMPLETED' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
   const by = (dir) => inMonth.filter((t) => t.dir === dir).reduce((s, t) => s + t.kwh, 0);
   return { sent: by('sent'), received: by('received') };

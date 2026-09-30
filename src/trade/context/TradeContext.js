@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-import { TRANSACTIONS } from '../data/transactions';
 import { ENERGY, IMPACT } from '../data/energy';
 import { sum } from '../utils/format';
 import { approveRequest, fetchIncomingRequests, fetchMyRequests, rejectRequest } from '../services/requestService';
@@ -102,7 +101,6 @@ export function TradeProvider({ children }) {
   const visibleIncomingLoading = incomingBelongsToUser ? incomingLoading : true;
   const visibleIncomingRefreshing = incomingBelongsToUser ? incomingRefreshing : false;
   const visibleIncomingError = incomingBelongsToUser ? incomingError : null;
-  const [transactions] = useState(TRANSACTIONS);
   const [toast, setToast] = useState('');
 
   const showToast = useCallback((message, ms = 2400) => {
@@ -268,7 +266,6 @@ export function TradeProvider({ children }) {
 
   const getIncoming = useCallback((id) => incoming.find((i) => i.id === id) || null, [incoming]);
 
-  const getTransaction = useCallback((id) => transactions.find((t) => t.id === id) || null, [transactions]);
 
   const pool = useMemo(() => {
     const online = households.filter((h) => h.online);
@@ -317,7 +314,6 @@ export function TradeProvider({ children }) {
       incomingError: visibleIncomingError,
       refreshIncoming,
       incomingPendingCount,
-      transactions,
       surplus,
       energy: ENERGY,
       impact: IMPACT,
@@ -328,7 +324,6 @@ export function TradeProvider({ children }) {
       rejectIncoming,
       getHousehold,
       getIncoming,
-      getTransaction,
     }),
     [
       households,
@@ -349,7 +344,6 @@ export function TradeProvider({ children }) {
       visibleIncomingError,
       refreshIncoming,
       incomingPendingCount,
-      transactions,
       surplus,
       toast,
       showToast,
@@ -358,7 +352,6 @@ export function TradeProvider({ children }) {
       rejectIncoming,
       getHousehold,
       getIncoming,
-      getTransaction,
     ]
   );
 

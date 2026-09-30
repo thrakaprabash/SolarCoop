@@ -11,6 +11,7 @@ export default function TransactionCard({ transaction, onPress }) {
   const color = sent ? colors.tealLight : colors.amberLight;
   const Arrow = sent ? ArrowUp : ArrowDown;
   const when = new Date(transaction.ts);
+  const reversed = transaction.status === 'REVERSED';
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [pressed && { opacity: 0.85 }]}>
@@ -30,10 +31,12 @@ export default function TransactionCard({ transaction, onPress }) {
           <View style={styles.footRow}>
             <Text style={styles.when}>{shortDate(when) + ' • ' + clock(when)}</Text>
             <Pill
-              label="COMPLETED"
-              color={colors.tealLight}
-              background={colors.tealTintSoft}
-              style={styles.completed}
+              label={transaction.status}
+              color={reversed ? colors.danger : colors.tealLight}
+              background={reversed ? colors.dangerTint : colors.tealTintSoft}
+              style={[styles.completed, reversed && {
+                borderColor: 'rgba(239,68,68,0.35)', backgroundColor: colors.dangerTint,
+              }]}
             />
           </View>
         </View>
