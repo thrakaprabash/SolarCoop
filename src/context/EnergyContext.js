@@ -15,12 +15,12 @@ const EnergyContext = createContext();
 
 // ─── SOL-185: Default Dashboard Widget Layout ────────────────────────────────
 export const DEFAULT_WIDGET_LAYOUT = [
-  { id: 'telemetry', label: 'Live Real-Time Telemetry', visible: true, locked: false },
-  { id: 'powerGrid', label: 'Current Power Grid (2×2)', visible: true, locked: true },
-  { id: 'environmental', label: 'Environmental Benefits', visible: true, locked: false },
-  { id: 'sitePower', label: 'Site Power & Flow Diagram', visible: true, locked: false },
-  { id: 'coopActivity', label: 'Co-op Community Activity', visible: true, locked: false },
-  { id: 'quickActions', label: 'Quick Actions (Share & Borrow)', visible: true, locked: false },
+  { id: 'telemetry', labelKey: 'member.dashboard.widget.telemetry', visible: true, locked: false },
+  { id: 'powerGrid', labelKey: 'member.dashboard.widget.powerGrid', visible: true, locked: true },
+  { id: 'environmental', labelKey: 'member.dashboard.environmental.title', visible: true, locked: false },
+  { id: 'sitePower', labelKey: 'member.dashboard.widget.sitePower', visible: true, locked: false },
+  { id: 'coopActivity', labelKey: 'member.dashboard.widget.coopActivity', visible: true, locked: false },
+  { id: 'quickActions', labelKey: 'member.dashboard.widget.quickActions', visible: true, locked: false },
 ];
 export const WIDGET_STORAGE_KEY = '@solarcoop_widget_layout_v1';
 

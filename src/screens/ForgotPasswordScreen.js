@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { KeyRound, Mail } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { showAlert } from '../utils/alert';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -27,6 +28,7 @@ import { useTheme } from '../theme/useTheme';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ForgotPasswordScreen = ({ onBackToLogin }) => {
+  const { t } = useTranslation();
   const { resetPasswordForEmail, loading } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
@@ -39,11 +41,11 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail) {
-      setError('Email is required.');
+      setError(t('auth.field.emailRequired'));
       return;
     }
     if (!EMAIL_REGEX.test(trimmedEmail)) {
-      setError('Please enter a valid email address.');
+      setError(t('auth.field.emailInvalid'));
       return;
     }
     setError(null);
@@ -52,20 +54,19 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
       await resetPasswordForEmail(trimmedEmail);
       setSent(true);
       showAlert(
-        'Reset link sent ☀️',
-        `We've emailed a password reset link to ${trimmedEmail}. ` +
-          'Check your inbox (and spam folder) and follow the link to choose a new password.',
-        [{ text: 'Back to Login', onPress: onBackToLogin }],
+        t('auth.forgotPassword.sentTitle'),
+        t('auth.forgotPassword.sentMessage', { email: trimmedEmail }),
+        [{ text: t('auth.forgotPassword.backToLoginAction'), onPress: onBackToLogin }],
       );
     } catch (err) {
-      showAlert('Could not send link', err.message);
+      showAlert(t('auth.forgotPassword.sendFailedTitle'), err.message);
     }
   };
 
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter the email linked to your SolarCoop account and we'll send you a secure reset link."
+      title={t('auth.forgotPassword.title')}
+      subtitle={t('auth.forgotPassword.subtitle')}
       footer={
         <View style={styles.footerRow}>
           <TouchableOpacity
@@ -74,21 +75,21 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
             accessibilityRole="link"
           >
             <Text style={[styles.footerLink, { color: colors.primary }]}>
-              ← Back to Login
+              {t('auth.forgotPassword.backToLoginLink')}
             </Text>
           </TouchableOpacity>
         </View>
       }
     >
       <AuthField
-        label="Email Address"
+        label={t('auth.field.emailLabel')}
         icon={Mail}
         value={email}
         onChangeText={(text) => {
           setEmail(text);
           if (error) setError(null);
         }}
-        placeholder="you@example.com"
+        placeholder={t('auth.register.emailPlaceholder')}
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -99,7 +100,7 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
       />
 
       <PrimaryButton
-        label={sent ? 'Link Sent' : 'Send Reset Link'}
+        label={sent ? t('auth.forgotPassword.linkSent') : t('auth.forgotPassword.sendButton')}
         icon={KeyRound}
         onPress={handleSubmit}
         loading={loading}

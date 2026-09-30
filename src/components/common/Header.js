@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS } from '../../theme/colors';
 import { Sun, Zap, Users } from 'lucide-react-native';
 
 export const Header = () => {
+  const { t } = useTranslation();
   const { metrics, simulationPreset, setSimulationPreset, viewScope, setViewScope } = useEnergy();
 
   return (
@@ -16,8 +18,8 @@ export const Header = () => {
             <Zap size={18} color="#FFFFFF" />
           </View>
           <View>
-            <Text style={styles.appName}>SolarCoop</Text>
-            <Text style={styles.subTitle}>Community Energy Sharing</Text>
+            <Text style={styles.appName}>{t('common.appName')}</Text>
+            <Text style={styles.subTitle}>{t('app.communityEnergySharing')}</Text>
           </View>
         </View>
 
@@ -25,7 +27,7 @@ export const Header = () => {
         <View style={[styles.liveStatusPill, { backgroundColor: metrics.instantProduction > metrics.instantConsumption ? 'rgba(20, 184, 166, 0.2)' : 'rgba(239, 68, 68, 0.2)' }]}>
           <View style={[styles.liveDot, { backgroundColor: metrics.instantProduction > metrics.instantConsumption ? '#14B8A6' : '#EF4444' }]} />
           <Text style={[styles.liveStatusText, { color: metrics.instantProduction > metrics.instantConsumption ? '#2DD4BF' : '#EF4444' }]}>
-            {metrics.instantProduction > metrics.instantConsumption ? 'Surplus' : 'Deficit'}
+            {metrics.instantProduction > metrics.instantConsumption ? t('member.header.surplus') : t('member.header.deficit')}
           </Text>
         </View>
       </View>
@@ -37,13 +39,13 @@ export const Header = () => {
             style={[styles.scopeTab, viewScope === 'household' && styles.scopeTabActive]}
             onPress={() => setViewScope('household')}
           >
-            <Text style={[styles.scopeText, viewScope === 'household' && styles.scopeTextActive]}>Household</Text>
+            <Text style={[styles.scopeText, viewScope === 'household' && styles.scopeTextActive]}>{t('member.header.household')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.scopeTab, viewScope === 'community' && styles.scopeTabActive]}
             onPress={() => setViewScope('community')}
           >
-            <Text style={[styles.scopeText, viewScope === 'community' && styles.scopeTextActive]}>Co-op</Text>
+            <Text style={[styles.scopeText, viewScope === 'community' && styles.scopeTextActive]}>{t('member.header.coop')}</Text>
           </TouchableOpacity>
         </View>
 

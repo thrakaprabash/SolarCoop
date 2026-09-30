@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { History, Search, Download, Filter, Sun, Battery, Zap, ArrowUpRight, ArrowDownLeft, FileText, Check } from 'lucide-react-native';
 
 // SOL-101: Energy History Log View component
 export const EnergyHistoryView = () => {
+  const { t } = useTranslation();
   const { historyLogs, loadMoreHistory, historyHasMore, loadingMore } = useEnergy();
   const [filterType, setFilterType] = useState('all'); // 'all' | 'surplus' | 'production' | 'consumption' | 'deficit'
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +42,7 @@ export const EnergyHistoryView = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Energy Logs & Statements</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.history.header')}</Text>
       </View>
 
       {/* Export Statement Action Bar */}
@@ -48,8 +50,8 @@ export const EnergyHistoryView = () => {
         <View style={styles.exportInfo}>
           <FileText size={22} color={COLORS.amber} />
           <View>
-            <Text style={styles.exportTitle}>Co-op Energy Statement</Text>
-            <Text style={styles.exportSub}>Download verified monthly solar ledger (PDF/CSV)</Text>
+            <Text style={styles.exportTitle}>{t('member.history.exportTitle')}</Text>
+            <Text style={styles.exportSub}>{t('member.history.exportSub')}</Text>
           </View>
         </View>
 
@@ -59,7 +61,7 @@ export const EnergyHistoryView = () => {
           activeOpacity={0.7}
         >
           <Download size={16} color="#FFFFFF" />
-          <Text style={styles.exportBtnText}>Export</Text>
+          <Text style={styles.exportBtnText}>{t('member.history.exportButton')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -69,7 +71,7 @@ export const EnergyHistoryView = () => {
           <Search size={16} color={COLORS.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search transactions..."
+            placeholder={t('member.history.searchPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -80,11 +82,11 @@ export const EnergyHistoryView = () => {
       {/* Filter Category Pills */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
         {[
-          { id: 'all', label: 'All Events' },
-          { id: 'surplus', label: '⚡ Surplus Shared' },
-          { id: 'production', label: '☀️ Solar Gen' },
-          { id: 'consumption', label: '🔋 Usage' },
-          { id: 'deficit', label: '⚠️ Deficit Draw' },
+          { id: 'all', label: t('member.history.filter.all') },
+          { id: 'surplus', label: t('member.history.filter.surplus') },
+          { id: 'production', label: t('member.history.filter.production') },
+          { id: 'consumption', label: t('member.history.filter.consumption') },
+          { id: 'deficit', label: t('member.history.filter.deficit') },
         ].map(p => (
           <TouchableOpacity
             key={p.id}
@@ -104,7 +106,7 @@ export const EnergyHistoryView = () => {
 
       {/* History Timeline Log Cards */}
       <View style={[styles.sectionCard, GLASS.card, SHADOWS.glass]}>
-        <Text style={styles.sectionTitle}>Transaction Timeline ({filteredLogs.length})</Text>
+        <Text style={styles.sectionTitle}>{t('member.history.timeline', { count: filteredLogs.length })}</Text>
 
         <View style={styles.logsList}>
           {filteredLogs.map(log => (
@@ -139,7 +141,7 @@ export const EnergyHistoryView = () => {
         >
           {loadingMore
             ? <ActivityIndicator size="small" color={COLORS.amber} />
-            : <Text style={styles.loadMoreText}>Load More</Text>
+            : <Text style={styles.loadMoreText}>{t('member.history.loadMore')}</Text>
           }
         </TouchableOpacity>
       )}
@@ -149,25 +151,25 @@ export const EnergyHistoryView = () => {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, GLASS.card, SHADOWS.glass]}>
             <FileText size={40} color={COLORS.amber} />
-            <Text style={styles.modalTitle}>Generate Official Co-op Statement</Text>
+            <Text style={styles.modalTitle}>{t('member.history.modal.title')}</Text>
             <Text style={styles.modalSub}>
-              Includes total kWh generated, community P2P energy trades, grid draws, and carbon offsets for August 2026.
+              {t('member.history.modal.subtitle')}
             </Text>
 
             {downloaded ? (
               <View style={styles.downloadDoneBox}>
                 <Check size={24} color={COLORS.tealLight} />
-                <Text style={styles.downloadDoneText}>Statement Downloaded to Device!</Text>
+                <Text style={styles.downloadDoneText}>{t('member.history.modal.downloaded')}</Text>
               </View>
             ) : (
               <View style={styles.modalActions}>
                 <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setExportModalVisible(false)}>
-                  <Text style={styles.modalCancelText}>Cancel</Text>
+                  <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.modalConfirmBtn} onPress={handleSimulateExport}>
                   <Download size={16} color="#FFFFFF" />
-                  <Text style={styles.modalConfirmText}>Download PDF</Text>
+                  <Text style={styles.modalConfirmText}>{t('member.history.modal.downloadPdf')}</Text>
                 </TouchableOpacity>
               </View>
             )}

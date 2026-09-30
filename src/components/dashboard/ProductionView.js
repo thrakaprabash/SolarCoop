@@ -1,25 +1,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Rect, Path, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { Sun, ShieldAlert, Cpu, Gauge, Compass, Thermometer, Sparkles } from 'lucide-react-native';
 
+const STATUS_LABEL_KEY = {
+  optimal: 'member.production.status.optimal',
+  partialShade: 'member.production.status.partialShade',
+};
+
 // SOL-97: Production View Component
 export const ProductionView = () => {
+  const { t } = useTranslation();
   const { metrics } = useEnergy();
 
   const arraysData = [
-    { name: 'Roof North Array (12 Panels)', capacity: '4.8 kW', current: `${(metrics.instantProduction * 0.52).toFixed(1)} kW`, eff: '98%', status: 'Optimal' },
-    { name: 'Roof South Array (10 Panels)', capacity: '4.0 kW', current: `${(metrics.instantProduction * 0.41).toFixed(1)} kW`, eff: '96%', status: 'Optimal' },
-    { name: 'Carport Solar Canopy (4 Panels)', capacity: '1.2 kW', current: `${(metrics.instantProduction * 0.07).toFixed(1)} kW`, eff: '85%', status: 'Partial Shade' },
+    { name: t('member.production.array.roofNorth'), capacity: '4.8 kW', current: `${(metrics.instantProduction * 0.52).toFixed(1)} kW`, eff: '98%', status: 'optimal' },
+    { name: t('member.production.array.roofSouth'), capacity: '4.0 kW', current: `${(metrics.instantProduction * 0.41).toFixed(1)} kW`, eff: '96%', status: 'optimal' },
+    { name: t('member.production.array.carport'), capacity: '1.2 kW', current: `${(metrics.instantProduction * 0.07).toFixed(1)} kW`, eff: '85%', status: 'partialShade' },
   ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Solar Power Generation</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.production.header')}</Text>
       </View>
 
       {/* Main Gauge Banner */}
@@ -29,7 +36,7 @@ export const ProductionView = () => {
             <Sun size={28} color={COLORS.amber} />
           </View>
           <View>
-            <Text style={styles.gaugeLabel}>Live Instant Generation</Text>
+            <Text style={styles.gaugeLabel}>{t('member.production.liveGeneration')}</Text>
             <Text style={styles.gaugeValue}>
               {metrics.instantProduction} <Text style={styles.gaugeUnit}>kW</Text>
             </Text>
@@ -38,7 +45,7 @@ export const ProductionView = () => {
 
         {/* Hourly Solar Generation Bar Curve SVG */}
         <View style={styles.chartBox}>
-          <Text style={styles.chartBoxTitle}>Today's Generation Curve (06:00 - 18:00)</Text>
+          <Text style={styles.chartBoxTitle}>{t('member.production.generationCurve')}</Text>
           <Svg height="120" width="100%" viewBox="0 0 300 120">
             {/* Grid lines */}
             <Line x1="0" y1="30" x2="300" y2="30" stroke={COLORS.textMuted} strokeDasharray="3 3" />
@@ -71,17 +78,17 @@ export const ProductionView = () => {
 
         <View style={styles.gaugeFooter}>
           <View style={styles.gaugeStat}>
-            <Text style={styles.gaugeStatSub}>Daily Total</Text>
+            <Text style={styles.gaugeStatSub}>{t('member.production.dailyTotal')}</Text>
             <Text style={styles.gaugeStatVal}>{metrics.dailyProduction} kWh</Text>
           </View>
           <View style={styles.gaugeDivider} />
           <View style={styles.gaugeStat}>
-            <Text style={styles.gaugeStatSub}>Peak Today</Text>
+            <Text style={styles.gaugeStatSub}>{t('member.production.peakToday')}</Text>
             <Text style={[styles.gaugeStatVal, { color: COLORS.amberLight }]}>8.8 kW</Text>
           </View>
           <View style={styles.gaugeDivider} />
           <View style={styles.gaugeStat}>
-            <Text style={styles.gaugeStatSub}>Capacity Used</Text>
+            <Text style={styles.gaugeStatSub}>{t('member.production.capacityUsed')}</Text>
             <Text style={[styles.gaugeStatVal, { color: COLORS.teal }]}>84%</Text>
           </View>
         </View>
@@ -92,37 +99,37 @@ export const ProductionView = () => {
         <View style={styles.telemetryCard}>
           <Compass size={18} color={COLORS.tealLight} />
           <Text style={styles.telemetryVal}>980 W/m²</Text>
-          <Text style={styles.telemetryLabel}>Solar Irradiance</Text>
+          <Text style={styles.telemetryLabel}>{t('member.production.solarIrradiance')}</Text>
         </View>
 
         <View style={styles.telemetryCard}>
           <Thermometer size={18} color={COLORS.amber} />
           <Text style={styles.telemetryVal}>34 °C</Text>
-          <Text style={styles.telemetryLabel}>Panel Temp</Text>
+          <Text style={styles.telemetryLabel}>{t('member.production.panelTemp')}</Text>
         </View>
 
         <View style={styles.telemetryCard}>
           <Cpu size={18} color={COLORS.teal} />
           <Text style={styles.telemetryVal}>97.8%</Text>
-          <Text style={styles.telemetryLabel}>Inverter Efficiency</Text>
+          <Text style={styles.telemetryLabel}>{t('member.production.inverterEfficiency')}</Text>
         </View>
       </View>
 
       {/* Solar Panel Group Breakdown List */}
       <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Solar Array Breakdown</Text>
-        
+        <Text style={styles.sectionTitle}>{t('member.production.arrayBreakdown')}</Text>
+
         <View style={styles.arraysList}>
           {arraysData.map((arr, index) => (
             <View key={index} style={styles.arrayRow}>
               <View style={styles.arrayInfo}>
                 <Text style={styles.arrayName}>{arr.name}</Text>
-                <Text style={styles.arraySub}>Rated Cap: {arr.capacity} • Efficiency: {arr.eff}</Text>
+                <Text style={styles.arraySub}>{t('member.production.array.ratedCapEfficiency', { capacity: arr.capacity, eff: arr.eff })}</Text>
               </View>
               <View style={styles.arrayOutputCol}>
                 <Text style={styles.arrayOutput}>{arr.current}</Text>
-                <View style={[styles.statusTag, { backgroundColor: arr.status === 'Optimal' ? COLORS.tealGlow : COLORS.amberGlow }]}>
-                  <Text style={[styles.statusTagText, { color: arr.status === 'Optimal' ? COLORS.tealLight : COLORS.amberLight }]}>{arr.status}</Text>
+                <View style={[styles.statusTag, { backgroundColor: arr.status === 'optimal' ? COLORS.tealGlow : COLORS.amberGlow }]}>
+                  <Text style={[styles.statusTagText, { color: arr.status === 'optimal' ? COLORS.tealLight : COLORS.amberLight }]}>{t(STATUS_LABEL_KEY[arr.status])}</Text>
                 </View>
               </View>
             </View>
