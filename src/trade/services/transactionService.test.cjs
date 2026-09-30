@@ -164,3 +164,18 @@ test('empty history, signed-out history and failed history remain distinct', asy
   const failed = fakeSupabase([{ data: null, error: new Error('history unavailable') }]);
   await assert.rejects(loadService(failed.supabase).fetchMyTransactions('owner-1'), /history unavailable/);
 });
+
+test('retry after a history failure reads fresh data rather than returning partial rows', async () => {
+  const fake = fakeSupabase([
+    { data: null, error: new Error('Network unavailable') },
+    { data: [{ id: 'saved', sender_id: 'owner-1', receiver_id: 'member-1',
+      energy_amount: '0.5', status: 'COMPLETED', created_at: '2026-09-30T10:00:00Z' }], error: null },
+    { data: [{ id: 'member-1', name: 'Requester' }], error: null },
+  ]);
+  const service = loadService(fake.supabase);
+  await assert.rejects(service.fetchMyTransactions('owner-1'), /Network unavailable/);
+  const rows = await service.fetchMyTransactions('owner-1');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, 'saved');
+  assert.equal(rows[0].party, 'Requester');
+});
