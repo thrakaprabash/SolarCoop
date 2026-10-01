@@ -50,6 +50,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { AuthField } from '../components/auth/AuthField';
+import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
 import { showAlert, showConfirm } from '../utils/alert';
 
 // Canonical role/status values stay in English — only the label shown is
@@ -438,6 +439,8 @@ export const ProfileScreen = () => {
             value={statusLabel}
           />
         </View>
+
+        <LanguageSwitcher colors={colors} />
 
         {/* Save button — visible only while editing */}
         {editing ? (
