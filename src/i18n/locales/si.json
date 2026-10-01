@@ -3,12 +3,1066 @@
     "appName": "SolarCoop",
     "ok": "හරි",
     "cancel": "අවලංගු කරන්න",
+    "confirm": "තහවුරු කරන්න",
+    "working": "සකසමින්…",
+    "search": "සොයන්න",
+    "done": "නිමයි",
+    "error": "දෝෂයකි",
+    "delete": "මකන්න",
     "loading": "පූරණය වෙමින්…",
-    "welcomeMessage": "SolarCoop වෙත සාදරයෙන් පිළිගනිමු"
+    "welcomeMessage": "SolarCoop වෙත සාදරයෙන් පිළිගනිමු",
+    "retry": "යළි උත්සාහ කරන්න",
+    "status": {
+      "all": "සියල්ල",
+      "active": "සක්‍රීයයි",
+      "pending": "පොරොත්තුවෙන්",
+      "approved": "අනුමතයි",
+      "inactive": "අක්‍රීයයි",
+      "suspended": "අත්හිටුවා ඇත",
+      "open": "විවෘතයි",
+      "resolved": "විසඳා ඇත",
+      "dismissed": "ඉවතලන ලදී",
+      "completed": "සම්පූර්ණයි",
+      "reversed": "ආපසු හරවන ලදී",
+      "underReview": "සමාලෝචනයේ",
+      "rejected": "ප්‍රතික්ෂේප කළා"
+    },
+    "severity": {
+      "critical": "බරපතළ",
+      "high": "ඉහළ",
+      "medium": "මධ්‍යම",
+      "low": "අඩු"
+    },
+    "role": {
+      "consumer": "පරිභෝජකයා",
+      "owner": "සූර්ය හිමිකරු",
+      "technician": "තාක්ෂණවේදියා",
+      "admin": "පරිපාලක"
+    },
+    "accountStatus": {
+      "active": "සක්‍රීයයි",
+      "pendingApproval": "අනුමැතිය පොරොත්තුවෙන්",
+      "blocked": "අවහිර කර ඇත",
+      "inactive": "අක්‍රීයයි"
+    }
   },
   "admin": {
     "dashboard": {
-      "title": "පරිපාලක උපකරණ පුවරුව"
+      "title": "පරිපාලක උපකරණ පුවරුව",
+      "systemHealth": "පද්ධති සෞඛ්‍යය",
+      "communityOverview": "ප්‍රජා දළ විශ්ලේෂණය",
+      "live": "සජීවී",
+      "health": {
+        "appServer": "යෙදුම් සේවාදායකය",
+        "database": "දත්ත සමුදාය",
+        "solarGridFeed": "සූර්ය ජාල සංග්‍රහය",
+        "notificationService": "දැනුම්දීම් සේවාව",
+        "online": "සබැඳිව",
+        "degraded": "පහත වැටී ඇත"
+      },
+      "statsToday": "ප්‍රජා සංඛ්‍යාලේඛන — අද",
+      "memberStatus": "සාමාජික තත්ත්වය",
+      "energyFlow": "ශක්ති ප්‍රවාහය",
+      "communityToday": "ප්‍රජාව · අද",
+      "flowProduction": "උත්පාදනය {{value}} kWh",
+      "flowConsumption": "පරිභෝජනය {{value}} kWh",
+      "recentActivity": "මෑත ක්‍රියාකාරකම්",
+      "noActivity": "තවම මෑත ක්‍රියාකාරකම් නොමැත.",
+      "viewAlerts": "අනතුරු ඇඟවීම් බලන්න",
+      "activityAlertLabel": "{{type}} — {{member}}",
+      "activityComplaintLabel": "පැමිණිල්ල: {{type}} — {{household}}",
+      "activityTransferLabel": "මාරුව: {{sender}} → {{receiver}} · {{amount}} kWh",
+      "activityReversedTransferLabel": "ආපසු හරවන ලද මාරුව: {{sender}} → {{receiver}} · {{amount}} kWh",
+      "stat": {
+        "members": "සාමාජිකයින්",
+        "production": "උත්පාදනය",
+        "consumption": "පරිභෝජනය",
+        "surplus": "අතිරික්තය",
+        "openAlerts": "විවෘත අනතුරු ඇඟවීම්",
+        "complaints": "පැමිණිලි"
+      },
+      "metricChip": {
+        "all": "සියලු මිනුම්"
+      }
+    },
+    "header": {
+      "alertsUnavailable": "අනතුරු ඇඟවීම් නොමැත",
+      "urgent": "හදිසි {{count}}",
+      "openAlerts_one": "විවෘත අනතුරු ඇඟවීම් {{count}}",
+      "openAlerts_other": "විවෘත අනතුරු ඇඟවීම් {{count}}",
+      "systemOk": "පද්ධතිය හරි",
+      "adminBadge": "පරිපාලක",
+      "subtitle": "ප්‍රජා කළමනාකරණ දොරටුව",
+      "overview": "දළ විශ්ලේෂණය",
+      "logoutConfirmWeb": "ඔබට ඇත්තෙන්ම ඉවත් වීමට අවශ්‍යද?",
+      "logoutConfirmNative": "ඔබට ඇත්තෙන්ම පරිපාලක පැනලයෙන් ඉවත් වීමට අවශ්‍යද?"
+    },
+    "nav": {
+      "dashboard": "උපකරණ පුවරුව",
+      "members": "සාමාජිකයින්",
+      "ledger": "ගිණුම් පොත",
+      "reports": "වාර්තා",
+      "profile": "පැතිකඩ"
+    },
+    "members": {
+      "title": "සාමාජික අධීක්ෂණය",
+      "addMember": "සාමාජිකයෙකු එක් කරන්න",
+      "searchPlaceholder": "නම හෝ ගෘහය අනුව සොයන්න…",
+      "shown": "පෙන්වා ඇත",
+      "noMatch": "ඔබේ සෙවුමට ගැළපෙන සාමාජිකයින් නැත.",
+      "errorTitle": "සාමාජිකයින් පූරණය කළ නොහැකි විය",
+      "addModal": {
+        "title": "සාමාජිකයෙකු එක් කරන්න",
+        "subtext": "තවම මුරපදයක් නොමැති සැබෑ ගිණුමක් සාදයි — සාමාජිකයා ඔබ ඔවුන් සමඟ බෙදාගන්නා තාවකාලික මුරපදය භාවිතයෙන් මුල් වරට පිවිසේ.",
+        "fieldName": "නම *",
+        "fieldEmail": "විද්‍යුත් තැපෑල *",
+        "fieldHousehold": "ගෘහය *",
+        "fieldMobile": "ජංගම දුරකථන අංකය (විකල්ප)",
+        "fieldCapacity": "සූර්ය ධාරිතාව, kW (විකල්ප)",
+        "placeholderName": "උදා: Amal Fernando",
+        "placeholderEmail": "උදා: amal@email.com",
+        "placeholderHousehold": "උදා: House #13",
+        "placeholderMobile": "උදා: 0771234567",
+        "placeholderCapacity": "උදා: 4.5",
+        "create": "සාමාජිකයා සාදන්න",
+        "errorRequired": "නම, විද්‍යුත් තැපෑල සහ ගෘහය අවශ්‍යයි.",
+        "errorInvalidEmail": "වලංගු විද්‍යුත් තැපැල් ලිපිනයක් ඇතුළත් කරන්න.",
+        "errorGeneric": "මෙම සාමාජිකයා සෑදිය නොහැකි විය. නැවත උත්සාහ කරන්න.",
+        "successTitle": "සාමාජිකයා ආරාධනා කරන ලදී",
+        "successSubtext": "{{name}} ට ගිණුමක් ඇත, නමුත් තවම පිවිසීමක් නැත — ඔවුන්ට පිවිස තමන්ගේම මුරපදයක් සැකසීමට මෙම එක්වරක් භාවිතා කළ හැකි තාවකාලික මුරපදය බෙදාගන්න. එය නැවත පෙන්වන්නේ නැත.",
+        "credentialEmail": "විද්‍යුත් තැපෑල",
+        "credentialPassword": "තාවකාලික මුරපදය",
+        "done": "නිමයි"
+      }
+    },
+    "memberDetail": {
+      "backToMembers": "සාමාජිකයින් වෙත ආපසු",
+      "loadTxError": "ගනුදෙනු පූරණය කළ නොහැකි විය.",
+      "energyOverviewToday": "ශක්ති දළ විශ්ලේෂණය — අද",
+      "produced": "උත්පාදනය කළ",
+      "consumed": "පරිභෝජනය කළ",
+      "surplus": "අතිරික්තය",
+      "deficit": "හිඟය",
+      "weeklyProduction": "සතිපතා උත්පාදනය",
+      "weeklyConsumption": "සතිපතා පරිභෝජනය",
+      "capacityLabel": "ධාරිතාව kW {{capacity}}",
+      "joined": "එක්වූයේ {{date}}",
+      "accountManagement": "ගිණුම් කළමනාකරණය",
+      "accountManagementSubtitle": "මෙම සාමාජිකයාගේ ගිණුම් තත්ත්වය වෙනස් කරන්න",
+      "activateAccount": "ගිණුම සක්‍රීය කරන්න",
+      "deactivateAccount": "ගිණුම අක්‍රීය කරන්න",
+      "suspendAccount": "ගිණුම අත්හිටුවන්න",
+      "current": "වර්තමාන",
+      "recentTransactions": "මෑත ගනුදෙනු",
+      "noTransactions": "ගනුදෙනු හමු නොවීය.",
+      "toMember": "{{name}} වෙත",
+      "fromMember": "{{name}} වෙතින්",
+      "statusUpdatedTitle": "තත්ත්වය යාවත්කාලීන කරන ලදී",
+      "statusUpdatedMessage": "සාමාජික {{name}} දැන් {{status}} වේ.",
+      "updateFailedTitle": "යාවත්කාලීන කිරීම අසාර්ථකයි",
+      "updateFailedInline": "යාවත්කාලීන කිරීම අසාර්ථකයි: {{message}}",
+      "updateFailedDefault": "සාමාජික තත්ත්වය යාවත්කාලීන කිරීම අසාර්ථක විය.",
+      "confirmStatusTitle": "සාමාජිකයා {{status}}",
+      "confirmStatusMessage": "{{name}} \"{{status}}\" ලෙස සැකසීමට ඔබට විශ්වාසද?",
+      "confirm": "තහවුරු කරන්න"
+    },
+    "transactions": {
+      "title": "ගනුදෙනු ගිණුම් පොත",
+      "kwhShared": "බෙදාගත් kWh",
+      "noMatch": "මෙම පෙරහනට ගැළපෙන ගනුදෙනු නැත.",
+      "errorTitle": "ගනුදෙනු පූරණය කළ නොහැකි විය",
+      "listLabel_one": "ගනුදෙනු {{count}}",
+      "listLabel_other": "ගනුදෙනු {{count}}",
+      "reverseAction": "ගනුදෙනුව ආපසු හරවන්න",
+      "reversing": "ආපසු හරවමින්…",
+      "reverseDialogTitle": "ගනුදෙනුව ආපසු හරවන්න",
+      "reverseConfirm": "{{sender}} සහ {{receiver}} අතර {{amount}} kWh ගනුදෙනුව ආපසු හරවන්නද? මෙය පසුව අවලංගු කළ නොහැක.",
+      "reverseFailedTitle": "ආපසු හැරවීම අසාර්ථකයි",
+      "reverseFailedInline": "ආපසු හැරවීම අසාර්ථකයි: {{message}}",
+      "reverseFailedDefault": "ගනුදෙනුව ආපසු හැරවීම අසාර්ථක විය.",
+      "expand": {
+        "reference": "යොමුව",
+        "dateTime": "දිනය සහ වේලාව",
+        "energyAmount": "ශක්ති ප්‍රමාණය",
+        "status": "තත්ත්වය"
+      }
+    },
+    "complaints": {
+      "title": "පැමිණිලි සහ විසඳුම්",
+      "loading": "පැමිණිලි පූරණය වෙමින්...",
+      "inReviewShort": "සමාලෝචනයේ",
+      "investigated": "විමර්ශනය කරන ලදී",
+      "emptyTitle": "මෙහි පැමිණිලි නැත",
+      "emptyText": "\"{{filter}}\" සඳහා පෙන්වීමට කිසිවක් නැත.",
+      "errorTitle": "දෝෂයකි",
+      "notePlaceholder": "විසඳුම් සටහනක් එක් කරන්න හෝ යාවත්කාලීන කරන්න…",
+      "saveNote": "සටහන සුරකින්න",
+      "saveNoteError": "විසඳුම් සටහන සුරැකිය නොහැකි විය.",
+      "clearNote": "සටහන හිස් කරන්න",
+      "clearNoteAction": "හිස් කරන්න",
+      "clearNoteTitle": "විසඳුම් සටහන හිස් කරන්න",
+      "clearNoteConfirm": "ඔබට ඇත්තෙන්ම මෙම විසඳුම් සටහන මකා දැමීමට අවශ්‍යද?",
+      "clearNoteError": "විසඳුම් සටහන හිස් කිරීම අසාර්ථක විය.",
+      "type": {
+        "transactionError": "ගනුදෙනු දෝෂයක්",
+        "billingDispute": "බිල්පත් ආරවුලක්",
+        "systemFault": "පද්ධති දෝෂයක්",
+        "other": "වෙනත්"
+      },
+      "section": {
+        "fullDescription": "සම්පූර්ණ විස්තරය",
+        "relatedTransaction": "සම්බන්ධිත ගනුදෙනුව",
+        "resolutionProgress": "විසඳුම් ප්‍රගතිය",
+        "adminNote": "පරිපාලක විසඳුම් සටහන"
+      },
+      "action": {
+        "review": "සමාලෝචනය කරන්න",
+        "resolve": "විසඳන්න",
+        "reject": "ප්‍රතික්ෂේප කරන්න"
+      }
+    },
+    "settings": {
+      "title": "පරිපාලක පැතිකඩ",
+      "superAdmin": "ප්‍රධාන පරිපාලක",
+      "accessLevel": "ප්‍රවේශ මට්ටම",
+      "profileInformation": "පැතිකඩ තොරතුරු",
+      "editProfile": "පැතිකඩ සංස්කරණය කරන්න",
+      "saveChanges": "වෙනස්කම් සුරකින්න",
+      "administrator": "පරිපාලක",
+      "validationErrorTitle": "වලංගුකරණ දෝෂයක්",
+      "validationError": "සම්පූර්ණ නම හිස් විය නොහැක.",
+      "successTitle": "සාර්ථකයි",
+      "updateSuccess": "පරිපාලක පැතිකඩ සාර්ථකව යාවත්කාලීන කරන ලදී!",
+      "updateFailedTitle": "යාවත්කාලීන කිරීම අසාර්ථකයි",
+      "updateFailedInline": "යාවත්කාලීන කිරීම අසාර්ථකයි: {{message}}",
+      "updateFailedDefault": "පැතිකඩ විස්තර යාවත්කාලීන කිරීම අසාර්ථක විය.",
+      "logout": "ඉවත් වන්න",
+      "logoutConfirm": "ඔබට ඇත්තෙන්ම පරිපාලක පැනලයෙන් ඉවත් වීමට අවශ්‍යද?",
+      "field": {
+        "fullName": "සම්පූර්ණ නම",
+        "email": "විද්‍යුත් තැපැල් ලිපිනය",
+        "mobile": "ජංගම දුරකථන අංකය",
+        "household": "ගෘහය / පරිපාලක හැඳුනුම්පත",
+        "role": "භූමිකාව"
+      },
+      "placeholder": {
+        "fullName": "ඔබේ සම්පූර්ණ නම ඇතුළත් කරන්න",
+        "mobile": "උදා: +94 77 123 4567",
+        "household": "උදා: HH-ADMIN-01"
+      },
+      "menu": {
+        "about": { "label": "SolarCoop පිළිබඳ", "sub": "ප්‍රජා ශක්ති බෙදාගැනීමේ යෙදුම v1.0.0" },
+        "adminPrivileges": { "label": "පරිපාලක වරප්‍රසාද", "sub": "සම්පූර්ණ පද්ධති ප්‍රවේශය · තත්‍ය කාලීන සාමාජික සමමුහුර්තකරණය" },
+        "systemEnv": { "label": "පද්ධති පරිසරය", "sub": "Expo SDK 57 · React Native 0.86" }
+      }
+    },
+    "alerts": {
+      "title": "පද්ධති අනතුරු ඇඟවීම්",
+      "scanBtn": "පරික්ෂා කරන්න",
+      "scanning": "පරික්ෂා කරමින්…",
+      "newAlert": "නව අනතුරු ඇඟවීම",
+      "staleBanner": "නැවුම් කළ නොහැකි විය — අවසන් වරට පූරණය වූයේ පෙන්වමින්.",
+      "hintFiltered": "{{severity}} පමණක් පෙන්වමින් — නැවත තට්ටු කර හිස් කරන්න",
+      "hintDefault": "බරපතළකම අනුව විවෘත අනතුරු ඇඟවීම් — පෙරීමට එකක් තට්ටු කරන්න",
+      "listLabel_one": "අනතුරු ඇඟවීම් {{count}}",
+      "listLabel_other": "අනතුරු ඇඟවීම් {{count}}",
+      "emptyTitle": "සියල්ල පැහැදිලියි!",
+      "emptyNoneRaised": "තවම අනතුරු ඇඟවීම් කිසිවක් මතු කර නැත.",
+      "emptyNoMatch": "මෙම පෙරහන්වලට ගැළපෙන අනතුරු ඇඟවීම් නැත.",
+      "errorTitle": "අනතුරු ඇඟවීම් පූරණය කළ නොහැකි විය",
+      "communityWide": "ප්‍රජාව පුරා",
+      "systemDetected": "පද්ධතිය මගින් හඳුනාගත්",
+      "pleaseTryAgain": "කරුණාකර නැවත උත්සාහ කරන්න.",
+      "actionFailedTitle": "අනතුරු ඇඟවීම {{kind}} කළ නොහැකි විය",
+      "deleteConfirmTitle": "අනතුරු ඇඟවීම මකන්න",
+      "deleteConfirmMessage": "මෙම අනතුරු ඇඟවීම ස්ථිරවම මකන්නද? මෙය පසුව අවලංගු කළ නොහැක.",
+      "deleteFailedTitle": "අනතුරු ඇඟවීම මකිය නොහැකි විය",
+      "kind": {
+        "resolve": "විසඳීම",
+        "reopen": "යළි විවෘත කිරීම"
+      },
+      "action": {
+        "viewMember": "සාමාජිකයා බලන්න",
+        "edit": "සංස්කරණය කරන්න",
+        "resolve": "විසඳා ලෙස සලකුණු කරන්න",
+        "reopen": "යළි විවෘත කරන්න",
+        "delete": "මකන්න"
+      },
+      "type": {
+        "zeroProduction": "ශුන්‍ය උත්පාදනය",
+        "lowProduction": "අඩු උත්පාදනය",
+        "consumptionSpike": "පරිභෝජන වර්ධනයක්",
+        "communitySurplusLow": "අඩු ප්‍රජා අතිරික්තය",
+        "communityDeficit": "අඛණ්ඩ ප්‍රජා හිඟයක්",
+        "transactionReversed": "ගනුදෙනුව ආපසු හරවන ලදී",
+        "largeTransaction": "අසාමාන්‍ය ලෙස විශාල ගනුදෙනුවක්",
+        "requestPending": "ඉල්ලීම පොරොත්තුවෙන් සිරවී ඇත",
+        "signupPending": "ලියාපදිංචිය අනුමැතිය පොරොත්තුවෙන්",
+        "memberSilent": "සාමාජිකයා නිහඬ වී ඇත",
+        "complaintNew": "නව පැමිණිල්ලක්",
+        "complaintAging": "පැමිණිල්ල පැරණි වෙමින්",
+        "staleData": "පැරණි ශක්ති දත්ත",
+        "systemError": "පද්ධති දෝෂයක්",
+        "adminNotice": "පරිපාලක දැනුම්දීමක්"
+      },
+      "category": {
+        "energy": "ශක්තිය",
+        "transactions": "ගනුදෙනු",
+        "members": "සාමාජිකයින්",
+        "complaints": "පැමිණිලි",
+        "system": "පද්ධතිය",
+        "notice": "දැනුම්දීම",
+        "other": "වෙනත්"
+      },
+      "scan": {
+        "failed": "අවසන් පරික්ෂාව අසාර්ථකයි: {{error}}",
+        "nothingNew": "නව කිසිවක් නැත",
+        "newAlerts_one": "නව අනතුරු ඇඟවීම් {{count}}",
+        "newAlerts_other": "නව අනතුරු ඇඟවීම් {{count}}",
+        "checksFailed_one": "පරීක්ෂණ {{count}}ක් ක්‍රියාත්මක විය නොහැකි විය ({{names}})",
+        "checksFailed_other": "පරීක්ෂණ {{count}}ක් ක්‍රියාත්මක විය නොහැකි විය ({{names}})",
+        "summary": "අවසන් පරික්ෂාව {{time}} — {{parts}}"
+      },
+      "form": {
+        "editTitle": "අනතුරු ඇඟවීම සංස්කරණය කරන්න",
+        "newTitle": "නව අනතුරු ඇඟවීම",
+        "typeLabel": "වර්ගය",
+        "sentToLabel": "යවන ලද්දේ",
+        "readOnlyNote": "වර්ගය සහ ලබන්නා වෙනස් කළ නොහැක — ඒවා වෙනස් කිරීමට අනතුරු ඇඟවීම මකා නැවත සාදන්න.",
+        "fieldCategory": "වර්ගීකරණය",
+        "fieldType": "වර්ගය",
+        "fieldSeverity": "බරපතළකම",
+        "fieldSendTo": "යවන්න",
+        "fieldMessage": "පණිවිඩය *",
+        "specificMember": "නිශ්චිත සාමාජිකයෙක්",
+        "noMembersLoaded": "තවම සාමාජිකයින් පූරණය වී නැත.",
+        "noMembersMatch": "ගැළපෙන සාමාජිකයින් නැත.",
+        "messagePlaceholder": "ලබන්නා දැනගත යුත්තේ කුමක්ද?",
+        "charCount": "{{count}} / 300",
+        "createAlert": "අනතුරු ඇඟවීම සාදන්න",
+        "errorMessageTooShort": "අවම වශයෙන් අක්ෂර 5ක් සහිත පණිවිඩයක් ලියන්න.",
+        "errorPickMember": "මෙම අනතුරු ඇඟවීම කුමන සාමාජිකයා සඳහාද යන්න තෝරන්න.",
+        "errorSaveGeneric": "මෙම අනතුරු ඇඟවීම සුරැකිය නොහැකි විය. නැවත උත්සාහ කරන්න.",
+        "errorCreateGeneric": "මෙම අනතුරු ඇඟවීම සෑදිය නොහැකි විය. නැවත උත්සාහ කරන්න."
+      }
+    }
+  },
+  "app": {
+    "communityEnergySharing": "ප්‍රජා ශක්ති බෙදාගැනීම",
+    "pendingLock": {
+      "title": "පරිපාලක තහවුරු කිරීම පොරොත්තුවෙන්",
+      "message": "ඔබේ සූර්ය වත්කම් දැනට පරිපාලක තහවුරු කිරීම පොරොත්තුවෙන් පවතී.",
+      "hint": "ඔබට තවමත් ඔබේ පැතිකඩ විවෘත කළ හැක. පරිපාලකයෙකු ඔබේ ගිණුම සක්‍රීය කළ විගස ශක්ති බෙදාගැනීම සහ වෙළඳාම් ටැබ් ස්වයංක්‍රීයව අගුළු හැරේ.",
+      "checkStatus": "තත්ත්වය පරීක්ෂා කරන්න"
+    }
+  },
+  "auth": {
+    "checkDetailsTitle": "ඔබේ විස්තර පරීක්ෂා කරන්න",
+    "genericError": "අනපේක්ෂිත දෝෂයක් සිදු විය. නැවත උත්සාහ කරන්න.",
+    "field": {
+      "showPassword": "මුරපදය පෙන්වන්න",
+      "hidePassword": "මුරපදය සඟවන්න",
+      "emailLabel": "විද්‍යුත් තැපැල් ලිපිනය",
+      "passwordLabel": "මුරපදය",
+      "emailRequired": "විද්‍යුත් තැපෑල අවශ්‍යයි.",
+      "emailInvalid": "වලංගු විද්‍යුත් තැපැල් ලිපිනයක් ඇතුළත් කරන්න.",
+      "passwordRequired": "මුරපදය අවශ්‍යයි.",
+      "fullNameLabel": "සම්පූර්ණ නම",
+      "mobileLabel": "ජංගම දුරකථන අංකය",
+      "mobilePlaceholder": "උදා: +94 77 123 4567",
+      "mobileRequired": "ජංගම දුරකථන අංකය අවශ්‍යයි.",
+      "mobileInvalid": "වලංගු ජංගම දුරකථන අංකයක් ඇතුළත් කරන්න (අංක 9–12)."
+    },
+    "login": {
+      "title": "නැවත සාදරයෙන් පිළිගනිමු",
+      "subtitle": "ඔබේ බෙදාගත් පිරිසිදු ශක්තිය කළමනාකරණය කිරීමට පිවිසෙන්න.",
+      "newToApp": "SolarCoop වෙත අලුත්ද?",
+      "emailPlaceholder": "ඔබේ විද්‍යුත් තැපෑල ඇතුළත් කරන්න",
+      "passwordPlaceholder": "ඔබේ මුරපදය ඇතුළත් කරන්න",
+      "rememberMe": "මාව මතක තබාගන්න",
+      "forgotPassword": "මුරපදය අමතකද?",
+      "submitButton": "පිවිසෙන්න",
+      "failedTitle": "පිවිසීම අසාර්ථකයි"
+    },
+    "register": {
+      "title": "ගිණුමක් සාදන්න",
+      "subtitle": "SolarCoop හා එක්වී ඔබේ ප්‍රජාව සමඟ බෙදාගත් පිරිසිදු ශක්තිය කළමනාකරණය කරන්න.",
+      "alreadyMember": "දැනටමත් සාමාජිකයෙක්ද?",
+      "stepLabel": "පියවර {{step}} න් 2",
+      "role": {
+        "consumer": "පරිභෝජකයා",
+        "owner": "සූර්ය හිමිකරු",
+        "technician": "තාක්ෂණවේදියා"
+      },
+      "errorName": "කරුණාකර ඔබේ සම්පූර්ණ නම ඇතුළත් කරන්න.",
+      "errorPasswordLength": "මුරපදයේ අවම වශයෙන් අක්ෂර 6ක් තිබිය යුතුය.",
+      "errorCapacityRequired": "ඔබේ සූර්ය ධාරිතාව ඇතුළත් කරන්න.",
+      "errorCapacityInvalid": "kW හි වලංගු ධාරිතාවක් ඇතුළත් කරන්න (උදා: 5.6).",
+      "failedTitle": "ලියාපදිංචිය අසාර්ථකයි",
+      "unknownError": "නොදන්නා දෝෂයක් සිදු විය. නැවත උත්සාහ කරන්න.",
+      "successTitle": "සාර්ථකයි!",
+      "successMessage": "ඔබේ ගිණුම සාර්ථකව සාදන ලදී. විද්‍යුත් තැපැල් තහවුරු කිරීමක් අවශ්‍ය නම් ඔබේ එන ලිපි පෙට්ටිය පරීක්ෂා කරන්න.",
+      "namePlaceholder": "උදා: Amara Perera",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "අවම අක්ෂර 6ක්",
+      "continueButton": "ඉදිරියට",
+      "joiningAs": "මම එක්වන්නේ",
+      "capacityLabel": "සූර්ය ධාරිතාව (kW)",
+      "capacityPlaceholder": "උදා: 5.6",
+      "backButton": "ආපසු",
+      "completeButton": "ලියාපදිංචිය සම්පූර්ණ කරන්න"
+    },
+    "forgotPassword": {
+      "title": "මුරපදය අමතකද",
+      "subtitle": "ඔබේ SolarCoop ගිණුමට සම්බන්ධ විද්‍යුත් තැපෑල ඇතුළත් කරන්න, අපි ඔබට ආරක්ෂිත නැවත සැකසීමේ සබැඳියක් එවන්නෙමු.",
+      "backToLoginLink": "← පිවිසීම වෙත ආපසු",
+      "sentTitle": "නැවත සැකසීමේ සබැඳිය යවන ලදී ☀️",
+      "sentMessage": "අපි {{email}} වෙත මුරපද නැවත සැකසීමේ සබැඳියක් විද්‍යුත් තැපෑලෙන් යවා ඇත. ඔබේ එන ලිපි පෙට්ටිය (සහ අයාචිත ෆෝල්ඩරය) පරීක්ෂා කර නව මුරපදයක් තේරීමට සබැඳිය අනුගමනය කරන්න.",
+      "backToLoginAction": "පිවිසීම වෙත ආපසු",
+      "sendFailedTitle": "සබැඳිය යැවිය නොහැකි විය",
+      "linkSent": "සබැඳිය යවන ලදී",
+      "sendButton": "නැවත සැකසීමේ සබැඳිය යවන්න"
+    }
+  },
+  "profile": {
+    "errorNameRequired": "සම්පූර්ණ නම අවශ්‍යයි.",
+    "updateFailedTitle": "යාවත්කාලීන කිරීම අසාර්ථකයි",
+    "successTitle": "සාර්ථකයි!",
+    "successMessage": "ඔබේ පැතිකඩ යාවත්කාලීන කරන ලදී.",
+    "logoutTitle": "ඉවත් වන්න",
+    "logoutConfirm": "ඔබට ඇත්තෙන්ම SolarCoop වෙතින් ඉවත් වීමට අවශ්‍යද?",
+    "logoutAction": "ඉවත් වන්න",
+    "welcome": "සාදරයෙන් පිළිගනිමු, {{name}}",
+    "statusLabel": "තත්ත්වය: {{status}}",
+    "detailsTitle": "පැතිකඩ විස්තර",
+    "cancelEditingA11y": "සංස්කරණය අවලංගු කරන්න",
+    "editProfileA11y": "පැතිකඩ සංස්කරණය කරන්න",
+    "edit": "සංස්කරණය කරන්න",
+    "registeredRole": "ලියාපදිංචි භූමිකාව",
+    "householdIdLabel": "ගෘහ හැඳුනුම්පත",
+    "householdIdPlaceholder": "උදා: H-0091",
+    "solarCapacityLabel": "සූර්ය ධාරිතාව",
+    "accountStatusLabel": "ගිණුම් තත්ත්වය"
+  },
+  "member": {
+    "header": {
+      "surplus": "අතිරික්තය",
+      "deficit": "හිඟය",
+      "household": "ගෘහය",
+      "coop": "සමූපකාරය"
+    },
+    "tabs": {
+      "dashboard": "උපකරණ පුවරුව",
+      "production": "උත්පාදනය",
+      "consumption": "පරිභෝජනය",
+      "surplus": "අතිරික්තය",
+      "deficit": "හිඟය",
+      "history": "ඉතිහාසය",
+      "charts": "ප්‍රස්ථාර",
+      "summary": "සාරාංශය"
+    },
+    "nav": {
+      "dashboard": "උපකරණ පුවරුව",
+      "trade": "P2P වෙළඳාම",
+      "energy": "ශක්තිය",
+      "alerts": "අනතුරු ඇඟවීම්",
+      "profile": "පැතිකඩ"
+    },
+    "dashboard": {
+      "title": "වර්තමාන බලය",
+      "subtitle": "සජීවී • බුද්ධිමත් ශක්ති ක්ෂුද්‍ර ජාලය",
+      "cell": {
+        "solar": "සූර්ය",
+        "solarTrend": "+12%",
+        "grid": "ජාලය",
+        "offline": "විසන්ධිතයි",
+        "netOutput": "ශුද්ධ නිමැවුම",
+        "netDraw": "ශුද්ධ උකහාගැනීම",
+        "exporting": "අපනයනය වෙමින්",
+        "importing": "ආනයනය වෙමින්",
+        "battery": "බැටරිය"
+      },
+      "environmental": {
+        "title": "පාරිසරික ප්‍රතිලාභ",
+        "co2Saved": "CO₂ ඉතිරිකළ",
+        "co2Delta": "+12% සාමාන්‍යයට වඩා",
+        "sunshine": "අව්ව",
+        "sunshineDelta": "උපරිම දිනය",
+        "gridFree": "ජාලයෙන් නිදහස්",
+        "gridFreeDelta": "+3% මෙම සතියේ"
+      },
+      "sitePower": {
+        "titlePower": "ස්ථාන බලය",
+        "titleEnergy": "ස්ථාන ශක්තිය",
+        "togglePower": "බලය",
+        "toggleEnergy": "ශක්තිය",
+        "legendSolar": "සූර්ය {{value}}",
+        "legendCoop": "සමූපකාර {{value}}"
+      },
+      "flow": {
+        "home": "නිවස"
+      },
+      "coopActivity": {
+        "online": "සබැඳිව",
+        "kwPool": "kW සංචිතය",
+        "tokens": "ටෝකන්"
+      },
+      "quickActions": {
+        "shareSuccess": "{{target}} සමඟ kWh {{amount}}ක් සාර්ථකව බෙදාගන්නා ලදී!",
+        "borrowSuccess": "සමූපකාර සංචිතයෙන් kWh {{amount}}ක් සාර්ථකව ණයට ගන්නා ලදී!",
+        "shareSurplus": "අතිරික්තය බෙදාගන්න",
+        "requestDraw": "උකහාගැනීමක් ඉල්ලන්න"
+      },
+      "widget": {
+        "telemetry": "සජීවී තත්‍ය-කාලීන දුරස්ථ නිරීක්ෂණය",
+        "powerGrid": "වර්තමාන බල ජාලය (2×2)",
+        "sitePower": "ස්ථාන බලය සහ ප්‍රවාහ රූප සටහන",
+        "coopActivity": "සමූපකාර ප්‍රජා ක්‍රියාකාරකම්",
+        "quickActions": "ඉක්මන් ක්‍රියා (බෙදාගන්න සහ ණයට ගන්න)"
+      }
+    },
+    "widgetCustomizer": {
+      "title": "උපකරණ පුවරුව අභිරුචිකරණය කරන්න",
+      "subtitle": "ඔබේ විජට් නැවත සකස් කර මාරු කරන්න",
+      "core": "මූලික",
+      "position": "ස්ථානය #{{number}}",
+      "reset": "යළි පිහිටුවන්න",
+      "applyLayout": "සැකැස්ම යොදන්න"
+    },
+    "production": {
+      "header": "සූර්ය බල උත්පාදනය",
+      "liveGeneration": "සජීවී ක්ෂණික උත්පාදනය",
+      "generationCurve": "අද උත්පාදන වක්‍රය (06:00 - 18:00)",
+      "dailyTotal": "දෛනික එකතුව",
+      "peakToday": "අද උපරිමය",
+      "capacityUsed": "භාවිතා කළ ධාරිතාව",
+      "solarIrradiance": "සූර්ය විකිරණය",
+      "panelTemp": "පැනල උෂ්ණත්වය",
+      "inverterEfficiency": "ඉන්වර්ටර් කාර්යක්ෂමතාව",
+      "arrayBreakdown": "සූර්ය පැනල සැකැස්ම",
+      "array": {
+        "roofNorth": "වහල උතුරු පැනල (පැනල 12)",
+        "roofSouth": "වහල දකුණු පැනල (පැනල 10)",
+        "carport": "වාහන තට්ටු සූර්ය වියන (පැනල 4)",
+        "ratedCapEfficiency": "නියම ධාරිතාව: {{capacity}} • කාර්යක්ෂමතාව: {{eff}}"
+      },
+      "status": {
+        "optimal": "ප්‍රශස්තයි",
+        "partialShade": "අර්ධ සෙවණ"
+      }
+    },
+    "consumption": {
+      "header": "ගෘහ ශක්ති බර",
+      "activeLoad": "සක්‍රීය බර ඉල්ලුම",
+      "dailyConsumption": "දෛනික පරිභෝජනය",
+      "peakUsageHour": "උපරිම භාවිත වේලාව",
+      "solarCoverage": "සූර්ය ආවරණය",
+      "solarCoverageFree": "100% නොමිලේ",
+      "recommendTitle": "බුද්ධිමත් සූර්ය බර කාලසටහන් නිර්දේශය",
+      "recommendText": "පෙ.ව. 12:00 - ප.ව. 3:00 අතර ඉහළ සූර්ය නිමැවුමක් අපේක්ෂිතයි. 100% පිරිසිදු සූර්ය බලය භාවිතා කිරීමට මෙම කාල සීමාව තුළ රෙදි සෝදන යන්ත්‍රය / වියළන යන්ත්‍රය සහ ජල හීටරය ක්‍රියාත්මක කරන්න.",
+      "connectedAppliances": "සම්බන්ධිත ගෘහ උපකරණ",
+      "powerDraw": "{{category}} • බල උකහාගැනීම: {{power}}"
+    },
+    "surplus": {
+      "header": "අතිරික්ත ශක්තිය සහ සමූපකාර බෙදාගැනීම",
+      "currentRate": "වර්තමාන සූර්ය අතිරික්ත අනුපාතය",
+      "batteryState": "Tesla Powerwall බැටරි තත්ත්වය (SoC)",
+      "coopSharedToday": "අද සමූපකාරයෙන් බෙදාගත්",
+      "tokensEarned": "උපයාගත් ටෝකන්",
+      "transferTitle": "සෘජු සම-සම ශක්ති මාරුව",
+      "transferSubtitle": "අතිරික්ත සූර්ය බලය සෘජුවම සමූපකාර අසල්වැසියන්ට හෝ බෙදාගත් ප්‍රජා සංචිතයට මාරු කරන්න.",
+      "amountLabel": "මාරු කිරීමට ප්‍රමාණය (kWh):",
+      "recipientLabel": "ලබන්නාගේ ගමනාන්තය:",
+      "defaultRecipient": "House #04 (බෙදාගත් සංචිතය)",
+      "successMessage": "සාර්ථකයි! {{recipient}} වෙත kWh {{amount}}ක් බෙදාගන්නා ලදී",
+      "confirmTransfer": "තහවුරු කර අතිරික්ත ශක්තිය මාරු කරන්න",
+      "autoShareTitle": "ස්වයංක්‍රීය සමූපකාර සංචිත බෙදාගැනීම",
+      "autoShareSub": "බැටරිය 75% ට වඩා වැඩි විට ස්වයංක්‍රීයව අතිරික්තය අපනයනය කරයි"
+    },
+    "deficit": {
+      "header": "ශක්ති හිඟය සහ ජාල උපස්ථය",
+      "currentDeficit": "වර්තමාන ජාල ආනයන හිඟය",
+      "zeroDeficit": "kW (ශුන්‍ය හිඟය)",
+      "coveredBanner": "සූර්ය උත්පාදනය + ගෘහ බැටරි ධාරිතාව ගෘහ බරම සම්පූර්ණයෙන් ආවරණය කරයි. ජාල මිලදී ගැනීමක් අවශ්‍ය නැත.",
+      "rateComparison": "ශක්ති අනුපාත පිරිවැය සැසඳීම",
+      "recommended": "නිර්දේශිතයි",
+      "coopRate": "සමූපකාර සම-සම අනුපාතය",
+      "coopRateSub": "අසල්වැසියන්ගෙන් පිරිසිදු සූර්ය බලය",
+      "highPeak": "ඉහළ උපරිමය",
+      "utilityRate": "ප්‍රධාන උපයෝගිතා ජාලය",
+      "utilityRateSub": "පොසිල ජාල උපරිම ඉල්ලුම් මිල",
+      "requestDraw": "හදිසි සමූපකාර උකහාගැනීමක් ඉල්ලන්න",
+      "borrowSub": "අඩු සූර්ය නිමැවුමක් ඇති විට වට්ටම් සමූපකාර අනුපාත මත ප්‍රජා බැටරි සංචිතවලින් පිරිසිදු ශක්තිය ණයට ගන්න.",
+      "amountLabel": "ණයට ගැනීමට ප්‍රමාණය (kWh):",
+      "successMessage": "සාර්ථකයි! සමූපකාර සංචිතයෙන් kWh {{amount}}ක් ණයට ගන්නා ලදී",
+      "executeBorrow": "සමූපකාර ශක්ති ණය ක්‍රියාත්මක කරන්න"
+    },
+    "history": {
+      "header": "ශක්ති සටහන් සහ ප්‍රකාශන",
+      "exportTitle": "සමූපකාර ශක්ති ප්‍රකාශනය",
+      "exportSub": "තහවුරු කළ මාසික සූර්ය ගිණුම් පොත බාගන්න (PDF/CSV)",
+      "exportButton": "නිර්යාතය",
+      "searchPlaceholder": "ගනුදෙනු සොයන්න...",
+      "filter": {
+        "all": "සියලු සිදුවීම්",
+        "surplus": "⚡ බෙදාගත් අතිරික්තය",
+        "production": "☀️ සූර්ය උත්පාදනය",
+        "consumption": "🔋 භාවිතය",
+        "deficit": "⚠️ හිඟ උකහාගැනීම"
+      },
+      "timeline": "ගනුදෙනු කාලරේඛාව ({{count}})",
+      "loadMore": "තව පූරණය කරන්න",
+      "modal": {
+        "title": "නිල සමූපකාර ප්‍රකාශනය උත්පාදනය කරන්න",
+        "subtitle": "2026 අගෝස්තු සඳහා උත්පාදනය කළ සම්පූර්ණ kWh, ප්‍රජා P2P ශක්ති වෙළඳාම්, ජාල උකහාගැනීම් සහ කාබන් ප්‍රතිකාරක ඇතුළත් වේ.",
+        "downloaded": "ප්‍රකාශනය උපාංගයට බාගත කරන ලදී!",
+        "downloadPdf": "PDF බාගන්න"
+      }
+    },
+    "charts": {
+      "header": "අන්තර්ක්‍රියාකාරී ශක්ති ප්‍රස්ථාර",
+      "genVsCons": "උත්පාදනය එදිරිව පරිභෝජනය",
+      "tapHint": "බල තුලනය පරීක්ෂා කිරීමට ප්‍රස්ථාරයේ ලක්ෂ්‍ය තට්ටු කරන්න",
+      "legendSolar": "සූර්ය උත්පාදනය",
+      "legendHousehold": "ගෘහ පරිභෝජනය",
+      "inspectionWindow": "පරීක්ෂණ කාලය: {{hour}}",
+      "netDelta": "ශුද්ධ වෙනස",
+      "netDeltaChart": "ශුද්ධ ශක්ති වෙනස (අතිරික්තය / හිඟය)"
+    },
+    "summary": {
+      "header": "ශක්ති සාරාංශය සහ තිරසාරත්වය",
+      "gridIndependenceRating": "ජාලයෙන් නිදහස් මට්ටම",
+      "selfSufficient": "{{percent}}% ස්වයං-ප්‍රමාණවත්",
+      "scoreSubText": "ඔබේ ගෘහය ජාල පොසිල ඉන්ධන බලය වළක්වමින් පිරිසිදු සූර්ය පැනල සහ සමූපකාර බෙදාගැනීම හරහා එහි ශක්තියෙන් {{percent}}%ක් ස්ථානීයව උත්පාදනය කරයි.",
+      "co2OffsetToday": "අද CO₂ ප්‍රතිකාරකය",
+      "equivalentMonthly": "මසකට kg {{value}}ට සමාන",
+      "treesCount_one": "ගස් {{count}}",
+      "treesCount_other": "ගස් {{count}}",
+      "treesSavedLabel": "ඉතිරි කළ ගස්වලට සමාන",
+      "treesSavedSub": "වන කාබන උරාගැනීමට සමාන",
+      "billSavingsLabel": "සෘජු බිල් ඉතිරිකිරීම්",
+      "billSavingsSub": "ජාල ගාස්තුවට සාපේක්ෂව ගණනය කරන ලදී",
+      "coalAvoidedLabel": "වළක්වාගත් කොළ ඉන්ධන",
+      "coalAvoidedSub": "තාප බලාගාර ඉතිරිකිරීම්"
+    },
+    "dateFilter": {
+      "range": {
+        "today": "අද",
+        "yesterday": "ඊයේ",
+        "last7d": "පසුගිය දින 7",
+        "last30d": "පසුගිය දින 30",
+        "custom": "අභිරුචි පරාසය"
+      },
+      "granularity": {
+        "30min": "විනාඩි 30",
+        "1hour": "පැය 1",
+        "6hours": "පැය 6",
+        "daily": "දෛනික",
+        "weekly": "සතිපතා"
+      },
+      "step": "පියවර:",
+      "windowToday": "අද (සජීවී පැය 24)",
+      "windowYesterday": "ඊයේ (සම්පූර්ණ පැය 24)",
+      "windowPast7d": "පසුගිය දින 7",
+      "windowPast30d": "පසුගිය දින 30",
+      "modalTitle": "අභිරුචි කාල පරාසයක් තෝරන්න",
+      "selectWindow": "කාල සීමාව තෝරන්න:",
+      "presetMonthToDate": "මාසය-මෙතෙක්",
+      "presetMidMonthWeek": "මාසයේ මැද සතිය",
+      "presetPreviousMonth": "පෙර මාසය",
+      "startDate": "ආරම්භක දිනය",
+      "endDate": "අවසාන දිනය",
+      "applyFilter": "පෙරහන යොදන්න"
+    },
+    "telemetry": {
+      "justNow": "මේ දැන්",
+      "secondsAgo": "තත්පර {{count}}කට පෙර",
+      "minutesAgo": "මිනිත්තු {{count}}කට පෙර",
+      "widgetTitle": "සජීවී ඉන්වර්ටර් දුරස්ථ නිරීක්ෂණය",
+      "status": {
+        "realtime": "තත්‍ය-කාලීන ප්‍රවාහය",
+        "polling": "තත්පර 30 සමීක්ෂණය",
+        "offline": "විසන්ධිත (සුරැකි)"
+      },
+      "heartbeat": "ස්පන්දනය: {{time}}",
+      "syncing": "සමමුහුර්ත වෙමින්",
+      "sync": "සමමුහුර්ත කරන්න",
+      "inverterHealth": "ඉන්වර්ටර් සෞඛ්‍යය",
+      "inverterHealthSub": "ප්‍රශස්තයි (99.2%)",
+      "gridFrequency": "ජාල සංඛ්‍යාතය",
+      "gridFrequencySub": "සමමුහුර්තයි",
+      "telemetryPing": "දුරස්ථ නිරීක්ෂණ පිං",
+      "telemetryPingSub": "අතිශය අඩු"
+    },
+    "alertsHub": {
+      "title": "අනතුරු ඇඟවීම් සහ සහාය",
+      "subtitle": "පද්ධති සිදුවීම්, පැමිණිලි සහ නඩු විසඳුම්",
+      "submitButton": "පැමිණිල්ලක් ඉදිරිපත් කරන්න",
+      "myComplaints": "මගේ පැමිණිලි",
+      "loadingText": "ඔබේ පැමිණිලි පූරණය වෙමින්...",
+      "emptyTitle": "පැමිණිලි නැත",
+      "emptyText": "ඔබ තවම කිසිදු පැමිණිල්ලක් ඉදිරිපත් කර නැත.",
+      "yourDescription": "ඔබේ විස්තරය",
+      "adminResponse": "පරිපාලක ප්‍රතිචාරය",
+      "editComplaint": "පැමිණිල්ල සංස්කරණය කරන්න",
+      "deleteFailed": "පැමිණිල්ල මකිය නොහැකි විය.",
+      "deleteConfirmTitle": "පැමිණිල්ල මකන්න",
+      "deleteConfirmMessage": "ඔබට ඇත්තෙන්ම මෙම විවෘත පැමිණිල්ල මකා දැමීමට අවශ්‍යද?",
+      "notAuthenticated": "පරිශීලකයා සත්‍යාපනය වී නැත.",
+      "submitFailed": "පැමිණිල්ල ඉදිරිපත් කළ නොහැකි විය. නැවත උත්සාහ කරන්න.",
+      "updatedTitle": "පැමිණිල්ල යාවත්කාලීන කරන ලදී",
+      "submittedTitle": "පැමිණිල්ල ඉදිරිපත් කරන ලදී",
+      "updatedBody": "ඔබේ වෙනස්කම් සුරැකී සමූපකාර පරිපාලනයට යවා ඇත.",
+      "submittedBody": "ඔබේ ගැටලුව සමූපකාර පරිපාලනයට යොමු කර ඇත. ඔබට එහි තත්ත්වය මගේ පැමිණිලි ලැයිස්තුවේ නිරීක්ෂණය කළ හැක.",
+      "editInfoText": "පරිපාලකයින් සමාලෝචනය ආරම්භ කිරීමට පෙර ඔබේ පොරොත්තු පැමිණිලි විස්තර සංස්කරණය කළ හැක.",
+      "submitInfoText": "පරිපාලකයින්ට ඔබේ ගැටලුව කාර්යක්ෂමව විමර්ශනය කර විසඳිය හැකි පරිදි නිවැරදි විස්තර සපයන්න.",
+      "complaintTypeLabel": "පැමිණිලි වර්ගය",
+      "relatedTransactionLabel": "සම්බන්ධිත ගනුදෙනුව (විකල්ප)",
+      "transactionPlaceholder": "උදා: TXN-0042",
+      "descriptionLabel": "විස්තරය *",
+      "charCount": "{{count}} / 500",
+      "descriptionPlaceholder": "ගැටලුව පැහැදිලිව විස්තර කරන්න...",
+      "minCharsHelper": "අවම වශයෙන් අක්ෂර 20ක් අවශ්‍යයි.",
+      "submitComplaintButton": "පැමිණිල්ල ඉදිරිපත් කරන්න"
+    }
+  },
+  "faultAlert": {
+    "title": "නිත්‍ය නඩත්තුව සැලසුම් කර ඇත",
+    "defaultMessage": "ඔබේ පද්ධතිය ආරක්ෂිතයි. තාක්ෂණවේදියෙකු ඉක්මනින් එය පරීක්ෂා කරනු ඇත — ඔබ කිසිවක් කළ යුතු නැත.",
+    "assignedTech": "පවරන ලද තාක්ෂණවේදියා: {{name}}",
+    "awaitingTech": "තාක්ෂණවේදියෙකු ඉක්මනින් පවරනු ලැබේ",
+    "completeTitle": "නඩත්තුව සම්පූර්ණයි",
+    "completeMessage": "ඔබේ පද්ධතිය පරීක්ෂා කර සාමාන්‍ය ලෙස ක්‍රියාත්මක වෙමින් පවතී. ඔබේ ඉවසීම ගැන ස්තූතියි.",
+    "completedBy": "සේවය කළේ {{name}}"
+  },
+  "technician": {
+    "header": {
+      "appName": "SolarCoop Tech",
+      "subtitle": "තාක්ෂණික දොරටුව",
+      "apiConnected": "API සම්බන්ධයි",
+      "apiConnecting": "සම්බන්ධ වෙමින්",
+      "apiOffline": "API විසන්ධිතයි"
+    },
+    "nav": {
+      "dashboard": "උපකරණ පුවරුව",
+      "diagnostics": "රෝග විනිශ්චය",
+      "profile": "පැතිකඩ"
+    },
+    "tabs": {
+      "pending": "පොරොත්තුවෙන්",
+      "active": "සක්‍රීය",
+      "completed": "සම්පූර්ණයි",
+      "withCount": "{{label}} ({{count}})"
+    },
+    "urgency": {
+      "urgent": "හදිසි",
+      "medium": "මධ්‍යම",
+      "low": "අඩු"
+    },
+    "dashboard": {
+      "activeTicket": "සක්‍රීය රැකියා ටිකට් පත",
+      "pendingJobs": "පොරොත්තු රැකියා",
+      "completedJobs": "සම්පූර්ණ කළ රැකියා",
+      "noActive": "සක්‍රීය රැකියාවක් නැත. ආරම්භ කිරීමට පොරොත්තු රැකියාවක් භාර ගන්න.",
+      "noPending": "පොරොත්තු රැකියා නැත. පෝලිම හිස්ය.",
+      "noCompleted": "තවම සම්පූර්ණ කළ රැකියා නැත.",
+      "loading": "රැකියා ටිකට් පත් පූරණය වෙමින්…"
+    },
+    "job": {
+      "household": "ගෘහය",
+      "distance": "දුර",
+      "distanceValue": "km {{km}} ({{area}})",
+      "statusInactive": "තත්ත්වය: අක්‍රීය (දෝෂය {{code}})",
+      "statusDegraded": "තත්ත්වය: පහත වැටී ඇත",
+      "viewJob": "රැකියාව බලන්න"
+    },
+    "detail": {
+      "back": "උපකරණ පුවරුව වෙත ආපසු",
+      "jobTicket": "රැකියා ටිකට් පත · {{code}}",
+      "clientInfo": "ගනුදෙනුකරු තොරතුරු",
+      "name": "නම",
+      "contact": "සම්බන්ධතාවය",
+      "noAddress": "ස්ථාන ලිපිනයක් සටහන් වී නැත",
+      "navigate": "Google Maps හරහා මඟ පෙන්වන්න",
+      "mapsErrorTitle": "Maps විවෘත කළ නොහැකි විය",
+      "mapsErrorBody": "මෙම උපාංගයේ Google Maps විවෘත කළ නොහැකි විය.",
+      "telemetry": "පද්ධති දුරස්ථ නිරීක්ෂණය",
+      "inverter": "ඉන්වර්ටරය",
+      "location": "දෝෂ ස්ථානය",
+      "errorLine": "දෝෂය {{code}}: {{message}}",
+      "noErrorCode": "දෝෂ කේතයක් වාර්තා වී නැත",
+      "history": "නඩත්තු ඉතිහාස කාලරේඛාව",
+      "noHistory": "මෙම ස්ථානයේ පෙර නඩත්තුවක් නැත.",
+      "historyError": "නඩත්තු ඉතිහාසය පූරණය කළ නොහැකි විය.",
+      "by": "{{name}} විසින්",
+      "unknownTech": "නොදන්නා තාක්ෂණවේදියා",
+      "accept": "රැකියා ටිකට් පත භාර ගන්න",
+      "acceptErrorTitle": "රැකියාව භාර ගත නොහැකි විය",
+      "acceptErrorBody": "කරුණාකර නැවත උත්සාහ කරන්න.",
+      "acceptedByYou": "ඔබ මෙම රැකියාව {{date}} දින භාර ගත්තේය.",
+      "acceptedBy": "{{name}} විසින් භාර ගන්නා ලදී.",
+      "completedOn": "{{date}} දින සම්පූර්ණ කරන ලදී."
+    },
+    "alert": {
+      "sectionTitle": "විවෘත දෝෂ අනතුරු ඇඟවීම්",
+      "critical": "බරපතළ අනතුරු ඇඟවීමක්",
+      "fault": "දෝෂ අනතුරු ඇඟවීමක්",
+      "errorCode": "දෝෂ කේතය: {{code}}",
+      "location": "ස්ථානය: {{location}}",
+      "checklist": "රෝග විනිශ්චය පිරික්සුම් ලැයිස්තුව",
+      "noChecklist": "මෙම රැකියාව සඳහා පිරික්සුම් ලැයිස්තුවක් නැත.",
+      "acceptToStart": "පිරික්සුම් ලැයිස්තුව ආරම්භ කිරීමට මෙම රැකියාව භාර ගන්න.",
+      "viewFullTicket": "සම්පූර්ණ රැකියා ටිකට් පත බලන්න",
+      "saveErrorTitle": "පිරික්සුම් ලැයිස්තුව සුරැකිය නොහැකි විය",
+      "saveErrorBody": "කරුණාකර නැවත උත්සාහ කරන්න.",
+      "noneTitle": "සියලු පද්ධති සෞඛ්‍ය සම්පන්නයි",
+      "noneBody": "දැනට විවෘත දෝෂ අනතුරු ඇඟවීම් නැත."
+    },
+    "closure": {
+      "activeJob": "සක්‍රීය රැකියාව: {{title}}",
+      "title": "රැකියා ටිකට් පත වසන්න",
+      "subtitle": "අලුත්වැඩියා පියවර තහවුරු කර කරන ලද දේ වාර්තා කරන්න.",
+      "checklist": "අමතර කොටස් සහ අලුත්වැඩියා පිරික්සුම් ලැයිස්තුව",
+      "checkedCount": "{{done}} / {{total}} නිම කළා",
+      "notes": "විසඳුම් සටහන්",
+      "notesPlaceholder": "උදා: දාමයේ 2 හි හානි වූ MC4 සම්බන්ධකය ප්‍රතිස්ථාපනය කරන ලදී. පද්ධතිය ස්ථාවර බව තහවුරු විය.",
+      "notesHint": "අලුත්වැඩියාව විස්තර කරමින් අවම වශයෙන් අක්ෂර {{min}}ක් ලියන්න.",
+      "complete": "අලුත්වැඩියාව සම්පූර්ණ කර ටිකට් පත වසන්න",
+      "errorTitle": "ටිකට් පත වසා දැමිය නොහැකි විය",
+      "errorBody": "කරුණාකර නැවත උත්සාහ කරන්න."
+    }
+  },
+  "trade": {
+    "tryAgain": "නැවත උත්සාහ කරන්න",
+    "communityMember": "ප්‍රජා සාමාජිකයා",
+    "dateUnavailable": "දිනය නොමැත",
+    "household": {
+      "live": "සජීවී",
+      "offline": "විසන්ධිතයි",
+      "available": "තිබේ",
+      "rate": "අනුපාතය",
+      "batteryState": "බැටරි තත්ත්වය (SoC)",
+      "requested": "ඉල්ලා ඇත",
+      "fallback": "ගෘහය"
+    },
+    "pool": {
+      "totalAvailable": "මුළු සංචිතයේ තිබෙන ප්‍රමාණය",
+      "householdsOnline": "සබැඳි ගෘහ",
+      "onlineOfTotal": "{{total}}න් {{online}}",
+      "avgRate": "සාමාන්‍ය සමූපකාර අනුපාතය"
+    },
+    "feature": {
+      "openModule": "මොඩියුලය විවෘතයි",
+      "readyForIntegration": "ඒකාබද්ධ කිරීමට සූදානම්",
+      "availableDesc": "සමූපකාර ගෘහ හරහා තිබෙන සූර්ය ශක්ති සංචිත පිරික්සන්න",
+      "requestsTitle": "ශක්ති ඉල්ලීම් කළමනාකරණය",
+      "requestsDesc": "P2P ශක්ති ඉල්ලීම් ඉදිරිපත් කර නිරීක්ෂණය කරන්න",
+      "approvalTitle": "ඉල්ලීම් අනුමත කිරීම / ප්‍රතික්ෂේප කිරීම",
+      "approvalDesc": "අසල්වැසි ගෘහවලින් එන ඉල්ලීම් සමාලෝචනය කරන්න",
+      "ledgerTitle": "ගනුදෙනු ගිණුම් පොත සහ ඉතිහාසය",
+      "ledgerDesc": "සම්පූර්ණ කළ ශක්ති හුවමාරු සහ ටෝකන් ගෙවීම්වල වෙනස් කළ නොහැකි ගිණුම් පොත"
+    },
+    "availableEnergy": {
+      "title": "තිබෙන ප්‍රජා ශක්තිය",
+      "loadErrorTitle": "තිබෙන ශක්තිය පූරණය කළ නොහැකි විය",
+      "searchPlaceholder": "ගෘහ සොයන්න",
+      "noMatchTitle": "ගැළපෙන ගෘහ නැත",
+      "noMatchBody": "වෙනත් සෙවුම් පදයක් උත්සාහ කරන්න.",
+      "historyDesc": "ඔබේ සම්පූර්ණ කළ P2P වෙළඳාම් බලන්න"
+    },
+    "nav": {
+      "requestEnergy": "ශක්තිය ඉල්ලන්න",
+      "myRequests": "මගේ ඉල්ලීම්",
+      "incomingRequests": "එන ඉල්ලීම්",
+      "energyRequest": "ශක්ති ඉල්ලීම",
+      "transactionDetails": "ගනුදෙනු විස්තර",
+      "transactionHistory": "ගනුදෙනු ඉතිහාසය",
+      "smartEnergyInsights": "බුද්ධිමත් ශක්ති විශ්ලේෂණ",
+      "sustainabilityImpact": "තිරසාර බලපෑම",
+      "energySharing": "ශක්ති බෙදාගැනීම",
+      "p2pTrade": "P2P වෙළඳාම"
+    },
+    "sort": {
+      "mostKwh": "වැඩිම kWh",
+      "cheapest": "ලාභම",
+      "nearest": "ආසන්නතම"
+    },
+    "sdg": {
+      "affordableCleanEnergy": "දැරිය හැකි හා පිරිසිදු ශක්තිය",
+      "sustainableCities": "තිරසාර නගර සහ ප්‍රජාවන්"
+    },
+    "surplus": {
+      "available": "තිබෙන අතිරික්තය",
+      "pendingCount_one": "පොරොත්තු {{count}}",
+      "pendingCount_other": "පොරොත්තු {{count}}",
+      "afterApproval": "අනුමැතියෙන් පසු"
+    },
+    "transaction": {
+      "sent": "යවන ලදී",
+      "received": "ලැබුණි",
+      "to": "{{party}} වෙත",
+      "from": "{{party}} වෙතින්",
+      "completed": "සම්පූර්ණයි",
+      "reversed": "ආපසු හරවන ලදී"
+    },
+    "status": {
+      "unknown": "නොදනී"
+    },
+    "request": {
+      "viewTransactionFor": "{{name}} සඳහා ගනුදෙනුව බලන්න",
+      "requestedColon": "ඉල්ලා ඇත: kWh {{amount}}",
+      "requested": "kWh {{amount}} ඉල්ලා ඇත",
+      "provider": "සැපයුම්කරු",
+      "availableEnergy": "තිබෙන ශක්තිය",
+      "amountRequired": "අවශ්‍ය ප්‍රමාණය (kWh):",
+      "estimatedCost": "ඇස්තමේන්තුගත පිරිවැය",
+      "confirmationSent": "{{name}} වෙත kWh {{amount}}ක ඉල්ලීමක් යවන ලදී",
+      "toastSent": "{{name}} වෙත ඉල්ලීම යවන ලදී",
+      "sendFailed": "ඉල්ලීම යැවිය නොහැකි විය.",
+      "submitRequest": "ඉල්ලීම ඉදිරිපත් කරන්න",
+      "noProviderSelected": "සැපයුම්කරුවෙකු තෝරා නැත.",
+      "errorAmount": "0ට වඩා වැඩි ප්‍රමාණයක් ඇතුළත් කරන්න.",
+      "errorTooMuch": "{{name}} වෙතින් kWh {{amount}} පමණක් තිබේ."
+    },
+    "errors": {
+      "loadAvailableEnergyFailed": "තිබෙන ශක්තිය පූරණය කිරීම අසාර්ථක විය.",
+      "loadMyRequestsFailed": "ඔබේ ඉල්ලීම් පූරණය කළ නොහැකි විය.",
+      "loadIncomingFailed": "එන ඉල්ලීම් පූරණය කළ නොහැකි විය.",
+      "signInRequired": "ශක්තිය ඉල්ලීමට ඔබ පිවිසිය යුතුය.",
+      "invalidAmount": "ශුන්‍යයට වඩා වැඩි වලංගු ප්‍රමාණයක් ඇතුළත් කරන්න.",
+      "requestNoLongerPending": "මෙම ඉල්ලීම තවදුරටත් පොරොත්තුවෙන් නැත."
+    },
+    "incoming": {
+      "loadSurplusFailed": "තිබෙන අතිරික්තය පූරණය කළ නොහැකි විය: {{error}}",
+      "emptyTitle": "එන ඉල්ලීම් නැත",
+      "emptyBody": "අසල්වැසි ගෘහවලින් එන ඉල්ලීම් මෙහි දිස්වේ."
+    },
+    "myRequests": {
+      "emptyAllTitle": "තවම ඉල්ලීම් නැත",
+      "emptyFilteredTitle": "මෙහි කිසිවක් නැත",
+      "emptyAllBody": "ඔබේ ශක්ති ඉල්ලීම් මෙහි දිස්වනු ඇත.",
+      "emptyFilteredBody": "මෙම තත්ත්වයේ ඉල්ලීම් නැත.",
+      "browseButton": "තිබෙන ශක්තිය පිරික්සන්න"
+    },
+    "approval": {
+      "unavailableTitle": "ඉල්ලීම නොමැත",
+      "unavailableBody": "මෙම ඉල්ලීම තවදුරටත් ඔබේ පෝලිමේ නැත.",
+      "approveFailed": "මෙම ඉල්ලීම අනුමත කළ නොහැකි විය.",
+      "rejectFailed": "මෙම ඉල්ලීම ප්‍රතික්ෂේප කළ නොහැකි විය.",
+      "rejectedTitle": "ඉල්ලීම ප්‍රතික්ෂේප කරන ලදී",
+      "rejectedBody": "{{name}} ගේ ඉල්ලීම ප්‍රතික්ෂේප කර ඇත. ඔබේ අතිරික්තය වෙනස් වී නැත.",
+      "requestFrom": "ඉල්ලීම එවූයේ",
+      "requestedEnergy": "ඉල්ලූ ශක්තිය",
+      "requestedOn": "ඉල්ලූ දිනය",
+      "energyStatus": "ඔබේ ශක්ති තත්ත්වය",
+      "remainingKwh": "ඉතිරිව ඇත්තේ kWh {{amount}}",
+      "notPossible": "කළ නොහැක",
+      "sufficientSurplus": "මෙම ඉල්ලීම සම්පූර්ණ කිරීමට ඔබට ප්‍රමාණවත් අතිරික්තයක් ඇත.",
+      "insufficientSurplus": "ප්‍රමාණවත් අතිරික්තයක් නැත",
+      "message": "පණිවිඩය",
+      "reject": "ප්‍රතික්ෂේප කරන්න",
+      "approve": "අනුමත කරන්න",
+      "statusLine": "තත්ත්වය: {{status}}",
+      "alreadyProcessed": "මෙම ඉල්ලීම දැනටමත් සකස් කර ඇත.",
+      "confirmApproveTitle": "ශක්ති ඉල්ලීම අනුමත කරන්නද?",
+      "confirmApproveBody": "ඔබ {{name}} සමඟ kWh {{amount}}ක් බෙදාගැනීමට සූදානම්. ඔබේ ඉතිරි අතිරික්තය kWh {{remaining}} වනු ඇත.",
+      "confirmRejectTitle": "මෙම ඉල්ලීම ප්‍රතික්ෂේප කරන්නද?",
+      "confirmRejectBody": "ඔවුන්ගේ kWh {{amount}} ඉල්ලීම ප්‍රතික්ෂේප කළ බව {{name}} දකිනු ඇත."
+    },
+    "insights": {
+      "consumption": {
+        "higherTitle": "ඉහළ පරිභෝජනයක්",
+        "alertTag": "පරිභෝජන අනතුරු ඇඟවීමක්",
+        "higherBody": "අද ඔබේ පරිභෝජනය ඔබේ මෑත සාමාන්‍යයට වඩා {{percent}}%කින් වැඩියි.",
+        "lowerTitle": "විශිෂ්ට දියුණුවක්",
+        "tag": "පරිභෝජනය",
+        "lowerBody": "අද ඔබේ පරිභෝජනය ඔබේ මෑත සාමාන්‍යයට වඩා {{percent}}%කින් අඩුයි.",
+        "normalTitle": "සාමාන්‍ය භාවිතය",
+        "normalBody": "අද ඔබේ පරිභෝජනය ඔබේ මෑත සාමාන්‍යයට අනුරූපයි.",
+        "detail": "අද kWh {{today}} · දින 7 සාමාන්‍යය kWh {{avg}}"
+      },
+      "surplus": {
+        "title": "අතිරික්තයක් තිබේ",
+        "tag": "බෙදාගැනීමේ අවස්ථාවක්",
+        "body": "ප්‍රජාව සමඟ බෙදාගැනීමට ඔබට දැනට kWh {{surplus}}ක් තිබේ.",
+        "detail": "උත්පාදනය kWh {{prod}} − පරිභෝජනය kWh {{cons}}",
+        "cta": "ශක්තිය බෙදාගන්න"
+      },
+      "trend": {
+        "positiveTitle": "ධනාත්මක ප්‍රවණතාවක්",
+        "tag": "දින තුන් ප්‍රවණතාව",
+        "positiveBody": "අඛණ්ඩ දින 3ක් සඳහා ඔබේ ශක්ති පරිභෝජනය අඩු වී ඇත.",
+        "increasingTitle": "පරිභෝජනය වැඩි වෙමින්",
+        "increasingBody": "පසුගිය දින 3 තුළ ඔබේ පරිභෝජනය වැඩි වී ඇත."
+      }
+    },
+    "greeting": {
+      "morning": "සුබ උදෑසනක්, {{name}}",
+      "afternoon": "සුබ දහවලක්, {{name}}",
+      "evening": "සුබ සැන්දෑවක්, {{name}}"
+    },
+    "insightsScreen": {
+      "insightsTab": "විශ්ලේෂණ",
+      "impactTab": "බලපෑම",
+      "sectionLabel": "අද ඔබේ ශක්තිය",
+      "footNote": "ඔබේ මෑත ශක්ති ක්‍රියාකාරකම් මත පදනම්ව"
+    },
+    "impact": {
+      "title": "ඔබේ පිරිසිදු ශක්ති බලපෑම",
+      "subtitle": "ඔබේ සූර්ය ක්‍රියාකාරකම වඩාත් තිරසාර ප්‍රජාවකට දායක වන්නේ කෙසේදැයි බලන්න.",
+      "solarGenerated": "උත්පාදනය කළ සූර්ය ශක්තිය",
+      "sharedWithCommunity": "ප්‍රජාව සමඟ බෙදාගත් ශක්තිය",
+      "selfSufficiency": "සූර්ය ස්වයං-ප්‍රමාණවත්භාවය",
+      "sdgSectionLabel": "තිරසාර සංවර්ධනයට සහාය වීම",
+      "footNote": "ඔබේ ශක්ති වාර්තා සහ සම්පූර්ණ කළ ගනුදෙනුවලින් එකතුව"
+    },
+    "history": {
+      "subtitle": "ඔබේ සම්පූර්ණ කළ P2P ශක්ති වෙළඳාම්",
+      "thisMonth": "මෙම මාසයේ",
+      "shared": "බෙදාගත්",
+      "received": "ලැබුණු",
+      "filterSent": "යවන ලද",
+      "findAvailableEnergy": "තිබෙන ශක්තිය සොයන්න",
+      "emptySent": {
+        "title": "යවන ලද ගනුදෙනු නැත",
+        "body": "ඔබ තවම වෙනත් ගෘහයක් සමඟ ශක්තිය බෙදාගෙන නැත."
+      },
+      "emptyReceived": {
+        "title": "ලැබුණු ගනුදෙනු නැත",
+        "body": "ඔබ තවම වෙනත් ගෘහයකින් ශක්තියක් ලබාගෙන නැත."
+      },
+      "emptyAll": {
+        "title": "තවම ගනුදෙනු නැත",
+        "body": "ඔබේ සම්පූර්ණ කළ ශක්ති-බෙදාගැනීමේ ගනුදෙනු මෙහි දිස්වනු ඇත."
+      }
+    },
+    "details": {
+      "loadFailed": "ගනුදෙනු විස්තර පූරණය කළ නොහැකි විය.",
+      "loadErrorTitle": "ගනුදෙනුව පූරණය කළ නොහැකි විය",
+      "unavailableTitle": "ගනුදෙනුව නොමැත",
+      "unavailableBody": "මෙම ගනුදෙනුව නොමැත, නැතහොත් ඔබට එයට ප්‍රවේශයක් නැත.",
+      "reversedTitle": "ගනුදෙනුව ආපසු හරවන ලදී",
+      "completeTitle": "ගනුදෙනුව සම්පූර්ණයි",
+      "energyShared": "බෙදාගත් ශක්තිය",
+      "energyReceived": "ලැබුණු ශක්තිය",
+      "sectionLabel": "ගනුදෙනු විස්තර",
+      "from": "වෙතින්",
+      "to": "වෙත",
+      "you": "ඔබ",
+      "dateTime": "දිනය සහ වේලාව",
+      "status": "තත්ත්වය",
+      "transactionId": "ගනුදෙනු හැඳුනුම්පත",
+      "backToHistory": "ඉතිහාසය වෙත ආපසු",
+      "backToMyRequests": "මගේ ඉල්ලීම් වෙත ආපසු",
+      "complaintToast": "පැමිණිලි මොඩියුලයේ පැමිණිලි ආකෘතිය විවෘත වේ",
+      "reportIssue": "මෙම ගනුදෙනුව පිළිබඳ ගැටලුවක් වාර්තා කරන්න"
+    },
+    "home": {
+      "heroTitle": "P2P ශක්ති වෙළඳාම",
+      "heroSubtitle": "ප්‍රජා ශක්ති හුවමාරුව සහ ඉල්ලීම් අනුමත කිරීම්",
+      "memberTag": "සාමාජික {{number}} — {{name}}",
+      "featureHeading": "මොඩියුල විශේෂාංග",
+      "createRequest": "ශක්ති ඉල්ලීමක් සාදන්න"
     }
   }
 }
