@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDown, ArrowUp, Check, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { useTrade } from '../context/TradeContext';
@@ -20,6 +21,7 @@ import {
 } from '../components/ui';
 
 export default function TransactionDetailsScreen() {
+  const { t } = useTranslation();
   const { params, navigate } = useNavigation();
   const { getTransaction, showToast } = useTrade();
   const { user } = useAuth();
@@ -54,7 +56,7 @@ export default function TransactionDetailsScreen() {
       : fetchTransactionById(params.txnId, user?.id);
     load
       .then((data) => { if (active) setTxn(data); })
-      .catch((reason) => { if (active) setError(reason?.message || 'Could not load transaction details.'); })
+      .catch((reason) => { if (active) setError(reason?.message || t('trade.details.loadFailed')); })
       .finally(() => {
         if (active) {
           setLoading(false);
@@ -62,7 +64,7 @@ export default function TransactionDetailsScreen() {
         }
       });
     return () => { active = false; };
-  }, [params.txnId, params.requestId, params.source, user?.id, reload, getTransaction, detailKey]);
+  }, [params.txnId, params.requestId, params.source, user?.id, reload, getTransaction, detailKey, t]);
 
   if (loading || loadedKey !== detailKey) {
     return <View style={styles.missing}><ActivityIndicator color={colors.tealLight} /></View>;
@@ -71,8 +73,8 @@ export default function TransactionDetailsScreen() {
   if (error) {
     return (
       <View style={styles.missing}>
-        <EmptyState title="Could not load transaction" body={error} />
-        <PrimaryButton label="Try Again" variant="ghost" onPress={() => setReload((value) => value + 1)} />
+        <EmptyState title={t('trade.details.loadErrorTitle')} body={error} />
+        <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={() => setReload((value) => value + 1)} />
       </View>
     );
   }
@@ -80,7 +82,7 @@ export default function TransactionDetailsScreen() {
   if (!txn) {
     return (
       <View style={styles.missing}>
-        <EmptyState title="Transaction unavailable" body="This transaction is unavailable or you do not have access to it." />
+        <EmptyState title={t('trade.details.unavailableTitle')} body={t('trade.details.unavailableBody')} />
       </View>
     );
   }
@@ -99,15 +101,15 @@ export default function TransactionDetailsScreen() {
             ? <X size={32} color={colors.danger} strokeWidth={2.4} />
             : <Check size={32} color={colors.tealLight} strokeWidth={2.4} />}
         </IconBadge>
-        <Text style={styles.heroTitle}>{reversed ? 'Transaction Reversed' : 'Transaction Complete'}</Text>
+        <Text style={styles.heroTitle}>{reversed ? t('trade.details.reversedTitle') : t('trade.details.completeTitle')}</Text>
         <Text style={styles.heroAmount}>
           {kwh(txn.kwh)}
           <Text style={styles.heroUnit}>{' kWh'}</Text>
         </Text>
-        <Text style={styles.heroCaption}>{sent ? 'Energy Shared' : 'Energy Received'}</Text>
+        <Text style={styles.heroCaption}>{sent ? t('trade.details.energyShared') : t('trade.details.energyReceived')}</Text>
       </View>
 
-      <SectionLabel>Transaction details</SectionLabel>
+      <SectionLabel>{t('trade.details.sectionLabel')}</SectionLabel>
 
       <Card padding={18} style={styles.card}>
         <View style={styles.partyRow}>
@@ -115,8 +117,8 @@ export default function TransactionDetailsScreen() {
             <ArrowUp size={17} color={colors.tealLight} strokeWidth={2} />
           </IconBadge>
           <View style={styles.partyBody}>
-            <Text style={styles.partyLabel}>From</Text>
-            <Text style={styles.partyName}>{sent ? 'You' : txn.sender}</Text>
+            <Text style={styles.partyLabel}>{t('trade.details.from')}</Text>
+            <Text style={styles.partyName}>{sent ? t('trade.details.you') : (txn.sender || t('trade.household.fallback'))}</Text>
           </View>
         </View>
 
@@ -125,18 +127,18 @@ export default function TransactionDetailsScreen() {
             <ArrowDown size={17} color={colors.amberLight} strokeWidth={2} />
           </IconBadge>
           <View style={styles.partyBody}>
-            <Text style={styles.partyLabel}>To</Text>
-            <Text style={styles.partyName}>{sent ? txn.receiver : 'You'}</Text>
+            <Text style={styles.partyLabel}>{t('trade.details.to')}</Text>
+            <Text style={styles.partyName}>{sent ? (txn.receiver || t('trade.household.fallback')) : t('trade.details.you')}</Text>
           </View>
         </View>
 
         <Divider />
 
-        <DetailRow label="Date & time" value={stamp(new Date(txn.ts))} />
+        <DetailRow label={t('trade.details.dateTime')} value={stamp(new Date(txn.ts))} />
 
-        <DetailRow label="Status">
+        <DetailRow label={t('trade.details.status')}>
           <Pill
-            label={reversed ? 'REVERSED' : 'COMPLETED'}
+            label={reversed ? t('trade.transaction.reversed') : t('trade.transaction.completed')}
             color={reversed ? colors.danger : colors.tealLight}
             background={reversed ? colors.dangerTint : colors.tealTintSoft}
             dotColor={reversed ? colors.danger : colors.teal}
@@ -144,20 +146,20 @@ export default function TransactionDetailsScreen() {
           />
         </DetailRow>
 
-        <DetailRow label="Transaction ID" value={txn.ref} />
+        <DetailRow label={t('trade.details.transactionId')} value={txn.ref} />
       </Card>
 
       <PrimaryButton
-        label={fromHistory ? 'Back to History' : fromRequests ? 'Back to My Requests' : 'Done'}
+        label={fromHistory ? t('trade.details.backToHistory') : fromRequests ? t('trade.details.backToMyRequests') : t('common.done')}
         onPress={() => navigate(returnScreen)}
         style={styles.done}
       />
 
       <Pressable
-        onPress={() => showToast('Complaint form opens in the complaints module')}
+        onPress={() => showToast(t('trade.details.complaintToast'))}
         style={({ pressed }) => [styles.report, pressed && { opacity: 0.7 }]}
       >
-        <Text style={styles.reportLabel}>Report an issue with this transaction</Text>
+        <Text style={styles.reportLabel}>{t('trade.details.reportIssue')}</Text>
       </Pressable>
     </ScrollView>
   );

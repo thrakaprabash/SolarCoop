@@ -3,6 +3,12 @@
     "appName": "SolarCoop",
     "ok": "OK",
     "cancel": "Cancel",
+    "confirm": "Confirm",
+    "working": "Working…",
+    "search": "Search",
+    "done": "Done",
+    "error": "Error",
+    "delete": "Delete",
     "loading": "Loading…",
     "welcomeMessage": "Welcome to SolarCoop",
     "retry": "Retry",
@@ -10,6 +16,7 @@
       "all": "All",
       "active": "Active",
       "pending": "Pending",
+      "approved": "Approved",
       "inactive": "Inactive",
       "suspended": "Suspended",
       "open": "Open",
@@ -686,6 +693,37 @@
       "gridFrequencySub": "Synchronized",
       "telemetryPing": "Telemetry Ping",
       "telemetryPingSub": "Ultra Low"
+    },
+    "alertsHub": {
+      "title": "Alerts & Support",
+      "subtitle": "System Incidents, Complaints & Ticket Resolution",
+      "submitButton": "Submit a Complaint",
+      "myComplaints": "My Complaints",
+      "loadingText": "Loading your complaints...",
+      "emptyTitle": "No Complaints",
+      "emptyText": "You haven't submitted any complaints yet.",
+      "yourDescription": "Your Description",
+      "adminResponse": "Admin Response",
+      "editComplaint": "Edit Complaint",
+      "deleteFailed": "Could not delete complaint.",
+      "deleteConfirmTitle": "Delete Complaint",
+      "deleteConfirmMessage": "Are you sure you want to delete this open complaint?",
+      "notAuthenticated": "User not authenticated.",
+      "submitFailed": "Could not submit complaint. Please try again.",
+      "updatedTitle": "Complaint Updated",
+      "submittedTitle": "Complaint Submitted",
+      "updatedBody": "Your changes have been saved and sent to the cooperative administration.",
+      "submittedBody": "Your issue has been forwarded to the cooperative administration. You can track its status in the My Complaints list.",
+      "editInfoText": "You can edit your pending complaint details before administrators begin reviewing it.",
+      "submitInfoText": "Please provide accurate details so administrators can investigate and resolve your issue efficiently.",
+      "complaintTypeLabel": "COMPLAINT TYPE",
+      "relatedTransactionLabel": "RELATED TRANSACTION (Optional)",
+      "transactionPlaceholder": "e.g. TXN-0042",
+      "descriptionLabel": "DESCRIPTION *",
+      "charCount": "{{count}} / 500",
+      "descriptionPlaceholder": "Describe the issue clearly...",
+      "minCharsHelper": "Minimum 20 characters required.",
+      "submitComplaintButton": "Submit Complaint"
     }
   },
   "faultAlert": {
@@ -792,6 +830,239 @@
       "complete": "Complete Repair & Close Ticket",
       "errorTitle": "Could not close ticket",
       "errorBody": "Please try again."
+    }
+  },
+  "trade": {
+    "tryAgain": "Try Again",
+    "communityMember": "Community Member",
+    "dateUnavailable": "Date unavailable",
+    "household": {
+      "live": "Live",
+      "offline": "Offline",
+      "available": "Available",
+      "rate": "Rate",
+      "batteryState": "Battery State (SoC)",
+      "requested": "Requested",
+      "fallback": "Household"
+    },
+    "pool": {
+      "totalAvailable": "Total Pool Available",
+      "householdsOnline": "Households Online",
+      "onlineOfTotal": "{{online}} of {{total}}",
+      "avgRate": "Avg Co-op Rate"
+    },
+    "feature": {
+      "openModule": "Open Module",
+      "readyForIntegration": "Ready for Integration",
+      "availableDesc": "Browse available solar energy pools across co-op households",
+      "requestsTitle": "Energy Requests Management",
+      "requestsDesc": "Submit and track P2P energy request orders",
+      "approvalTitle": "Request Approval / Rejection",
+      "approvalDesc": "Review incoming requests from neighbouring households",
+      "ledgerTitle": "Transaction Ledger & History",
+      "ledgerDesc": "Immutable ledger of completed energy exchanges & token payouts"
+    },
+    "availableEnergy": {
+      "title": "Available Community Energy",
+      "loadErrorTitle": "Couldn't load available energy",
+      "searchPlaceholder": "Search households",
+      "noMatchTitle": "No households match",
+      "noMatchBody": "Try a different search term.",
+      "historyDesc": "View your completed P2P trades"
+    },
+    "nav": {
+      "requestEnergy": "Request Energy",
+      "myRequests": "My Requests",
+      "incomingRequests": "Incoming Requests",
+      "energyRequest": "Energy Request",
+      "transactionDetails": "Transaction Details",
+      "transactionHistory": "Transaction History",
+      "smartEnergyInsights": "Smart Energy Insights",
+      "sustainabilityImpact": "Sustainability Impact",
+      "energySharing": "Energy Sharing",
+      "p2pTrade": "P2P Trade"
+    },
+    "sort": {
+      "mostKwh": "Most kWh",
+      "cheapest": "Cheapest",
+      "nearest": "Nearest"
+    },
+    "sdg": {
+      "affordableCleanEnergy": "Affordable and Clean Energy",
+      "sustainableCities": "Sustainable Cities and Communities"
+    },
+    "surplus": {
+      "available": "Available Surplus",
+      "pendingCount_one": "{{count}} pending",
+      "pendingCount_other": "{{count}} pending",
+      "afterApproval": "After approval"
+    },
+    "transaction": {
+      "sent": "SENT",
+      "received": "RECEIVED",
+      "to": "To {{party}}",
+      "from": "From {{party}}",
+      "completed": "COMPLETED",
+      "reversed": "REVERSED"
+    },
+    "status": {
+      "unknown": "Unknown"
+    },
+    "request": {
+      "viewTransactionFor": "View transaction for {{name}}",
+      "requestedColon": "Requested: {{amount}} kWh",
+      "requested": "Requested {{amount}} kWh",
+      "provider": "Provider",
+      "availableEnergy": "Available Energy",
+      "amountRequired": "Amount Required (kWh):",
+      "estimatedCost": "Estimated cost",
+      "confirmationSent": "Request for {{amount}} kWh sent to {{name}}",
+      "toastSent": "Request sent to {{name}}",
+      "sendFailed": "Could not send request.",
+      "submitRequest": "Submit Request",
+      "noProviderSelected": "No provider selected.",
+      "errorAmount": "Enter an amount greater than 0.",
+      "errorTooMuch": "Only {{amount}} kWh available from {{name}}."
+    },
+    "errors": {
+      "loadAvailableEnergyFailed": "Failed to load available energy.",
+      "loadMyRequestsFailed": "Could not load your requests.",
+      "loadIncomingFailed": "Could not load incoming requests.",
+      "signInRequired": "You must be signed in to request energy.",
+      "invalidAmount": "Enter a valid amount greater than zero.",
+      "requestNoLongerPending": "This request is no longer pending."
+    },
+    "incoming": {
+      "loadSurplusFailed": "Could not load available surplus: {{error}}",
+      "emptyTitle": "No incoming requests",
+      "emptyBody": "Requests from neighbouring households appear here."
+    },
+    "myRequests": {
+      "emptyAllTitle": "No requests yet",
+      "emptyFilteredTitle": "Nothing here yet",
+      "emptyAllBody": "Your energy requests will appear here.",
+      "emptyFilteredBody": "No requests with this status.",
+      "browseButton": "Browse Available Energy"
+    },
+    "approval": {
+      "unavailableTitle": "Request unavailable",
+      "unavailableBody": "This request is no longer in your queue.",
+      "approveFailed": "Could not approve this request.",
+      "rejectFailed": "Could not reject this request.",
+      "rejectedTitle": "Request Rejected",
+      "rejectedBody": "The request from {{name}} has been rejected. Your surplus is unchanged.",
+      "requestFrom": "Request from",
+      "requestedEnergy": "Requested Energy",
+      "requestedOn": "Requested on",
+      "energyStatus": "Your energy status",
+      "remainingKwh": "{{amount}} kWh remaining",
+      "notPossible": "Not possible",
+      "sufficientSurplus": "You have enough surplus to complete this request.",
+      "insufficientSurplus": "Insufficient surplus",
+      "message": "Message",
+      "reject": "Reject",
+      "approve": "Approve",
+      "statusLine": "Status: {{status}}",
+      "alreadyProcessed": "This request has already been processed.",
+      "confirmApproveTitle": "Approve energy request?",
+      "confirmApproveBody": "You are about to share {{amount}} kWh with {{name}}. Your remaining surplus will be {{remaining}} kWh.",
+      "confirmRejectTitle": "Reject this request?",
+      "confirmRejectBody": "{{name}} will see that their request for {{amount}} kWh was declined."
+    },
+    "insights": {
+      "consumption": {
+        "higherTitle": "Higher Consumption",
+        "alertTag": "Consumption alert",
+        "higherBody": "Your consumption today is {{percent}}% higher than your recent average.",
+        "lowerTitle": "Great Progress",
+        "tag": "Consumption",
+        "lowerBody": "Your consumption today is {{percent}}% lower than your recent average.",
+        "normalTitle": "Normal Usage",
+        "normalBody": "Your consumption today is in line with your recent average.",
+        "detail": "Today {{today}} kWh · 7-day avg {{avg}} kWh"
+      },
+      "surplus": {
+        "title": "Surplus Available",
+        "tag": "Sharing opportunity",
+        "body": "You currently have {{surplus}} kWh available to share with the community.",
+        "detail": "Production {{prod}} kWh − consumption {{cons}} kWh",
+        "cta": "Share Energy"
+      },
+      "trend": {
+        "positiveTitle": "Positive Trend",
+        "tag": "Three-day trend",
+        "positiveBody": "Your energy consumption has decreased for 3 consecutive days.",
+        "increasingTitle": "Consumption Increasing",
+        "increasingBody": "Your consumption has increased over the last 3 days."
+      }
+    },
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "insightsScreen": {
+      "insightsTab": "Insights",
+      "impactTab": "Impact",
+      "sectionLabel": "Your energy today",
+      "footNote": "Based on your recent energy activity"
+    },
+    "impact": {
+      "title": "Your Clean Energy Impact",
+      "subtitle": "See how your solar activity contributes to a more sustainable community.",
+      "solarGenerated": "Solar Energy Generated",
+      "sharedWithCommunity": "Energy Shared With Community",
+      "selfSufficiency": "Solar Self-Sufficiency",
+      "sdgSectionLabel": "Supporting Sustainable Development",
+      "footNote": "Totals from your energy records and completed transactions"
+    },
+    "history": {
+      "subtitle": "Your completed P2P energy trades",
+      "thisMonth": "This month",
+      "shared": "Shared",
+      "received": "Received",
+      "filterSent": "Sent",
+      "findAvailableEnergy": "Find Available Energy",
+      "emptySent": {
+        "title": "No Sent Transactions",
+        "body": "You haven't shared energy with another household yet."
+      },
+      "emptyReceived": {
+        "title": "No Received Transactions",
+        "body": "You haven't received energy from another household yet."
+      },
+      "emptyAll": {
+        "title": "No Transactions Yet",
+        "body": "Your completed energy-sharing transactions will appear here."
+      }
+    },
+    "details": {
+      "loadFailed": "Could not load transaction details.",
+      "loadErrorTitle": "Could not load transaction",
+      "unavailableTitle": "Transaction unavailable",
+      "unavailableBody": "This transaction is unavailable or you do not have access to it.",
+      "reversedTitle": "Transaction Reversed",
+      "completeTitle": "Transaction Complete",
+      "energyShared": "Energy Shared",
+      "energyReceived": "Energy Received",
+      "sectionLabel": "Transaction details",
+      "from": "From",
+      "to": "To",
+      "you": "You",
+      "dateTime": "Date & time",
+      "status": "Status",
+      "transactionId": "Transaction ID",
+      "backToHistory": "Back to History",
+      "backToMyRequests": "Back to My Requests",
+      "complaintToast": "Complaint form opens in the complaints module",
+      "reportIssue": "Report an issue with this transaction"
+    },
+    "home": {
+      "heroTitle": "P2P Energy Trading",
+      "heroSubtitle": "Community Energy Exchange & Request Approvals",
+      "memberTag": "Member {{number}} — {{name}}",
+      "featureHeading": "Module Features",
+      "createRequest": "Create Energy Request"
     }
   }
 }

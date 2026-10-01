@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
 
@@ -9,14 +10,17 @@ export default function ConfirmModal({
   visible,
   title,
   body,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   tone = 'teal',
   busy = false,
   onConfirm,
   onCancel,
 }) {
+  const { t } = useTranslation();
   const teal = tone === 'teal';
+  const resolvedConfirmLabel = confirmLabel || t('common.confirm');
+  const resolvedCancelLabel = cancelLabel || t('common.cancel');
 
   return (
     <Modal
@@ -35,7 +39,7 @@ export default function ConfirmModal({
               onPress={busy ? undefined : onCancel}
               style={({ pressed }) => [styles.button, styles.cancel, busy && styles.busy, pressed && { opacity: 0.85 }]}
             >
-              <Text style={styles.cancelLabel}>{cancelLabel}</Text>
+              <Text style={styles.cancelLabel}>{resolvedCancelLabel}</Text>
             </Pressable>
 
             <Pressable
@@ -48,7 +52,7 @@ export default function ConfirmModal({
               ]}
             >
               {busy ? <ActivityIndicator size="small" color={colors.text} /> : teal ? <Check size={15} color={colors.text} strokeWidth={2.4} /> : null}
-              <Text style={styles.confirmLabel}>{busy ? 'Working…' : confirmLabel}</Text>
+              <Text style={styles.confirmLabel}>{busy ? t('common.working') : resolvedConfirmLabel}</Text>
             </Pressable>
           </View>
         </View>

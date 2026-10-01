@@ -1,30 +1,33 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
-import { STATUS_STYLE } from '../data/requests';
+import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { kwh, money } from '../utils/format';
 
 export default function RequestRow({ request, last, onPress }) {
+  const { t } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  const displayName = request.name || t('trade.household.fallback');
 
   return (
     <Pressable
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={onPress ? `View transaction for ${request.name}` : undefined}
+      accessibilityLabel={onPress ? t('trade.request.viewTransactionFor', { name: displayName }) : undefined}
       style={({ pressed }) => [styles.row, !last && styles.divided, pressed && { opacity: 0.8 }]}
     >
       <View style={styles.left}>
         <View style={styles.statusRow}>
           <View style={[styles.dot, { backgroundColor: tone.color }]} />
-          <Text style={[styles.status, { color: tone.color }]}>{request.status.toUpperCase()}</Text>
+          <Text style={[styles.status, { color: tone.color }]}>{t(STATUS_LABEL_KEY[request.status] || STATUS_LABEL_KEY.Pending).toUpperCase()}</Text>
         </View>
-        <Text style={styles.name}>{request.name}</Text>
-        <Text style={styles.detail}>{'Requested: ' + kwh(request.kwh) + ' kWh'}</Text>
-        <Text style={styles.date}>{request.date}</Text>
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.detail}>{t('trade.request.requestedColon', { amount: kwh(request.kwh) })}</Text>
+        <Text style={styles.date}>{request.date || t('trade.dateUnavailable')}</Text>
       </View>
 
       {request.rate != null ? (

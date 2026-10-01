@@ -13,7 +13,7 @@ const STATUS_LABELS = {
 const requestDate = (timestamp) => {
   const date = new Date(timestamp);
   return Number.isNaN(date.getTime())
-    ? 'Date unavailable'
+    ? null
     : date.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -24,7 +24,7 @@ const requestDate = (timestamp) => {
 const requestDateTime = (timestamp) => {
   const date = new Date(timestamp);
   return Number.isNaN(date.getTime())
-    ? 'Date unavailable'
+    ? null
     : date.toLocaleString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -71,7 +71,7 @@ export async function fetchMyRequests(userId) {
     return {
       id: String(row.id),
       providerId: row.provider_id,
-      name: provider?.name || 'Household',
+      name: provider?.name || null,
       kwh: Number(row.amount_requested_kwh),
       // No price snapshot is stored on energy_requests; avoid displaying a
       // historical cost calculated using the provider's current rate.
@@ -109,8 +109,8 @@ export async function fetchIncomingRequests(providerId) {
 
   const requesterById = new Map(requesters.map((profile) => [profile.id, profile]));
   return rows.map((row) => {
-    const name = requesterById.get(row.requester_id)?.name || 'Community Member';
-    const initials = name
+    const name = requesterById.get(row.requester_id)?.name || null;
+    const initials = (name || '')
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)

@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDown, ArrowUp } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { HISTORY_FILTERS } from '../data/transactions';
+import { HISTORY_FILTERS, HISTORY_FILTER_LABEL_KEY } from '../data/transactions';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
@@ -12,6 +13,7 @@ import { TransactionCard } from '../components';
 import { Card, Chip, Divider, IconBadge, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
 
 export default function TransactionHistoryScreen() {
+  const { t } = useTranslation();
   const { transactions } = useTrade();
   const { navigate } = useNavigation();
   const [filter, setFilter] = useState('All');
@@ -26,10 +28,10 @@ export default function TransactionHistoryScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenTitle title="Transaction History" subtitle="Your completed P2P energy trades" />
+      <ScreenTitle title={t('trade.nav.transactionHistory')} subtitle={t('trade.history.subtitle')} />
 
       <Card padding={18} style={styles.summary}>
-        <Text style={styles.summaryLabel}>This month</Text>
+        <Text style={styles.summaryLabel}>{t('trade.history.thisMonth')}</Text>
         <View style={styles.totals}>
           <View style={styles.total}>
             <IconBadge size={34}>
@@ -40,7 +42,7 @@ export default function TransactionHistoryScreen() {
                 {kwh(totals.sent)}
                 <Text style={styles.totalUnit}>{' kWh'}</Text>
               </Text>
-              <Text style={styles.totalCaption}>Shared</Text>
+              <Text style={styles.totalCaption}>{t('trade.history.shared')}</Text>
             </View>
           </View>
 
@@ -55,7 +57,7 @@ export default function TransactionHistoryScreen() {
                 {kwh(totals.received)}
                 <Text style={styles.totalUnit}>{' kWh'}</Text>
               </Text>
-              <Text style={styles.totalCaption}>Received</Text>
+              <Text style={styles.totalCaption}>{t('trade.history.received')}</Text>
             </View>
           </View>
         </View>
@@ -63,7 +65,7 @@ export default function TransactionHistoryScreen() {
 
       <View style={styles.filters}>
         {HISTORY_FILTERS.map((f) => (
-          <Chip key={f} label={f} active={f === filter} onPress={() => setFilter(f)} />
+          <Chip key={f} label={t(HISTORY_FILTER_LABEL_KEY[f])} active={f === filter} onPress={() => setFilter(f)} />
         ))}
       </View>
 
@@ -82,11 +84,11 @@ export default function TransactionHistoryScreen() {
 
       {visible.length === 0 ? (
         <Card padding={24} style={styles.empty}>
-          <Text style={styles.emptyTitle}>{empty.title}</Text>
-          <Text style={styles.emptyBody}>{empty.body}</Text>
+          <Text style={styles.emptyTitle}>{t(empty.titleKey)}</Text>
+          <Text style={styles.emptyBody}>{t(empty.bodyKey)}</Text>
           {filter === 'All' ? (
             <PrimaryButton
-              label="Find Available Energy"
+              label={t('trade.history.findAvailableEnergy')}
               variant="ghost"
               onPress={() => navigate('list')}
               style={styles.emptyCta}

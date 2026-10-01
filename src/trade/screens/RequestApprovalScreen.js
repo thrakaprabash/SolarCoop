@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Check, TriangleAlert, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
-import { STATUS_STYLE } from '../data/requests';
+import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
@@ -20,6 +21,7 @@ import {
 } from '../components/ui';
 
 export default function RequestApprovalScreen() {
+  const { t } = useTranslation();
   const { params, navigate } = useNavigation();
   const { getIncoming, surplus, providersLoading, providersError, refreshProviders, approveIncoming, rejectIncoming } = useTrade();
   const [modal, setModal] = useState('');
@@ -37,7 +39,7 @@ export default function RequestApprovalScreen() {
   if (!request) {
     return (
       <View style={styles.missing}>
-        <EmptyState title="Request unavailable" body="This request is no longer in your queue." />
+        <EmptyState title={t('trade.approval.unavailableTitle')} body={t('trade.approval.unavailableBody')} />
       </View>
     );
   }
@@ -57,7 +59,7 @@ export default function RequestApprovalScreen() {
       if (error) throw error;
       navigate('transaction', { txnId: data.id, source: 'approval' });
     } catch (error) {
-      setActionError(error?.message || 'Could not approve this request.');
+      setActionError(error?.message || t('trade.approval.approveFailed'));
     } finally {
       pendingAction.current = false;
       setBusy(false);
@@ -75,7 +77,7 @@ export default function RequestApprovalScreen() {
       if (error) throw error;
       setRejected(true);
     } catch (error) {
-      setActionError(error?.message || 'Could not reject this request.');
+      setActionError(error?.message || t('trade.approval.rejectFailed'));
     } finally {
       pendingAction.current = false;
       setBusy(false);
@@ -89,15 +91,15 @@ export default function RequestApprovalScreen() {
         <IconBadge size={72} background="rgba(239,68,68,0.15)" borderColor="rgba(239,68,68,0.4)">
           <X size={34} color={colors.danger} strokeWidth={2.2} />
         </IconBadge>
-        <Text style={styles.resultTitle}>Request Rejected</Text>
+        <Text style={styles.resultTitle}>{t('trade.approval.rejectedTitle')}</Text>
         <Text style={styles.resultBody}>
-          {'The request from ' + request.name + ' has been rejected. Your surplus is unchanged.'}
+          {t('trade.approval.rejectedBody', { name: request.name || t('trade.communityMember') })}
         </Text>
         <Pressable
           onPress={() => navigate('incoming')}
           style={({ pressed }) => [styles.doneButton, pressed && { opacity: 0.85 }]}
         >
-          <Text style={styles.doneLabel}>Done</Text>
+          <Text style={styles.doneLabel}>{t('common.done')}</Text>
         </Pressable>
       </View>
     );
@@ -105,40 +107,40 @@ export default function RequestApprovalScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <SectionLabel>Request from</SectionLabel>
+      <SectionLabel>{t('trade.approval.requestFrom')}</SectionLabel>
 
       <Card style={styles.requester}>
         <IconBadge size={46}>
           <Text style={styles.initials}>{request.initials}</Text>
         </IconBadge>
         <View>
-          <Text style={styles.name}>{request.name}</Text>
-          <Text style={styles.role}>Community Member</Text>
+          <Text style={styles.name}>{request.name || t('trade.communityMember')}</Text>
+          <Text style={styles.role}>{t('trade.communityMember')}</Text>
         </View>
       </Card>
 
       <Card padding={18} style={styles.amountCard}>
-        <Text style={styles.amountLabel}>Energy Request</Text>
+        <Text style={styles.amountLabel}>{t('trade.nav.energyRequest')}</Text>
         <View style={styles.amountBlock}>
           <Text style={styles.amount}>
             {kwh(request.kwh)}
             <Text style={styles.amountUnit}>{' kWh'}</Text>
           </Text>
-          <Text style={styles.amountCaption}>Requested Energy</Text>
+          <Text style={styles.amountCaption}>{t('trade.approval.requestedEnergy')}</Text>
         </View>
         <Divider />
-        <DetailRow label="Requested on" value={request.when} />
+        <DetailRow label={t('trade.approval.requestedOn')} value={request.when || t('trade.dateUnavailable')} />
       </Card>
 
-      <SectionLabel>Your energy status</SectionLabel>
+      <SectionLabel>{t('trade.approval.energyStatus')}</SectionLabel>
 
       <Notice tone="error" message={actionError} />
 
       {providersError ? (
         <View style={styles.balanceError}>
-          <Notice tone="error" message={'Could not load available surplus: ' + providersError} />
+          <Notice tone="error" message={t('trade.incoming.loadSurplusFailed', { error: providersError })} />
           <Pressable onPress={refreshProviders} style={styles.retryBalance}>
-            <Text style={styles.retryBalanceLabel}>Try Again</Text>
+            <Text style={styles.retryBalanceLabel}>{t('trade.tryAgain')}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -149,29 +151,29 @@ export default function RequestApprovalScreen() {
         <SurplusCard
           surplus={surplus}
           large
-          afterText={pending ? (canApprove ? kwh(remaining) + ' kWh remaining' : 'Not possible') : null}
+          afterText={pending ? (canApprove ? t('trade.approval.remainingKwh', { amount: kwh(remaining) }) : t('trade.approval.notPossible')) : null}
           afterColor={canApprove ? colors.tealLight : colors.danger}
         />
       ) : null}
 
       {pending && canApprove ? (
-        <Notice tone="success" message="You have enough surplus to complete this request." />
+        <Notice tone="success" message={t('trade.approval.sufficientSurplus')} />
       ) : null}
 
       {pending && !canApprove && !providersLoading && !providersError ? (
         <View style={styles.shortfall}>
           <View style={styles.shortfallHead}>
             <TriangleAlert size={16} color={colors.danger} strokeWidth={2} />
-            <Text style={styles.shortfallTitle}>Insufficient surplus</Text>
+            <Text style={styles.shortfallTitle}>{t('trade.approval.insufficientSurplus')}</Text>
           </View>
-          <DetailRow label="Requested" value={kwh(request.kwh) + ' kWh'} />
-          <DetailRow label="Available" value={kwh(surplus) + ' kWh'} />
+          <DetailRow label={t('trade.household.requested')} value={kwh(request.kwh) + ' kWh'} />
+          <DetailRow label={t('trade.household.available')} value={kwh(surplus) + ' kWh'} />
         </View>
       ) : null}
 
       {request.message ? (
         <View style={styles.messageCard}>
-          <Text style={styles.messageLabel}>Message</Text>
+          <Text style={styles.messageLabel}>{t('trade.approval.message')}</Text>
           <Text style={styles.messageBody}>{'“' + request.message + '”'}</Text>
         </View>
       ) : null}
@@ -185,7 +187,7 @@ export default function RequestApprovalScreen() {
               style={({ pressed }) => [styles.action, styles.reject, pressed && { opacity: 0.85 }]}
             >
               <X size={16} color={colors.danger} strokeWidth={2.2} />
-              <Text style={[styles.actionLabel, { color: colors.danger }]}>Reject</Text>
+              <Text style={[styles.actionLabel, { color: colors.danger }]}>{t('trade.approval.reject')}</Text>
             </Pressable>
 
             <Pressable
@@ -199,7 +201,7 @@ export default function RequestApprovalScreen() {
               ]}
             >
               <Check size={16} color={colors.text} strokeWidth={2.4} />
-              <Text style={[styles.actionLabel, { color: colors.text }]}>Approve</Text>
+              <Text style={[styles.actionLabel, { color: colors.text }]}>{t('trade.approval.approve')}</Text>
             </Pressable>
           </View>
         </>
@@ -208,26 +210,22 @@ export default function RequestApprovalScreen() {
           <View style={[styles.processed, { backgroundColor: tone.pillBg }]}>
             <View style={[styles.dot, { backgroundColor: tone.color }]} />
             <Text style={[styles.processedLabel, { color: tone.color }]}>
-              {'Status: ' + request.status.toUpperCase()}
+              {t('trade.approval.statusLine', { status: t(STATUS_LABEL_KEY[request.status] || STATUS_LABEL_KEY.Pending).toUpperCase() })}
             </Text>
           </View>
-          <Text style={styles.processedNote}>This request has already been processed.</Text>
+          <Text style={styles.processedNote}>{t('trade.approval.alreadyProcessed')}</Text>
         </>
       )}
 
       <ConfirmModal
         visible={modal === 'approve'}
-        title="Approve energy request?"
-        body={
-          'You are about to share ' +
-          kwh(request.kwh) +
-          ' kWh with ' +
-          request.name +
-          '. Your remaining surplus will be ' +
-          kwh(remaining) +
-          ' kWh.'
-        }
-        confirmLabel="Approve"
+        title={t('trade.approval.confirmApproveTitle')}
+        body={t('trade.approval.confirmApproveBody', {
+          amount: kwh(request.kwh),
+          name: request.name || t('trade.communityMember'),
+          remaining: kwh(remaining),
+        })}
+        confirmLabel={t('trade.approval.approve')}
         busy={busy}
         onConfirm={onApprove}
         onCancel={() => setModal('')}
@@ -235,9 +233,12 @@ export default function RequestApprovalScreen() {
 
       <ConfirmModal
         visible={modal === 'reject'}
-        title="Reject this request?"
-        body={request.name + ' will see that their request for ' + kwh(request.kwh) + ' kWh was declined.'}
-        confirmLabel="Reject"
+        title={t('trade.approval.confirmRejectTitle')}
+        body={t('trade.approval.confirmRejectBody', {
+          name: request.name || t('trade.communityMember'),
+          amount: kwh(request.kwh),
+        })}
+        confirmLabel={t('trade.approval.reject')}
         tone="danger"
         busy={busy}
         onConfirm={onReject}

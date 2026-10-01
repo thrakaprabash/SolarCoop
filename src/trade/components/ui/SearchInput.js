@@ -1,17 +1,19 @@
 import React from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Search } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
 
-export default function SearchInput({ value, onChangeText, placeholder = 'Search' }) {
+export default function SearchInput({ value, onChangeText, placeholder }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.field}>
       <Search size={15} color={colors.textFaint} strokeWidth={2} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder || t('common.search')}
         placeholderTextColor={colors.textFaint}
         style={styles.input}
         autoCorrect={false}

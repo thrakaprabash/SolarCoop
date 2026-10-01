@@ -1,12 +1,14 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowDown, ArrowUp, ChevronRight } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { clock, kwh, shortDate } from '../utils/format';
 import { Card, Pill } from './ui';
 
 export default function TransactionCard({ transaction, onPress }) {
+  const { t } = useTranslation();
   const sent = transaction.dir === 'sent';
   const color = sent ? colors.tealLight : colors.amberLight;
   const Arrow = sent ? ArrowUp : ArrowDown;
@@ -18,19 +20,23 @@ export default function TransactionCard({ transaction, onPress }) {
         <View style={styles.body}>
           <View style={styles.dirRow}>
             <Arrow size={12} color={color} strokeWidth={2.6} />
-            <Text style={[styles.dirLabel, { color }]}>{sent ? 'SENT' : 'RECEIVED'}</Text>
+            <Text style={[styles.dirLabel, { color }]}>{sent ? t('trade.transaction.sent') : t('trade.transaction.received')}</Text>
           </View>
 
           <Text style={styles.kwh}>
             {kwh(transaction.kwh)}
             <Text style={styles.unit}>{' kWh'}</Text>
           </Text>
-          <Text style={styles.party}>{(sent ? 'To ' : 'From ') + transaction.party}</Text>
+          <Text style={styles.party}>
+            {sent
+              ? t('trade.transaction.to', { party: transaction.party || t('trade.household.fallback') })
+              : t('trade.transaction.from', { party: transaction.party || t('trade.household.fallback') })}
+          </Text>
 
           <View style={styles.footRow}>
             <Text style={styles.when}>{shortDate(when) + ' • ' + clock(when)}</Text>
             <Pill
-              label="COMPLETED"
+              label={t('trade.transaction.completed')}
               color={colors.tealLight}
               background={colors.tealTintSoft}
               style={styles.completed}

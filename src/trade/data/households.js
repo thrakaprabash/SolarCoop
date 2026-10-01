@@ -7,9 +7,9 @@ export const HOUSEHOLDS = [
 ];
 
 export const SORTS = [
-  { key: 'kwh', label: 'Most kWh' },
-  { key: 'rate', label: 'Cheapest' },
-  { key: 'dist', label: 'Nearest' },
+  { key: 'kwh', labelKey: 'trade.sort.mostKwh' },
+  { key: 'rate', labelKey: 'trade.sort.cheapest' },
+  { key: 'dist', labelKey: 'trade.sort.nearest' },
 ];
 
 export default HOUSEHOLDS;
