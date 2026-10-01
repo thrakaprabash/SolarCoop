@@ -32,7 +32,7 @@ export function monthTotals(list, now = new Date()) {
 
 export const emptyCopy = (filter) =>
   filter === 'Sent'
-    ? { title: 'No Sent Transactions', body: "You haven't shared energy with another household yet." }
+    ? { titleKey: 'trade.history.emptySent.title', bodyKey: 'trade.history.emptySent.body' }
     : filter === 'Received'
-    ? { title: 'No Received Transactions', body: "You haven't received energy from another household yet." }
-    : { title: 'No Transactions Yet', body: 'Your completed energy-sharing transactions will appear here.' };
+    ? { titleKey: 'trade.history.emptyReceived.title', bodyKey: 'trade.history.emptyReceived.body' }
+    : { titleKey: 'trade.history.emptyAll.title', bodyKey: 'trade.history.emptyAll.body' };

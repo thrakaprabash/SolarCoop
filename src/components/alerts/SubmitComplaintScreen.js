@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { ArrowLeft, Send, AlertCircle } from 'lucide-react-native';
 
@@ -20,7 +21,15 @@ const COMPLAINT_TYPES = [
   'Other',
 ];
 
+const TYPE_LABEL_KEY = {
+  'Transaction Error': 'admin.complaints.type.transactionError',
+  'Billing Dispute':   'admin.complaints.type.billingDispute',
+  'System Fault':      'admin.complaints.type.systemFault',
+  'Other':             'admin.complaints.type.other',
+};
+
 export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = null }) => {
+  const { t } = useTranslation();
   const isEditing = !!existingComplaint;
   
   const [type, setType] = useState(existingComplaint?.type || COMPLAINT_TYPES[0]);
@@ -54,7 +63,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
       }, 1200);
     } catch (err) {
       console.error('[SubmitComplaintScreen] Submission failed:', err);
-      setSubmitError(err.message || 'Could not submit complaint. Please try again.');
+      setSubmitError(err.message || t('member.alertsHub.submitFailed'));
       setIsSubmitting(false);
     }
   };
@@ -66,12 +75,12 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
           <Send size={32} color={COLORS.tealLight} />
         </View>
         <Text style={styles.successTitle}>
-          {isEditing ? 'Complaint Updated' : 'Complaint Submitted'}
+          {isEditing ? t('member.alertsHub.updatedTitle') : t('member.alertsHub.submittedTitle')}
         </Text>
         <Text style={styles.successText}>
           {isEditing
-            ? 'Your changes have been saved and sent to the cooperative administration.'
-            : 'Your issue has been forwarded to the cooperative administration. You can track its status in the My Complaints list.'}
+            ? t('member.alertsHub.updatedBody')
+            : t('member.alertsHub.submittedBody')}
         </Text>
       </View>
     );
@@ -87,18 +96,18 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
           <ArrowLeft size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEditing ? 'Edit Complaint' : 'Submit a Complaint'}</Text>
+        <Text style={styles.headerTitle}>{isEditing ? t('member.alertsHub.editComplaint') : t('member.alertsHub.submitButton')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        
+
         <View style={[GLASS.card, styles.infoCard]}>
           <AlertCircle size={20} color={COLORS.amberLight} />
           <Text style={styles.infoText}>
-            {isEditing 
-              ? 'You can edit your pending complaint details before administrators begin reviewing it.'
-              : 'Please provide accurate details so administrators can investigate and resolve your issue efficiently.'}
+            {isEditing
+              ? t('member.alertsHub.editInfoText')
+              : t('member.alertsHub.submitInfoText')}
           </Text>
         </View>
 
@@ -110,19 +119,19 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
 
         {/* Type Selector */}
         <View style={styles.section}>
-          <Text style={styles.label}>COMPLAINT TYPE</Text>
+          <Text style={styles.label}>{t('member.alertsHub.complaintTypeLabel')}</Text>
           <View style={styles.chipRow}>
-            {COMPLAINT_TYPES.map(t => {
-              const active = type === t;
+            {COMPLAINT_TYPES.map(ct => {
+              const active = type === ct;
               return (
                 <TouchableOpacity
-                  key={t}
+                  key={ct}
                   style={[styles.chip, active && styles.chipActive]}
-                  onPress={() => setType(t)}
+                  onPress={() => setType(ct)}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {t}
+                    {t(TYPE_LABEL_KEY[ct])}
                   </Text>
                 </TouchableOpacity>
               );
@@ -132,10 +141,10 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
 
         {/* Optional Transaction ID */}
         <View style={styles.section}>
-          <Text style={styles.label}>RELATED TRANSACTION (Optional)</Text>
+          <Text style={styles.label}>{t('member.alertsHub.relatedTransactionLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. TXN-0042"
+            placeholder={t('member.alertsHub.transactionPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={transaction}
             onChangeText={setTransaction}
@@ -146,14 +155,14 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>DESCRIPTION *</Text>
+            <Text style={styles.label}>{t('member.alertsHub.descriptionLabel')}</Text>
             <Text style={[styles.charCount, !isValid && description.length > 0 && { color: COLORS.red }]}>
-              {description.length} / 500
+              {t('member.alertsHub.charCount', { count: description.length })}
             </Text>
           </View>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Describe the issue clearly..."
+            placeholder={t('member.alertsHub.descriptionPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={description}
             onChangeText={setDescription}
@@ -162,7 +171,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
             textAlignVertical="top"
             maxLength={500}
           />
-          <Text style={styles.helperText}>Minimum 20 characters required.</Text>
+          <Text style={styles.helperText}>{t('member.alertsHub.minCharsHelper')}</Text>
         </View>
 
         <View style={{ height: 24 }} />
@@ -178,7 +187,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
             <ActivityIndicator size="small" color="#000000" />
           ) : (
             <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled]}>
-              {isEditing ? 'Save Changes' : 'Submit Complaint'}
+              {isEditing ? t('admin.settings.saveChanges') : t('member.alertsHub.submitComplaintButton')}
             </Text>
           )}
         </TouchableOpacity>

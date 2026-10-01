@@ -1,15 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { CirclePlus } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors } from '../theme';
-import { REQUEST_FILTERS } from '../data/requests';
+import { REQUEST_FILTERS, REQUEST_FILTER_LABEL_KEY } from '../data/requests';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { RequestRow } from '../components';
 import { Card, Chip, EmptyState, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
 
 export default function MyRequestsScreen() {
+  const { t } = useTranslation();
   const {
     requests,
     requestsLoading,
@@ -41,11 +43,11 @@ export default function MyRequestsScreen() {
         />
       }
     >
-      <ScreenTitle title="My Requests" />
+      <ScreenTitle title={t('trade.nav.myRequests')} />
 
       <View style={styles.filters}>
         {REQUEST_FILTERS.map((f) => (
-          <Chip key={f} label={f} active={f === filter} onPress={() => setFilter(f)} />
+          <Chip key={f} label={t(REQUEST_FILTER_LABEL_KEY[f])} active={f === filter} onPress={() => setFilter(f)} />
         ))}
       </View>
 
@@ -53,7 +55,7 @@ export default function MyRequestsScreen() {
         <View style={styles.error}>
           <Notice tone="error" message={requestsError} />
           <PrimaryButton
-            label="Try Again"
+            label={t('trade.tryAgain')}
             variant="ghost"
             onPress={() => refreshRequests({ refresh: true })}
           />
@@ -78,15 +80,15 @@ export default function MyRequestsScreen() {
           ))}
           {visible.length === 0 ? (
             <EmptyState
-              title={requests.length === 0 ? 'No requests yet' : 'Nothing here yet'}
-              body={requests.length === 0 ? 'Your energy requests will appear here.' : 'No requests with this status.'}
+              title={requests.length === 0 ? t('trade.myRequests.emptyAllTitle') : t('trade.myRequests.emptyFilteredTitle')}
+              body={requests.length === 0 ? t('trade.myRequests.emptyAllBody') : t('trade.myRequests.emptyFilteredBody')}
             />
           ) : null}
         </Card>
       ) : null}
 
       <PrimaryButton
-        label="Browse Available Energy"
+        label={t('trade.myRequests.browseButton')}
         icon={CirclePlus}
         variant="ghost"
         onPress={() => navigate('list')}

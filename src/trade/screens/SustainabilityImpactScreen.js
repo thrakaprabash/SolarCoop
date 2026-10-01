@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Leaf, Lightbulb, Sun, Users } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { SDGS } from '../data/energy';
@@ -12,6 +13,7 @@ import { ImpactStatCard, SdgCard } from '../components';
 import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
 
 export default function SustainabilityImpactScreen() {
+  const { t } = useTranslation();
   const { impact } = useTrade();
   const { navigate } = useNavigation();
 
@@ -20,13 +22,13 @@ export default function SustainabilityImpactScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.tabs}>
-        <Chip label="Insights" icon={Lightbulb} active={false} onPress={() => navigate('insights')} />
-        <Chip label="Impact" icon={Leaf} active onPress={() => navigate('impact')} />
+        <Chip label={t('trade.insightsScreen.insightsTab')} icon={Lightbulb} active={false} onPress={() => navigate('insights')} />
+        <Chip label={t('trade.insightsScreen.impactTab')} icon={Leaf} active onPress={() => navigate('impact')} />
       </View>
 
       <ScreenTitle
-        title="Your Clean Energy Impact"
-        subtitle="See how your solar activity contributes to a more sustainable community."
+        title={t('trade.impact.title')}
+        subtitle={t('trade.impact.subtitle')}
       />
 
       <ImpactStatCard
@@ -35,27 +37,27 @@ export default function SustainabilityImpactScreen() {
         tint={colors.amberTint}
         value={kwh(sum(impact.production))}
         unit="kWh"
-        label="Solar Energy Generated"
+        label={t('trade.impact.solarGenerated')}
       />
 
       <ImpactStatCard
         icon={Users}
         value={kwh(sum(impact.sharedTransactions))}
         unit="kWh"
-        label="Energy Shared With Community"
+        label={t('trade.impact.sharedWithCommunity')}
       />
 
       <ImpactStatCard
         icon={Leaf}
         value={sufficiency + '%'}
-        label="Solar Self-Sufficiency"
+        label={t('trade.impact.selfSufficiency')}
         progress={sufficiency}
       />
 
-      <SectionLabel style={styles.sdgLabel}>Supporting Sustainable Development</SectionLabel>
+      <SectionLabel style={styles.sdgLabel}>{t('trade.impact.sdgSectionLabel')}</SectionLabel>
       <SdgCard goals={SDGS} />
 
-      <Text style={styles.footNote}>Totals from your energy records and completed transactions</Text>
+      <Text style={styles.footNote}>{t('trade.impact.footNote')}</Text>
     </ScrollView>
   );
 }

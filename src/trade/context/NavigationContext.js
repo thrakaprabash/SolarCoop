@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Lightweight screen router for the module. Screens:
@@ -12,17 +13,17 @@ const PARENT = {
   approval: 'incoming',
 };
 
-export const BACK_LABELS = {
-  request: 'Request Energy',
-  requests: 'My Requests',
-  incoming: 'Incoming Requests',
-  approval: 'Energy Request',
-  transaction: 'Transaction Details',
-  history: 'Transaction History',
-  insights: 'Smart Energy Insights',
-  impact: 'Sustainability Impact',
-  list: 'Energy Sharing',
-  trade: 'P2P Trade',
+export const BACK_LABEL_KEYS = {
+  request: 'trade.nav.requestEnergy',
+  requests: 'trade.nav.myRequests',
+  incoming: 'trade.nav.incomingRequests',
+  approval: 'trade.nav.energyRequest',
+  transaction: 'trade.nav.transactionDetails',
+  history: 'trade.nav.transactionHistory',
+  insights: 'trade.nav.smartEnergyInsights',
+  impact: 'trade.nav.sustainabilityImpact',
+  list: 'trade.nav.energySharing',
+  trade: 'trade.nav.p2pTrade',
 };
 
 /** Transaction Details is reachable from two places, so its parent is contextual. */
@@ -38,6 +39,7 @@ function parentOf(screen, params) {
 const NavigationContext = createContext(null);
 
 export function NavigationProvider({ children, initialScreen = 'list' }) {
+  const { t } = useTranslation();
   const [screen, setScreen] = useState(initialScreen);
   const [params, setParams] = useState({});
 
@@ -60,9 +62,9 @@ export function NavigationProvider({ children, initialScreen = 'list' }) {
       navigate,
       goBack,
       canGoBack: !!parentOf(screen, params),
-      backLabel: BACK_LABELS[screen] || BACK_LABELS.list,
+      backLabel: t(BACK_LABEL_KEYS[screen] || BACK_LABEL_KEYS.list),
     }),
-    [screen, params, navigate, goBack]
+    [screen, params, navigate, goBack, t]
   );
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;

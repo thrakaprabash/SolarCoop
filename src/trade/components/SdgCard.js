@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, Divider } from './ui';
 
 export default function SdgCard({ goals }) {
+  const { t } = useTranslation();
   return (
     <Card style={styles.card}>
       {goals.map((goal, i) => {
@@ -25,7 +27,7 @@ export default function SdgCard({ goals }) {
                 <Text style={[styles.badgeLabel, { color }]}>SDG</Text>
                 <Text style={[styles.badgeNumber, { color }]}>{goal.id}</Text>
               </View>
-              <Text style={styles.title}>{goal.title}</Text>
+              <Text style={styles.title}>{t(goal.titleKey)}</Text>
             </View>
             {i < goals.length - 1 ? <Divider /> : null}
           </React.Fragment>

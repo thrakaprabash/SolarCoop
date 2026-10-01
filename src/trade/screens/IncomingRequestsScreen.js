@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors } from '../theme';
 import { useTrade } from '../context/TradeContext';
@@ -8,6 +9,7 @@ import { IncomingRequestRow, SurplusCard } from '../components';
 import { Card, EmptyState, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
 
 export default function IncomingRequestsScreen() {
+  const { t } = useTranslation();
   const {
     incoming,
     incomingPendingCount,
@@ -40,14 +42,14 @@ export default function IncomingRequestsScreen() {
         <RefreshControl refreshing={incomingRefreshing} onRefresh={refresh} tintColor={colors.tealLight} />
       }
     >
-      <ScreenTitle title="Incoming Requests" />
+      <ScreenTitle title={t('trade.nav.incomingRequests')} />
 
       {providersLoading ? (
         <Card style={styles.loading}><ActivityIndicator color={colors.tealLight} /></Card>
       ) : providersError ? (
         <View style={styles.error}>
-          <Notice tone="error" message={'Could not load available surplus: ' + providersError} />
-          <PrimaryButton label="Try Again" variant="ghost" onPress={refreshProviders} />
+          <Notice tone="error" message={t('trade.incoming.loadSurplusFailed', { error: providersError })} />
+          <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={refreshProviders} />
         </View>
       ) : (
         <SurplusCard surplus={surplus} pending={incomingPendingCount} />
@@ -56,7 +58,7 @@ export default function IncomingRequestsScreen() {
       {incomingError ? (
         <View style={styles.error}>
           <Notice tone="error" message={incomingError} />
-          <PrimaryButton label="Try Again" variant="ghost" onPress={refresh} />
+          <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={refresh} />
         </View>
       ) : null}
 
@@ -77,7 +79,7 @@ export default function IncomingRequestsScreen() {
             />
           ))}
           {incoming.length === 0 ? (
-            <EmptyState title="No incoming requests" body="Requests from neighbouring households appear here." />
+            <EmptyState title={t('trade.incoming.emptyTitle')} body={t('trade.incoming.emptyBody')} />
           ) : null}
         </Card>
       ) : null}

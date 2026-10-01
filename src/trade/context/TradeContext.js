@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { TRANSACTIONS } from '../data/transactions';
 import { ENERGY, IMPACT } from '../data/energy';
@@ -11,6 +12,7 @@ const TradeContext = createContext(null);
 const EMPTY_REQUESTS = [];
 
 export function TradeProvider({ children }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const activeUserId = useRef(user?.id ?? null);
   const providersFetchId = useRef(0);
@@ -71,14 +73,14 @@ export function TradeProvider({ children }) {
     } catch (error) {
       console.error('[TradeContext] refreshProviders failed:', error?.message || error);
       if (activeUserId.current === userId && providersFetchId.current === fetchId) {
-        setProvidersError(error?.message || 'Failed to load available energy.');
+        setProvidersError(error?.message || t('trade.errors.loadAvailableEnergyFailed'));
       }
     } finally {
       if (activeUserId.current === userId && providersFetchId.current === fetchId) {
         setProvidersLoading(false);
       }
     }
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   useEffect(() => {
     refreshProviders();
@@ -137,7 +139,7 @@ export function TradeProvider({ children }) {
       return { data, error: null };
     } catch (error) {
       if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
-        setRequestsError(error?.message || 'Could not load your requests.');
+        setRequestsError(error?.message || t('trade.errors.loadMyRequestsFailed'));
       }
       return { data: null, error };
     } finally {
@@ -146,7 +148,7 @@ export function TradeProvider({ children }) {
         setRequestsRefreshing(false);
       }
     }
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   useEffect(() => {
     setRequestState({ userId: user?.id ?? null, items: EMPTY_REQUESTS });
@@ -180,7 +182,7 @@ export function TradeProvider({ children }) {
       return { data, error: null };
     } catch (error) {
       if (activeUserId.current === userId && incomingFetchId.current === fetchId) {
-        setIncomingError(error?.message || 'Could not load incoming requests.');
+        setIncomingError(error?.message || t('trade.errors.loadIncomingFailed'));
       }
       return { data: null, error };
     } finally {
@@ -189,7 +191,7 @@ export function TradeProvider({ children }) {
         setIncomingRefreshing(false);
       }
     }
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   useEffect(() => {
     setIncomingState({ userId: user?.id ?? null, items: [] });
@@ -204,10 +206,10 @@ export function TradeProvider({ children }) {
   const submitRequest = useCallback(
     async (providerId, amountKwh) => {
       if (!user?.id) {
-        return { data: null, error: new Error('You must be signed in to request energy.') };
+        return { data: null, error: new Error(t('trade.errors.signInRequired')) };
       }
       if (!Number.isFinite(amountKwh) || !(amountKwh > 0)) {
-        return { data: null, error: new Error('Enter a valid amount greater than zero.') };
+        return { data: null, error: new Error(t('trade.errors.invalidAmount')) };
       }
 
       const { data, error } = await supabase
@@ -227,12 +229,12 @@ export function TradeProvider({ children }) {
 
       return { data, error: null };
     },
-    [user?.id, refreshRequests],
+    [user?.id, refreshRequests, t],
   );
 
   const approveIncoming = useCallback(async (request) => {
     if (!request || request.status !== 'Pending') {
-      return { data: null, error: new Error('This request is no longer pending.') };
+      return { data: null, error: new Error(t('trade.errors.requestNoLongerPending')) };
     }
 
     try {
@@ -247,11 +249,11 @@ export function TradeProvider({ children }) {
       await Promise.all([refreshIncoming({ refresh: true }), refreshProviders()]);
       return { data: null, error };
     }
-  }, [refreshIncoming, refreshRequests, refreshProviders]);
+  }, [refreshIncoming, refreshRequests, refreshProviders, t]);
 
   const rejectIncoming = useCallback(async (request) => {
     if (!request || request.status !== 'Pending') {
-      return { data: null, error: new Error('This request is no longer pending.') };
+      return { data: null, error: new Error(t('trade.errors.requestNoLongerPending')) };
     }
 
     try {
@@ -262,7 +264,7 @@ export function TradeProvider({ children }) {
       await refreshIncoming({ refresh: true });
       return { data: null, error };
     }
-  }, [refreshIncoming]);
+  }, [refreshIncoming, t]);
 
   const getHousehold = useCallback((id) => households.find((h) => h.id === id) || null, [households]);
 

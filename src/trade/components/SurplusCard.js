@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Zap } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { kwh } from '../utils/format';
@@ -12,6 +13,7 @@ import { Card, Divider, IconBadge, Pill } from './ui';
  * "after approval" projection row.
  */
 export default function SurplusCard({ surplus, pending, large = false, afterText, afterColor }) {
+  const { t } = useTranslation();
   return (
     <Card padding={large ? 18 : 16} style={large ? styles.largeCard : styles.row}>
       <View style={large ? styles.largeHead : null}>
@@ -21,7 +23,7 @@ export default function SurplusCard({ surplus, pending, large = false, afterText
           </IconBadge>
         ) : null}
         <View>
-          <Text style={styles.label}>Available Surplus</Text>
+          <Text style={styles.label}>{t('trade.surplus.available')}</Text>
           <Text style={[styles.value, large && styles.valueLarge]}>
             {kwh(surplus)}
             <Text style={[styles.unit, large && styles.unitLarge]}>{' kWh'}</Text>
@@ -31,7 +33,7 @@ export default function SurplusCard({ surplus, pending, large = false, afterText
 
       {pending != null && !large ? (
         <Pill
-          label={pending + ' pending'}
+          label={t('trade.surplus.pendingCount', { count: pending })}
           color={colors.amberLight}
           background={colors.amberTint}
           style={styles.pendingPill}
@@ -42,7 +44,7 @@ export default function SurplusCard({ surplus, pending, large = false, afterText
         <>
           <Divider />
           <View style={styles.afterRow}>
-            <Text style={styles.afterLabel}>After approval</Text>
+            <Text style={styles.afterLabel}>{t('trade.surplus.afterApproval')}</Text>
             <Text style={[styles.afterValue, { color: afterColor || colors.tealLight }]}>{afterText}</Text>
           </View>
         </>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AlertsHubScreen } from './AlertsHubScreen';
 import { SubmitComplaintScreen } from './SubmitComplaintScreen';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +13,7 @@ import {
 import { fetchMyFaultAlerts, subscribeToMyFaultAlerts } from '../../services/faultAlertService';
 
 export const AlertsSection = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [screen, setScreen] = useState('hub');
   const [editingComplaint, setEditingComplaint] = useState(null);
@@ -59,7 +61,7 @@ export const AlertsSection = () => {
   );
 
   const handleCreateSubmit = async (formData) => {
-    if (!user?.id) throw new Error('User not authenticated.');
+    if (!user?.id) throw new Error(t('member.alertsHub.notAuthenticated'));
     const newRecord = await submitComplaint(user.id, formData);
     setComplaints(prev => [newRecord, ...prev]);
     // A 'System Fault' complaint raises a job server-side (0006 trigger).

@@ -13,8 +13,8 @@ export const IMPACT = {
 };
 
 export const SDGS = [
-  { id: 7, title: 'Affordable and Clean Energy', accent: 'amber' },
-  { id: 11, title: 'Sustainable Cities and Communities', accent: 'teal' },
+  { id: 7, titleKey: 'trade.sdg.affordableCleanEnergy', accent: 'amber' },
+  { id: 11, titleKey: 'trade.sdg.sustainableCities', accent: 'teal' },
 ];
 
 export default ENERGY;

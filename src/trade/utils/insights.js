@@ -3,14 +3,14 @@ import { sum } from './format';
 
 /**
  * Derives the Smart Energy Insight cards from a member's energy record.
- * icon is a key resolved by components/InsightCard.
+ * icon is a key resolved by components/InsightCard. title/tag/body/detail/cta
+ * are i18n keys (+ optional params) resolved at render time by InsightCard.
  */
 export function buildInsights(d) {
   const out = [];
   const avg = sum(d.last7Consumption) / d.last7Consumption.length;
   const diff = ((d.todayConsumption - avg) / avg) * 100;
-  const detail =
-    'Today ' + d.todayConsumption.toFixed(1) + ' kWh · 7-day avg ' + avg.toFixed(2) + ' kWh';
+  const detailParams = { today: d.todayConsumption.toFixed(1), avg: avg.toFixed(2) };
 
   if (diff > 10) {
     out.push({
@@ -18,10 +18,12 @@ export function buildInsights(d) {
       icon: 'zap',
       color: colors.amberLight,
       tint: colors.amberTint,
-      title: 'Higher Consumption',
-      tag: 'Consumption alert',
-      body: 'Your consumption today is ' + Math.round(diff) + '% higher than your recent average.',
-      detail,
+      titleKey: 'trade.insights.consumption.higherTitle',
+      tagKey: 'trade.insights.consumption.alertTag',
+      bodyKey: 'trade.insights.consumption.higherBody',
+      bodyParams: { percent: Math.round(diff) },
+      detailKey: 'trade.insights.consumption.detail',
+      detailParams,
     });
   } else if (diff < -10) {
     out.push({
@@ -29,13 +31,12 @@ export function buildInsights(d) {
       icon: 'down',
       color: colors.tealLight,
       tint: colors.tealTint,
-      title: 'Great Progress',
-      tag: 'Consumption',
-      body:
-        'Your consumption today is ' +
-        Math.round(Math.abs(diff)) +
-        '% lower than your recent average.',
-      detail,
+      titleKey: 'trade.insights.consumption.lowerTitle',
+      tagKey: 'trade.insights.consumption.tag',
+      bodyKey: 'trade.insights.consumption.lowerBody',
+      bodyParams: { percent: Math.round(Math.abs(diff)) },
+      detailKey: 'trade.insights.consumption.detail',
+      detailParams,
     });
   } else {
     out.push({
@@ -43,10 +44,11 @@ export function buildInsights(d) {
       icon: 'zap',
       color: colors.tealLight,
       tint: colors.tealTint,
-      title: 'Normal Usage',
-      tag: 'Consumption',
-      body: 'Your consumption today is in line with your recent average.',
-      detail,
+      titleKey: 'trade.insights.consumption.normalTitle',
+      tagKey: 'trade.insights.consumption.tag',
+      bodyKey: 'trade.insights.consumption.normalBody',
+      detailKey: 'trade.insights.consumption.detail',
+      detailParams,
     });
   }
 
@@ -57,42 +59,38 @@ export function buildInsights(d) {
       icon: 'sun',
       color: colors.amberLight,
       tint: colors.amberTint,
-      title: 'Surplus Available',
-      tag: 'Sharing opportunity',
-      body:
-        'You currently have ' + surplus.toFixed(1) + ' kWh available to share with the community.',
-      detail:
-        'Production ' +
-        d.todayProduction.toFixed(1) +
-        ' kWh − consumption ' +
-        d.todayConsumption.toFixed(1) +
-        ' kWh',
-      cta: 'Share Energy',
+      titleKey: 'trade.insights.surplus.title',
+      tagKey: 'trade.insights.surplus.tag',
+      bodyKey: 'trade.insights.surplus.body',
+      bodyParams: { surplus: surplus.toFixed(1) },
+      detailKey: 'trade.insights.surplus.detail',
+      detailParams: { prod: d.todayProduction.toFixed(1), cons: d.todayConsumption.toFixed(1) },
+      ctaKey: 'trade.insights.surplus.cta',
     });
   }
 
-  const t = d.last3Consumption;
-  const trail = t.map((v) => v.toFixed(1)).join(' → ') + ' kWh';
-  if (t[0] > t[1] && t[1] > t[2]) {
+  const last3 = d.last3Consumption;
+  const trail = last3.map((v) => v.toFixed(1)).join(' → ') + ' kWh';
+  if (last3[0] > last3[1] && last3[1] > last3[2]) {
     out.push({
       id: 'trend',
       icon: 'down',
       color: colors.tealLight,
       tint: colors.tealTint,
-      title: 'Positive Trend',
-      tag: 'Three-day trend',
-      body: 'Your energy consumption has decreased for 3 consecutive days.',
+      titleKey: 'trade.insights.trend.positiveTitle',
+      tagKey: 'trade.insights.trend.tag',
+      bodyKey: 'trade.insights.trend.positiveBody',
       detail: trail,
     });
-  } else if (t[0] < t[1] && t[1] < t[2]) {
+  } else if (last3[0] < last3[1] && last3[1] < last3[2]) {
     out.push({
       id: 'trend',
       icon: 'up',
       color: colors.amberLight,
       tint: colors.amberTint,
-      title: 'Consumption Increasing',
-      tag: 'Three-day trend',
-      body: 'Your consumption has increased over the last 3 days.',
+      titleKey: 'trade.insights.trend.increasingTitle',
+      tagKey: 'trade.insights.trend.tag',
+      bodyKey: 'trade.insights.trend.increasingBody',
       detail: trail,
     });
   }
