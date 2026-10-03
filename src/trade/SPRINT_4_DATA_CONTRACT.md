@@ -4,6 +4,8 @@ Updated: 4 October 2026. Status: **daily snapshot convention adopted by the user
 
 ## Current daily contract (supersedes earlier unresolved notes)
 
+Fixture execution revealed surplus_kwh is a generated column in the live schema. Never write it directly. The revised requester fixtures omit it, cap production at consumption, and return maximum generated surplus for inspection. On 4 October their expected generation is 24 kWh (revised from 30); estimated coverage stays 72.7%. The failed single-statement insertion was atomic; successful creation is still pending user execution.
+
 The user explicitly chose to define each energy_records reading as accumulated production/consumption for its Asia/Colombo calendar day, using the latest reading per day. This is a campus-project convention, not an independently verified sensor specification. Earlier unknown-semantics notes below record the history before this decision.
 
 - `utils/dailyEnergyReadings.js` is the replaceable normalization adapter. It selects greatest recorded_at, then greatest bigint id for equal timestamps; it never sums snapshots or falls back to an older amount when the latest amount is invalid.
