@@ -23,7 +23,7 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 ## Story status
 
-- SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Provider saved outcomes, direction/history filters, details/return routes, Sync, and Energy/P2P routing checked on 4 October. UI account-switch checks remain open.
+- SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Provider saved outcomes, direction/history filters, details/return routes, Sync, and Energy/P2P routing checked on 4 October. Provider-to-requester switch checked: requester name/no-reading state, provider balance absent, saved outcomes and matching received history/details, persistence after browser reload. Concurrent in-flight switching remains covered only by automated tests.
 - SOL-180: Tamil Impact card overflow reproduced and fixed within the component; refreshed browser confirmed wrapping, 40 tests and production build passed. Shared bottom-navigation crowding recorded without editing teammate code.
 - SOL-182: real readings/freshness/name/loading/retry integrated. Daily average/comparison/trend calculations remain unavailable with unknown record semantics.
 - SOL-183: real completed outgoing month-to-date total integrated. Generation and Estimated solar coverage calculations remain unavailable for the same reason.
@@ -44,6 +44,6 @@ Provider P2P screenshots and rehearsal findings are recorded in `evidence/sprint
 ## Next work
 
 1. Verify new Insights/Impact UI, retry, period boundaries, and zero versus unavailable states.
-2. Complete provider/account-switch checks and fix only reproduced component defects.
+2. Complete remaining browser outage checks; provider/requester saved-record walkthrough and settled account-switch check are verified.
 3. Resolve daily calculation acceptance separately without inventing measurement semantics or changing teammates' sources.
-4. Rehearse on the intended device, capture readable evidence, and perform final review before merge/Jira completion.
+4. Record the selected web-browser demo and perform final review before merge/Jira completion. Native phone checks are outside the chosen demo scope and remain unverified.

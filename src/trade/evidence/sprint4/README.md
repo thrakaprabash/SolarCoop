@@ -38,6 +38,18 @@ Checked in the signed-in browser on 4 October using existing saved records:
 
 Received filter showed no received transactions; Sent showed the saved outgoing trade. Done returned to Incoming Requests, Back to History returned to history, and Sync restored the saved row. Energy opened Insights from history and showed the 3.7 kWh trade balance; P2P reopened Available Community Energy. No live requests or transfers were created. Account-switch and recording remain open. The user selected a web-browser demo; native device checks are outside this demo scope.
 
+## Requester account-switch rehearsal
+
+Checked on 4 October after the user switched from provider to SolarCoop Test Requester:
+
+- [Insights after switch](requester-switch-insights.jpg): requester greeting and no readings; provider August reading and 3.7 kWh balance absent.
+- [Impact after switch](requester-switch-impact.jpg): October 1–4 period, zero outgoing sharing, unavailable solar metrics; Sync completed.
+- [Saved request outcomes](requester-outcomes.jpg): completed and rejected 0.5 kWh tests.
+- [Requester transaction](requester-transaction.jpg): Vihanga Perera -> You, ENERGY RECEIVED, same saved completed reference.
+- [Requester history](requester-history.jpg): September received trade and zero October totals.
+
+Back to My Requests returned correctly. Browser reload retained the session and reopening My Requests restored both outcomes. This verifies settled UI after the account switch, not every intermediate frame or concurrent in-flight account change. No new live data was created. Profile/credential screens were excluded from evidence.
+
 ## Still needed
 
 - P2P request/provider/history/details recording and final rehearsal.

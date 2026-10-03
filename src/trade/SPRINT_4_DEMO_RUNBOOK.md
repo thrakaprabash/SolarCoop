@@ -1,6 +1,6 @@
 # SOL-181 — SolarCoop demo runbook
 
-Prepared: 3 October 2026. Status: walkthrough prepared; full rehearsal and evidence capture pending.
+Prepared: 3 October 2026. Status: saved-record provider/requester browser walkthrough and analytics screenshots verified; recording and additional outage checks pending.
 
 ## Setup
 
@@ -21,7 +21,7 @@ Use the existing ignored .env. The user signs into each test account; never stor
 | Role | Existing account/evidence | Expected behavior |
 | --- | --- | --- |
 | Requester | SolarCoop Test Requester | Saved 0.5 kWh completed request and separate rejected request to Vihanga Perera; received transaction in September history. |
-| Provider | Vihanga Perera | Sender of the saved completed trade; authenticated read check found one August energy reading. User must sign in for provider UI rehearsal. |
+| Provider | Vihanga Perera | Sender of the saved completed trade; authenticated read check found one August energy reading. Provider saved-record browser walkthrough verified on 4 October. |
 | Unrelated member | Existing third-member database access check | Historical test confirmed no access to the saved transaction. Current UI check remains pending. |
 
 Saved reference: `TXN-E3BED65B5B0641CE870E330558931BEC`.
