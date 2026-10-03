@@ -32,7 +32,7 @@ function harness(services = {}) {
     .replace('export default TradeContext;', '')
     .replace('return <TradeContext.Provider value={value}>{children}</TradeContext.Provider>;', 'return value;');
   const dependencies = {
-    ...hooks, ENERGY: {}, IMPACT: {}, sum: (values) => values.reduce((a, b) => a + b, 0),
+    ...hooks, sum: (values) => values.reduce((a, b) => a + b, 0),
     useAuth: () => ({ user }), useTranslation: () => ({ t: (key) => key }),
     fetchMyRequests: async () => [], fetchIncomingRequests: async () => [],
     approveRequest: async () => 'saved-transaction', rejectRequest: async () => true,
