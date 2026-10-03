@@ -56,8 +56,13 @@ The user adopted latest snapshot per Colombo day as daily accumulated kWh. Curre
 
 History offline check supplied by the user: [original error state](history-offline-before.png). Loading ended, Try Again appeared, and the saved September transaction remained visible. The raw fetch error and unlabelled cached totals prompted a component-only copy/state fix. The user subsequently reported the updated History and Insights offline checks work fine; no updated offline screenshots were supplied. Direct browser checks after reconnection verified History Sync restored the saved received trade and Insights Sync ended with the requester no-readings state, without errors. Recovery captures: [History](history-recovered.jpg), [Insights](insights-recovered.jpg).
 
+## Numeric analytics with approved synthetic readings
+
+The user approved and created nine requester-only readings on 4 October (IDs 10–18, maximum generated surplus 0). Direct browser captures: [Insights](daily-insights-fixtures.jpg), [Impact](daily-impact-fixtures.jpg). Values reconciled to the fixtures: 15.0 today, 10.0 average, 7/7 baseline, 50.0% above provisionally, decreasing trend, 24.0 October generation, 72.7% estimated coverage and four matched days. Insights Sync reproduced the values. These are live database/UI checks using synthetic test readings, not sensor measurements. See SPRINT_4_ANALYTICS_FIXTURE_MANIFEST.md for ownership and cleanup IDs.
+
+[Lower Impact capture](daily-impact-fixtures-lower.jpg) shows the percentage bar and coverage explanation. Earlier empty-state captures precede these fixtures; numeric verification supersedes their then-pending status.
+
 ## Still needed
 
 - P2P recording and playback review; new live actions only if separately authorized.
-- Positive-data live analytics check under the adopted snapshot convention.
 - Native phone checks remain unverified outside the selected browser-demo scope.
