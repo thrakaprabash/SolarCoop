@@ -75,6 +75,7 @@ export default function JobClosureScreen() {
 
   const doneCount = job.checklist.filter(i => i.done).length;
   const notesOk = notes.trim().length >= MIN_NOTES;
+  const photosOk = job.repairPhotos.length > 0;
 
   const handleToggle = async (index) => {
     try {
@@ -85,7 +86,7 @@ export default function JobClosureScreen() {
   };
 
   const handleComplete = async () => {
-    if (!notesOk || busy) return;
+    if (!notesOk || !photosOk || busy) return;
     setSaving(true);
     try {
       await completeJob(job.id, notes);
@@ -133,6 +134,7 @@ export default function JobClosureScreen() {
               onPress={() => handleToggle(i)}
               disabled={busy}
               accessibilityRole="checkbox"
+              aria-checked={item.done}
               accessibilityState={{ checked: item.done, disabled: busy }}
             >
               <View style={[styles.box, item.done && styles.boxDone]}>
@@ -171,16 +173,19 @@ export default function JobClosureScreen() {
           ) : null}
         </View>
 
+        {!photosOk && <Text style={styles.hint}>{t('technician.closure.photoRequired')}</Text>}
+
         <Pressable
+          accessibilityRole="button"
           onPress={handleComplete}
-          disabled={!notesOk || busy}
+          disabled={!notesOk || !photosOk || busy}
           style={({ pressed }) => pressed && styles.pressed}
         >
           <LinearGradient
             colors={[TECH.orange, TECH.orangeDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={[styles.completeBtn, (!notesOk || busy) && styles.btnDisabled]}
+            style={[styles.completeBtn, (!notesOk || !photosOk || busy) && styles.btnDisabled]}
           >
             {saving
               ? <ActivityIndicator size="small" color="#FFFFFF" />

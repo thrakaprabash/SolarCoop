@@ -18,7 +18,7 @@ export async function uploadRepairPhoto(job, technicianId, asset) {
 
   const { data, error } = await supabase.rpc('attach_job_repair_photo', {
     p_job_id: job.id, p_path: path,
-  });
+  }).single();
   if (error) {
     // The delete policy preserves a photo if the RPC committed but its response was lost.
     await bucket.remove([path]).catch(() => {});

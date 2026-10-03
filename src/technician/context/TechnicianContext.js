@@ -140,20 +140,15 @@ export const TechnicianProvider = ({ children, onExit }) => {
     return saveJobChange(jobId, () => serviceUploadRepairPhoto(job, technicianId, asset));
   }, [jobs, technicianId, saveJobChange]);
 
-  // ─── completeJob ────────────────────────────────────────────────────────────
-  /**
-   * SOL-201 — Active → Completed, with resolution notes. The household's
-   * alert card reads this same row, so it updates too.
-   */
+  // SOL-204: complete after queued saves, then show the ticket in the Completed tab.
   const completeJob = useCallback(async (jobId, resolutionNotes) => {
-    const job = jobs.find(j => j.id === jobId);
-    if (!job) throw new Error('This job is no longer on your board.');
-    const updated = await serviceCompleteJob(jobId, { resolutionNotes, checklist: job.checklist });
-    setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    const updated = await saveJobChange(jobId, () => serviceCompleteJob(jobId, { resolutionNotes }));
     setClosureOpen(false);
+    setSelectedJobId(null);
+    setTechBottomTab('dashboard');
     setJobFilter('completed');
     return updated;
-  }, [jobs]);
+  }, [saveJobChange]);
 
   // ─── Live sync (SOL-201) ────────────────────────────────────────────────────
   // Apply every jobs change straight onto the board: new faults appear, jobs

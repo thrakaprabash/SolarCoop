@@ -35,6 +35,9 @@ async function database() {
   const photoMigration = fs.readFileSync('supabase/migrations/0008_job_repair_photos.sql', 'utf8');
   await db.exec(photoMigration);
   await db.exec(fs.readFileSync('supabase/migrations/0009_job_repair_drafts.sql', 'utf8'));
+  const closureMigration = fs.readFileSync('supabase/migrations/0010_job_closure_record.sql', 'utf8');
+  await db.exec(closureMigration);
+  await db.exec(closureMigration);
   await db.exec(photoMigration); // migrations must also tolerate being run again in the SQL Editor.
   await db.exec(`
     grant usage on schema public, storage, auth to authenticated, anon;
@@ -53,7 +56,7 @@ async function upload(db, path = PATH) {
     ('repair-evidence', $1, '{"mimetype":"image/jpeg","size":1024}')`, [path]);
 }
 async function attach(db, path = PATH) {
-  return db.query('select (public.attach_job_repair_photo($1, $2)).*', [JOB, path]);
+  return db.query('select * from public.attach_job_repair_photo($1, $2)', [JOB, path]);
 }
 
 test('private photo policies deny other technicians and households; saved evidence cannot be deleted', async () => {
@@ -94,7 +97,7 @@ test('attachment requires a real matching upload, valid metadata and an active j
     await asUser(db, TECH);
     await assert.rejects(attach(db), /10 MB/);
     await db.exec('reset role');
-    await db.query(`update public.jobs set status='completed' where id=$1`, [JOB]);
+    await db.query(`update public.jobs set status='pending' where id=$1`, [JOB]);
     await asUser(db, TECH);
     await assert.rejects(upload(db, JOB + '/late.jpg'), /row-level security/);
     await assert.rejects(attach(db), /active job/);
@@ -105,7 +108,7 @@ test('checklist toggles keep saved steps and notes persist without closing the j
   const db = await database();
   try {
     await asUser(db, TECH);
-    const toggle = index => db.query('select (public.toggle_job_checklist_item($1, $2)).*', [JOB, index]);
+    const toggle = index => db.query('select * from public.toggle_job_checklist_item($1, $2)', [JOB, index]);
     await toggle(0);
     const after = await toggle(1);
     assert.equal(after.rows[0].diagnostic_checklist[0].done, true);
@@ -114,7 +117,7 @@ test('checklist toggles keep saved steps and notes persist without closing the j
     assert.equal((await db.query('select diagnostic_checklist from public.jobs where id=$1', [JOB])).rows[0].diagnostic_checklist[0].done, false);
     await assert.rejects(toggle(-1), /does not exist/);
     await assert.rejects(toggle(99), /does not exist/);
-    const saved = await db.query('select (public.save_job_resolution_notes($1, $2)).*', [JOB, '  Replaced connector  ']);
+    const saved = await db.query('select * from public.save_job_resolution_notes($1, $2)', [JOB, '  Replaced connector  ']);
     assert.equal(saved.rows[0].resolution_notes, 'Replaced connector');
     assert.equal(saved.rows[0].status, 'active');
     await db.query('select public.save_job_resolution_notes($1, $2)', [JOB, '']);
@@ -122,5 +125,59 @@ test('checklist toggles keep saved steps and notes persist without closing the j
     await asUser(db, OTHER);
     await assert.rejects(toggle(0), /assigned technician/);
     await assert.rejects(db.query('select public.save_job_resolution_notes($1, $2)', [JOB, 'Not my repair']), /assigned technician/);
+  } finally { await db.close(); }
+});
+
+test('closing saves one immutable record with the latest checklist, photos and household message', async () => {
+  const db = await database();
+  try {
+    await asUser(db, TECH);
+    await upload(db); await attach(db);
+    await db.query('select public.toggle_job_checklist_item($1, 0)', [JOB]);
+    const closed = (await db.query('select * from public.complete_job_ticket($1, $2)', [JOB, '  Replaced damaged connector and tested system.  '])).rows[0];
+    assert.equal(closed.status, 'completed');
+    assert.equal(closed.closure_record.notes, 'Replaced damaged connector and tested system.');
+    assert.equal(closed.closure_record.checklist[0].done, true);
+    assert.equal(closed.closure_record.photos[0].path, PATH);
+    assert.equal(closed.closure_record.technicianId, TECH);
+    assert.equal(new Date(closed.closure_record.completedAt).getTime(), new Date(closed.completed_at).getTime());
+    assert.equal(closed.consumer_message, 'The technician has completed the repair. Thank you for your patience.');
+    const retry = (await db.query('select * from public.complete_job_ticket($1, $2)', [JOB, 'Different retry notes'])).rows[0];
+    assert.deepEqual(retry.closure_record, closed.closure_record);
+    await assert.rejects(db.query('select public.toggle_job_checklist_item($1, 0)', [JOB]), /active repair/);
+    await assert.rejects(db.query('select public.save_job_resolution_notes($1, $2)', [JOB, 'Changed later']), /active job/);
+    await assert.rejects(db.query("update public.jobs set status='active' where id=$1", [JOB]), /cannot be changed/);
+    await assert.rejects(db.query("update public.jobs set closure_record='{}' where id=$1", [JOB]), /cannot be changed/);
+    await asUser(db, OWNER);
+    const household = (await db.query('select status, consumer_message from public.jobs where id=$1', [JOB])).rows[0];
+    assert.equal(household.status, 'completed');
+    assert.match(household.consumer_message, /completed the repair/);
+    assert.equal((await db.query('select * from storage.objects')).rows.length, 0);
+    await assert.rejects(db.query('select public.complete_job_ticket($1, $2)', [JOB, 'Household cannot close']), /assigned technician/);
+    await db.exec('reset role');
+    await db.query('delete from public.profiles where id=$1', [TECH]);
+    const retained = (await db.query('select technician_id, closure_record from public.jobs where id=$1', [JOB])).rows[0];
+    assert.equal(retained.technician_id, null);
+    assert.equal(retained.closure_record.technicianId, TECH);
+  } finally { await db.close(); }
+});
+
+test('invalid or incomplete closure rolls back and does not notify the household', async () => {
+  const db = await database();
+  try {
+    await asUser(db, TECH);
+    await db.query('select public.save_job_resolution_notes($1, $2)', [JOB, 'Saved draft notes']);
+    await assert.rejects(db.query('select public.complete_job_ticket($1, $2)', [JOB, '']), /10 to 500/);
+    await assert.rejects(db.query('select public.complete_job_ticket($1, $2)', [JOB, 'Fixed the connector']), /at least one repair photo/);
+    await assert.rejects(db.query("update public.jobs set status='completed', resolution_notes='Fixed connector' where id=$1", [JOB]), /repair photo/);
+    let saved = (await db.query('select * from public.jobs where id=$1', [JOB])).rows[0];
+    assert.equal(saved.status, 'active');
+    assert.equal(saved.resolution_notes, 'Saved draft notes');
+    assert.equal(saved.completed_at, null);
+    assert.equal(saved.closure_record, null);
+    await db.query(`update public.jobs set repair_photos='[{"path":"missing"}]' where id=$1`, [JOB]);
+    await assert.rejects(db.query('select public.complete_job_ticket($1, $2)', [JOB, 'Fixed connector']), /photos are missing/);
+    await asUser(db, OTHER);
+    await assert.rejects(db.query('select public.complete_job_ticket($1, $2)', [JOB, 'Not my repair']), /assigned technician/);
   } finally { await db.close(); }
 });

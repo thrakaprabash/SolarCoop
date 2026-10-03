@@ -412,7 +412,8 @@
       "acceptErrorBody": "Please try again.",
       "acceptedByYou": "You accepted this job on {{date}}.",
       "acceptedBy": "Accepted by {{name}}.",
-      "completedOn": "Completed on {{date}}."
+      "completedOn": "Completed on {{date}}.",
+      "closureRecord": "Repair Completion Record"
     },
     "alert": {
       "sectionTitle": "Open Fault Alerts",
@@ -438,7 +439,7 @@
       "notes": "Resolution Notes",
       "notesPlaceholder": "e.g. Replaced damaged MC4 connector on string 2. System verified stable.",
       "notesHint": "Write at least {{min}} characters describing the repair.",
-      "complete": "Complete Repair & Close Ticket",
+      "complete": "Complete Resolution & Close Ticket",
       "errorTitle": "Could not close ticket",
       "errorBody": "Please try again.",
       "evidence": "Repair Evidence",
@@ -455,7 +456,8 @@
       "saveNotes": "Save Notes",
       "notesUnsaved": "Unsaved changes",
       "notesSaved": "Notes saved",
-      "notesErrorTitle": "Could not save repair notes"
+      "notesErrorTitle": "Could not save repair notes",
+      "photoRequired": "Add at least one repair photo before closing the ticket."
     }
   }
 }

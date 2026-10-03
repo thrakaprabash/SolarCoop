@@ -50,6 +50,7 @@ export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem,
             onPress={() => onToggleItem(i)}
             disabled={!canEditChecklist}
             accessibilityRole="checkbox"
+              aria-checked={item.done}
             accessibilityState={{ checked: item.done, disabled: !canEditChecklist }}
           >
             <View style={[
