@@ -52,6 +52,8 @@ Back to My Requests returned correctly. Browser reload retained the session and 
 
 ## Still needed
 
+History offline check supplied by the user: [original error state](history-offline-before.png). Loading ended, Try Again appeared, and the saved September transaction remained visible. The raw fetch error and unlabelled cached totals prompted a component-only copy/state fix. The user subsequently reported the updated History and Insights offline checks work fine; no updated offline screenshots were supplied. Direct browser checks after reconnection verified History Sync restored the saved received trade and Insights Sync ended with the requester no-readings state, without errors. Recovery captures: [History](history-recovered.jpg), [Insights](insights-recovered.jpg).
+
 - P2P request/provider/history/details recording and final rehearsal.
 - Native phone, keyboard, and gesture checks.
 - Verified daily source contract before live averages/generation/coverage can appear.
