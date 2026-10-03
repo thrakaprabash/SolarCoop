@@ -23,6 +23,7 @@ export const DEFAULT_WIDGET_LAYOUT = [
   { id: 'quickActions', labelKey: 'member.dashboard.widget.quickActions', visible: true, locked: false },
 ];
 export const WIDGET_STORAGE_KEY = '@solarcoop_widget_layout_v1';
+export const ACTIVE_SUBTAB_STORAGE_KEY = '@solarcoop_active_subtab_v1';
 
 // ─── Offline / fallback mock data ────────────────────────────────────────────
 // Kept as defaults so the dashboard renders even when Supabase is unreachable.
@@ -219,8 +220,10 @@ export const EnergyProvider = ({ children }) => {
   // Main bottom navigation tab
   const [mainBottomTab, setMainBottomTab] = useState('dashboard');
 
-  // Active dashboard sub-tab
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Active dashboard sub-tab (SOL-189: Cached & persisted)
+  const [activeTab, setActiveTabState] = useState('dashboard');
+  const [visitedTabs, setVisitedTabs] = useState(['dashboard']);
+  const tabStateCache = useRef({});
 
   // Household vs Community Co-op Mode
   const [viewScope, setViewScope] = useState('household');
@@ -309,6 +312,48 @@ export const EnergyProvider = ({ children }) => {
       await AsyncStorage.removeItem(WIDGET_STORAGE_KEY);
     } catch (e) {
       console.warn('[EnergyContext] Failed to reset widget layout:', e);
+    }
+  }, []);
+
+  // ── SOL-189: Load saved sub-tab on mount ──
+  useEffect(() => {
+    const loadSavedSubTab = async () => {
+      try {
+        const savedTab = await AsyncStorage.getItem(ACTIVE_SUBTAB_STORAGE_KEY);
+        if (savedTab && ['dashboard', 'production', 'consumption', 'surplus', 'deficit', 'history', 'charts', 'summary'].includes(savedTab)) {
+          setActiveTabState(savedTab);
+          setVisitedTabs(prev => prev.includes(savedTab) ? prev : [...prev, savedTab]);
+        }
+      } catch (e) {
+        console.warn('[EnergyContext] Failed to load saved active tab:', e);
+      }
+    };
+    loadSavedSubTab();
+  }, []);
+
+  const setActiveTab = useCallback((tabId) => {
+    setActiveTabState(tabId);
+    setVisitedTabs(prev => (prev.includes(tabId) ? prev : [...prev, tabId]));
+    AsyncStorage.setItem(ACTIVE_SUBTAB_STORAGE_KEY, tabId).catch(() => {});
+  }, []);
+
+  const updateTabStateCache = useCallback((tabId, state) => {
+    tabStateCache.current[tabId] = {
+      ...(tabStateCache.current[tabId] || {}),
+      ...state,
+      cachedAt: Date.now(),
+    };
+  }, []);
+
+  const getTabStateCache = useCallback((tabId) => {
+    return tabStateCache.current[tabId] || null;
+  }, []);
+
+  const clearTabStateCache = useCallback((tabId) => {
+    if (tabId) {
+      delete tabStateCache.current[tabId];
+    } else {
+      tabStateCache.current = {};
     }
   }, []);
 
@@ -563,11 +608,15 @@ export const EnergyProvider = ({ children }) => {
         isDarkMode,
         setIsDarkMode,
 
-        // Navigation state
+        // Navigation state & SOL-189 Tab Caching
         mainBottomTab,
         setMainBottomTab,
         activeTab,
         setActiveTab,
+        visitedTabs,
+        updateTabStateCache,
+        getTabStateCache,
+        clearTabStateCache,
         viewScope,
         setViewScope,
 

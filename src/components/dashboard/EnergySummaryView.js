@@ -1,14 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
-import { Award, DollarSign, TreePine, CloudOff, Flame } from 'lucide-react-native';
+import {
+  Award,
+  DollarSign,
+  TreePine,
+  CloudOff,
+  Flame,
+  Share2,
+  Sparkles,
+} from 'lucide-react-native';
+import { ShareImpactModal } from './ShareImpactModal';
 
-// SOL-103: Energy Summary View Component
+// SOL-103 & SOL-188: Energy Summary View & Impact Scorecard Export Component
 export const EnergySummaryView = () => {
   const { t } = useTranslation();
   const { metrics } = useEnergy();
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   const treesCount = Math.max(1, Math.round((metrics.co2SavedKg || 34.2) * 0.53));
   const monthlyCo2 = Math.round((metrics.co2SavedKg || 34.2) * 30);
@@ -19,9 +29,20 @@ export const EnergySummaryView = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>{t('member.summary.header')}</Text>
+      {/* Header with Title & SOL-188 Share Button */}
+      <View style={styles.headerRow}>
+        <View style={styles.storyBadgeHeader}>
+          <Text style={styles.storyBadgeTitle}>{t('member.summary.header')}</Text>
+          <Text style={styles.storyBadgeSub}>Household sustainability & grid independence</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.headerShareBtn, GLASS.card, SHADOWS.amberGlow]}
+          onPress={() => setShareModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <Share2 size={15} color={COLORS.amberLight} />
+          <Text style={styles.headerShareBtnText}>Share Impact</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Grid Independence Scorecard */}
@@ -89,6 +110,36 @@ export const EnergySummaryView = () => {
         </View>
       </View>
 
+      {/* SOL-188: Share & Export Card Banner */}
+      <View style={[styles.shareBannerCard, GLASS.card, SHADOWS.glass]}>
+        <View style={styles.shareBannerLeft}>
+          <View style={styles.shareBannerIcon}>
+            <Sparkles size={20} color={COLORS.amberLight} />
+          </View>
+          <View style={styles.shareBannerTextCol}>
+            <Text style={styles.shareBannerTitle}>Celebrate Your Clean Energy</Text>
+            <Text style={styles.shareBannerDesc}>
+              Generate a verified impact scorecard to share across social media or download as an image.
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.shareBannerBtn}
+          onPress={() => setShareModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Share2 size={16} color="#121212" strokeWidth={2.5} />
+          <Text style={styles.shareBannerBtnText}>Export Card</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* SOL-188: Modal */}
+      <ShareImpactModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        metrics={metrics}
+      />
+
       {/* Bottom Spacer */}
       <View style={{ height: 20 }} />
     </ScrollView>
@@ -98,8 +149,31 @@ export const EnergySummaryView = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16, paddingBottom: 24 },
-  storyBadgeHeader: { gap: 2 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
+  storyBadgeHeader: { gap: 2, flex: 1 },
   storyBadgeTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, color: COLORS.textBright },
+  storyBadgeSub: { fontSize: 12, color: COLORS.textSecondary },
+  headerShareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  headerShareBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.amberLight,
+  },
   scoreCard: {
     padding: 18,
     borderRadius: 20,
@@ -152,4 +226,53 @@ const styles = StyleSheet.create({
   impactValue: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary },
   impactLabel: { fontSize: 12, fontWeight: '700', color: COLORS.textSecondary },
   impactSub: { fontSize: 10.5, color: COLORS.textMuted, marginTop: 2, lineHeight: 14 },
+  shareBannerCard: {
+    padding: 16,
+    borderRadius: 18,
+    gap: 14,
+    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  shareBannerLeft: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  shareBannerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.amberGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareBannerTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  shareBannerTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textBright,
+  },
+  shareBannerDesc: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: COLORS.textSecondary,
+  },
+  shareBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.amber,
+    ...SHADOWS.amberGlow,
+  },
+  shareBannerBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#121212',
+  },
 });
