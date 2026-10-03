@@ -36,7 +36,8 @@ These hook checks use an isolated state harness, not a mounted native screen. Di
 - [x] Provider Impact screenshot reviewed: same 26 August reading, October 1–3 reporting period, 0.0 kWh shared, and unavailable generation.
 - [ ] Physical-device checks and network recovery on the other P2P/Insights screens. Impact browser recovery is verified by user-provided screenshots.
 - [x] New status/explanation text has English, Sinhala, and Tamil component-local translations, using the current app language. All 15 keys, value substitutions, locale variants, and English fallback were checked. Impact card text can wrap within available width.
-- [ ] Visual language-switch checks and Sinhala/Tamil wording review on the intended device.
+- [x] Direct browser language-switch checks: Sinhala/Tamil Insights and Impact rendered with translated statuses, correct dates/balance, and scroll access to lower cards. English restored afterwards. Evidence saved under evidence/sprint4.
+- [ ] Sinhala/Tamil native-speaker wording review and intended physical-device checks.
 
 SOL-182 and SOL-183 are partially implemented, not fully accepted. No fake daily figures or sample greetings remain in their live paths.
 
@@ -65,6 +66,8 @@ The screenshot shows the 2026-10-01 to 2026-10-03 Colombo period, latest reading
 `utils/analyticsText.js` supplies the new status/explanation strings without editing shared dictionaries. Existing translated tabs, headings, and action labels still use the shared translation hook. No calculation or query contract changed. Automated copy checks passed for all 15 keys in all three languages, date/amount/period substitution, regional language identifiers, and unknown-language fallback. The 30-test regression suite still passes. Mounted language switching and phone layout remain unverified because browser control is disconnected.
 
 Production web export for this follow-up passed with 2,406 modules into ignored `.expo/sprint4-localized-analytics-export`.
+
+On 4 October browser control reconnected. Language checks found a Tamil Impact coverage label extending outside the card: the nested row had no width constraint. ImpactStatCard now constrains that row to 100% of the card's content width. After restarting/reloading the preview, the label wrapped correctly. DOM widths were label/detail=217.6 px, row=281.6 px, card=319.2 px at the current browser viewport. Lower coverage explanation/SDG cards were reachable by scrolling. All 40 tests and production export (2,406 modules, `.expo/sprint4-card-layout-export`) passed. Shared Tamil bottom-navigation labels were visually crowded; shared code was not changed.
 
 ## User-provided network failure screenshot
 

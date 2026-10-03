@@ -1,0 +1,35 @@
+# Sprint 4 visual evidence
+
+Prepared: 4 October 2026. Browser screenshots do not prove native-phone testing or completed daily calculations.
+
+## Screenshots supplied by the user
+
+Copies preserve the original bytes; source/destination SHA-256 hashes matched. Each was reviewed when supplied in this chat. No profile/credential screens are included.
+
+| File | What it shows |
+| --- | --- |
+| [requester-insights.png](requester-insights.png) | Correct requester name, no energy records, unavailable daily insights. |
+| [requester-impact.png](requester-impact.png) | October 1–3 period, no energy records, zero outgoing sharing, unavailable solar metrics. |
+| [provider-insights.png](provider-insights.png) | Provider name, August 26 reading, no reading today, guarded 3.7 kWh balance. |
+| [provider-impact.png](provider-impact.png) | Provider August reading, October 1–3 period, zero October sharing. |
+| [impact-offline.png](impact-offline.png) | Energy and ledger errors, Try Again, unavailable sharing instead of false zero. |
+| [impact-recovered.png](impact-recovered.png) | Errors cleared, reading and zero sharing restored; period updated to October 4. |
+
+## Direct browser language checks
+
+Captured after browser control reconnected on 4 October. Existing provider account was used; no requests, trades, readings, or profile fields were changed. Language was switched through the existing controls for the planned checks and restored to English afterwards.
+
+- [Sinhala Insights](sinhala-insights.jpg)
+- [Sinhala Impact](sinhala-impact.jpg)
+- [Sinhala Impact lower content](sinhala-impact-lower.jpg)
+- [Tamil Insights](tamil-insights.jpg)
+- [Tamil Impact](tamil-impact.jpg)
+- [Tamil Impact lower content](tamil-impact-lower.jpg)
+
+Text selection, dates, guarded balance, shared totals, and scroll reachability were checked. These are rendering checks, not a native-speaker translation review. The Tamil Impact card-width defect found during these checks is recorded in the bug log; Tamil Impact screenshots show the verified fix after restart/reload. Sinhala captures precede that width fix and showed no card overflow. The shared Tamil bottom navigation remains crowded; it was not edited.
+
+## Still needed
+
+- P2P request/provider/history/details recording and final rehearsal.
+- Native phone, keyboard, and gesture checks.
+- Verified daily source contract before live averages/generation/coverage can appear.

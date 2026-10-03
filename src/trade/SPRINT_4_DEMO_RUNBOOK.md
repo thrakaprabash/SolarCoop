@@ -64,7 +64,7 @@ For authorized disposable test requests only: submit -> requester Pending -> pro
 - Real empty/stale Insights state and Impact period/shared total.
 - Retry/recovery and phone demonstration.
 
-Keep credentials, private account details and unrelated members out of captures. Screenshot/recording files have not yet been created; do not represent this runbook as captured demo evidence.
+Keep credentials, private account details and unrelated members out of captures. The analytics screenshot bundle is under `evidence/sprint4/README.md`; it contains the supplied empty/stale/failure/recovery states and direct browser language checks. P2P recording, physical-device evidence, and full rehearsal remain pending.
 
 ## Demo limits to explain
 
