@@ -16,13 +16,13 @@ Prepared: 4 October 2026. Target: approximately 3–4 minutes, plus the account 
 | 0:00–0:20 | P2P Trade → My Requests | “SolarCoop lets community members request available solar energy. Requests are saved to the database. Here are our completed and rejected test requests.” |
 | 0:20–0:50 | Completed request → transaction details | “This 0.5 kWh request was completed by Vihanga Perera. Approval completes the transfer and creates one transaction. The requester sees it as energy received.” |
 | 0:50–1:15 | Back to My Requests → overview → Transaction History | “History shows the saved September transaction. October totals are zero because this transfer belongs to September. Sync reloads the saved data.” |
-| 1:15–1:40 | Energy → Insights | “Insights uses the signed-in account's real readings. This test account has no readings, so the app explains that instead of displaying sample figures.” |
-| 1:40–2:05 | Impact | “Impact shows the reporting period and completed outgoing energy shared with the community. Received energy is excluded. Daily calculations use our latest-reading-per-day project convention. Missing readings remain unavailable, with coverage shown.” |
+| 1:15–1:40 | Energy → Insights | “We added nine approved synthetic readings to this test account. The latest daily snapshot gives 15 kWh today, a 10 kWh seven-day average, and a provisional 50% increase. The previous three completed days decrease.” |
+| 1:40–2:05 | Impact | “For 1–4 October, those test readings give 24 kWh generated and 72.7% estimated solar coverage across four matched days. This is an energy-balance estimate, not measured solar use. Completed outgoing sharing remains separate at zero.” |
 | Pause | Switch to Vihanga Perera without recording credentials | Resume on P2P Trade. |
 | 2:05–2:35 | Incoming Requests → completed test request | “The provider sees the same completed request and the separate rejected request. The transaction reference matches, with energy sent from this account.” |
 | 2:35–3:00 | Transaction History | “The provider's history records the same 0.5 kWh as sent. Rejection creates no transfer. We leave other members' pending requests untouched.” |
 | 3:00–3:25 | Energy → Insights | “The provider has an August reading, clearly marked as old. The 3.7 kWh available balance comes from the guarded trade balance; it is not today's production.” |
-| 3:25–3:45 | End on Impact or history | “The component handles account changes, missing readings, refresh failures, and retry. Daily calculations are connected using the last snapshot per Colombo day; today is marked so far. These accounts still need current-period readings to show numeric results.” |
+| 3:25–3:45 | End on Impact or history | “The component handles account changes, missing readings, refresh failures, and retry. Our requester data is synthetic for testing; the provider still has an old August reading. Daily calculations use the last snapshot per Colombo day, with today marked so far.” |
 
 Optional recovery segment: use the existing offline/recovery screenshots from `evidence/sprint4/README.md`, or record a deliberate offline refresh and reconnect/retry. Do not present a screenshot as a video of a new live action. Record the updated friendly History error if demonstrating that fix; the original offline screenshot predates it.
 
@@ -53,7 +53,7 @@ Optional recovery segment: use the existing offline/recovery screenshots from `e
 | Approval/rejection database guards | Earlier Sprint 3 rollback checks passed. New Sprint 4 action recording and simultaneous-session test remain open. |
 | Error recovery | Impact screenshots verified; updated History/Insights offline checks reported successful by user, recovery verified directly. |
 | Analytics source and state handling | Account-scoped reading/ledger reads, dates, zero/unavailable states and account switch verified. |
-| Daily averages, trends, generation, coverage | Connected under user-adopted daily-snapshot convention; 48 tests pass. Positive-data live UI verification remains pending. |
+| Daily averages, trends, generation, coverage | Connected under user-adopted convention; 48 tests pass. Positive-data browser results reconciled to approved synthetic readings on 4 October; fixture IDs and screenshots saved. |
 | Regression | 40 tests and production web export passed after the latest History fix. |
 | Demo | Script and screenshot evidence ready; video capture/playback review remains open. Browser selected by user; native device testing remains unverified. |
 | Delivery | Story-keyed commits pushed to codex/SOL-179-sprint4-baseline. Jira completion and merge have not been performed. |

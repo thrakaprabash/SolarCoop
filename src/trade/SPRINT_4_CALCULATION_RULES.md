@@ -1,6 +1,6 @@
 # SOL-182 / SOL-183 — daily calculation rules
 
-Updated: 4 October 2026. Status: daily calculations connected under the user-adopted latest-snapshot convention; positive-data live UI verification pending.
+Updated: 4 October 2026. Status: daily calculations connected under the user-adopted latest-snapshot convention; approved synthetic readings verified through the live browser on 4 October.
 
 `utils/energyAnalytics.js` accepts **already normalized daily totals**, one reporting-calendar date per day. It does not normalize raw energy_records or assume that their rows are daily totals. The caller must establish that contract explicitly. With the default `contractConfirmed=false`, all metrics remain unavailable even for plausible-looking inputs.
 
@@ -26,6 +26,8 @@ node --test src/trade/utils/energyAnalytics.test.cjs
 
 These are explicit local test fixtures. They do not seed live records or independently prove the meaning of the shared energy source. The live screens now calculate when suitable readings exist under the adopted convention; the current requester still shows unavailable values because it has no readings. No sensor, database, shared translation, or teammate file changed.
 
-## Verification still needed
+## Live integration verification
+
+Positive-data check completed after the approved revised fixture script returned CREATED with IDs 10–18 and maximum generated surplus 0. Insights and Impact matched all expected values, including latest-only current 15, average 10, 50% higher provisional comparison, decreasing trend, October generation 24 and estimated coverage 72.7%. See SPRINT_4_ANALYTICS_FIXTURE_MANIFEST.md. The earlier pending statements below are superseded for this fixture check; independent real-sensor semantics and native checks are not established by synthetic data.
 
 The adapter, bounded paginated reads, hook and both screens are connected. 48 tests pass, including history scoping/pagination, timestamp/Colombo boundaries, exact ID tie-breaks, invalid latest values, raw snapshots through calculations, independent read failures/retry and account races. Live empty-state rendering is verified. Positive-data browser verification requires suitable readings in a controlled account. The proposed `SPRINT_4_ANALYTICS_TEST_DATA.sql` creates explicitly synthetic requester-only fixtures and requires user approval before execution. It has not been executed or verified on the live database.

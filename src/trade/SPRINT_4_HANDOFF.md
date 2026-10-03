@@ -28,8 +28,8 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 - SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Provider saved outcomes, direction/history filters, details/return routes, Sync, and Energy/P2P routing checked on 4 October. Provider-to-requester switch checked: requester name/no-reading state, provider balance absent, saved outcomes and matching received history/details, persistence after browser reload. Concurrent in-flight switching remains covered only by automated tests.
 - SOL-180: Tamil Impact card overflow reproduced and fixed within the component; refreshed browser confirmed wrapping, 40 tests and production build passed. Shared bottom-navigation crowding recorded without editing teammate code.
-- SOL-182: daily average/comparison/trend screens connected under the user-adopted latest snapshot per Colombo day convention, with coverage and provisional comparisons. Numeric fixtures pass; positive-data live UI check pending.
-- SOL-183: completed outgoing month-to-date total remains independent. Generation and Estimated solar coverage connected to normalized current-period readings, with separate generation/matched coverage and valid-only progress. Positive-data live UI check pending.
+- SOL-182: daily average/comparison/trend screens connected under the user-adopted snapshot convention. Approved synthetic readings verified through live UI: current 15.0, average 10.0, baseline 7/7, comparison 50.0% above (provisional), decreasing three-day trend. Repeat Sync passed.
+- SOL-183: completed outgoing month-to-date total remains independent. Approved synthetic readings verified through live UI: October generation 24.0 kWh, estimated coverage 72.7%, four generation/matched days; outgoing sharing 0.0 kWh. Missing-state checks also verified before fixtures were created.
 - SOL-181: runbook, short narration script (`SPRINT_4_DEMO_SCRIPT.md`) and screenshot evidence prepared. Saved-record browser walkthrough verified. Recording/playback review and new authorized live actions if required by the rubric remain open. Browser selected for demo; native phone checks remain unverified outside that demo scope.
 
 ## Verification and limitations
@@ -40,7 +40,7 @@ Browser navigation/requester history checks were performed before analytics chan
 
 New analytics explanatory text has component-local English/Sinhala/Tamil translations; existing shared translated labels remain. Copy and browser language-switch checks passed; native-speaker wording review and physical-device checks remain pending. English was restored after verification. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
 
-All current changes are inside src/trade. No new database mutation, schema/policy change, teammate edit, or dependency change was performed. Two pre-existing untracked documents remain untouched, and earlier local drafts remain preserved in the recorded stash.
+All implementation edits are inside src/trade. No new schema/policy change, teammate edit, or dependency change was performed. The user separately approved and created nine synthetic requester readings; IDs and cleanup SQL are recorded in SPRINT_4_ANALYTICS_FIXTURE_MANIFEST.md. Two pre-existing untracked documents remain untouched, and earlier local drafts remain preserved in the recorded stash.
 
 Provider P2P screenshots and rehearsal findings are recorded in `evidence/sprint4/README.md`. This was read-only testing of existing records; no new request or transfer was created.
 
@@ -50,5 +50,5 @@ History offline rehearsal exposed raw fetch error text and unlabelled retained d
 
 1. Verify new Insights/Impact UI, retry, period boundaries, and zero versus unavailable states.
 2. Browser History/Insights offline checks reported successful by the user; their recovery checked directly. Capture updated offline screenshots if needed for presentation evidence. Saved-record walkthrough and settled account-switch check are verified.
-3. Verify numeric results in a controlled live account under the adopted snapshot convention. Proposed requester-only test readings require approval before creation; do not change teammate sources.
+3. Retain approved requester-only fixtures for now; use SPRINT_4_ANALYTICS_FIXTURE_MANIFEST.md to distinguish synthetic readings from sensor data. Cleanup requires a separate decision. Physical/native review and simultaneous-session approval checks remain open.
 4. Record the selected web-browser demo and perform final review before merge/Jira completion. Native phone checks are outside the chosen demo scope and remain unverified.

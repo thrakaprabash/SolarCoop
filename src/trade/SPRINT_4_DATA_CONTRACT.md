@@ -4,7 +4,7 @@ Updated: 4 October 2026. Status: **daily snapshot convention adopted by the user
 
 ## Current daily contract (supersedes earlier unresolved notes)
 
-Fixture execution revealed surplus_kwh is a generated column in the live schema. Never write it directly. The revised requester fixtures omit it, cap production at consumption, and return maximum generated surplus for inspection. On 4 October their expected generation is 24 kWh (revised from 30); estimated coverage stays 72.7%. The failed single-statement insertion was atomic; successful creation is still pending user execution.
+Fixture execution revealed surplus_kwh is a generated column in the live schema. Never write it directly. The revised requester fixtures omit it, cap production at consumption, and return maximum generated surplus for inspection. On 4 October their expected generation is 24 kWh (revised from 30); estimated coverage stays 72.7%. The failed single-statement insertion was atomic; user subsequently returned CREATED for IDs 10–18 with maximum generated surplus 0; direct browser checks matched all expected numeric values.
 
 The user explicitly chose to define each energy_records reading as accumulated production/consumption for its Asia/Colombo calendar day, using the latest reading per day. This is a campus-project convention, not an independently verified sensor specification. Earlier unknown-semantics notes below record the history before this decision.
 
@@ -12,7 +12,7 @@ The user explicitly chose to define each energy_records reading as accumulated p
 - Bounded, authenticated-user history reads cover both month-to-date and the previous seven completed days, paginate before returning input, and exclude future readings. A failed page makes calculations unavailable rather than partial.
 - Today's value is labelled so far. Previous days use their last recorded snapshots; no finality flag exists, so absence of a later snapshot is not proof of sensor completeness.
 - Missing/invalid consumption days are excluded from averages and their coverage is shown. Generation and estimated coverage use their own valid/matched day coverage.
-- Live screens are connected under this convention. Current requester has no readings; the provider's known August reading still cannot supply October values. Numeric fixture calculations pass; positive-data live UI verification is pending.
+- Live screens are connected under this convention. Current requester has no readings; the provider's known August reading still cannot supply October values. Numeric fixture calculations and approved synthetic-data browser checks pass. See SPRINT_4_ANALYTICS_FIXTURE_MANIFEST.md for exact IDs and expected/observed results.
 - Changing the source interpretation later requires replacing the adapter and updating tests/documentation. No teammate producer, shared table, sensor reading, policy or migration was changed.
 
 ## Integration baseline
