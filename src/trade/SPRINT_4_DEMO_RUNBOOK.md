@@ -51,6 +51,8 @@ For authorized disposable test requests only: submit -> requester Pending -> pro
 
 ## Recovery and device rehearsal
 
+User confirmed on 4 October that the sprint demo will use the web browser. Complete the browser rehearsal for this demo; native phone checks remain unverified and are outside the selected demo scope.
+
 - On the intended phone: check scrolling, keyboard, cancel/back, details, and pull-to-refresh.
 - User disconnects the test device, refreshes, and verifies loading ends with an error/retry. Reconnect and retry. Record actual results; simulated tests are not this check.
 - Reopen/restart the app and verify saved requests/trades persist.

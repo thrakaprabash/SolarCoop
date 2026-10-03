@@ -28,6 +28,16 @@ Captured after browser control reconnected on 4 October. Existing provider accou
 
 Text selection, dates, guarded balance, shared totals, and scroll reachability were checked. These are rendering checks, not a native-speaker translation review. The Tamil Impact card-width defect found during these checks is recorded in the bug log; Tamil Impact screenshots show the verified fix after restart/reload. Sinhala captures precede that width fix and showed no card overflow. The shared Tamil bottom navigation remains crowded; it was not edited.
 
+## Provider P2P rehearsal
+
+Checked in the signed-in browser on 4 October using existing saved records:
+
+- [Incoming requests](provider-incoming.jpg): completed and rejected requester tests; three older pending requests left untouched.
+- [Transaction details](provider-transaction.jpg): completed 0.5 kWh, You -> SolarCoop Test Requester, matching saved reference.
+- [Provider history](provider-history.jpg): September sent trade and zero October totals.
+
+Received filter showed no received transactions; Sent showed the saved outgoing trade. Done returned to Incoming Requests, Back to History returned to history, and Sync restored the saved row. Energy opened Insights from history and showed the 3.7 kWh trade balance; P2P reopened Available Community Energy. No live requests or transfers were created. Account-switch and recording remain open. The user selected a web-browser demo; native device checks are outside this demo scope.
+
 ## Still needed
 
 - P2P request/provider/history/details recording and final rehearsal.

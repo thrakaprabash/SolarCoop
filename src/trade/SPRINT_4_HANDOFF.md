@@ -23,7 +23,7 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 ## Story status
 
-- SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Current provider flow and UI account-switch checks remain open.
+- SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Provider saved outcomes, direction/history filters, details/return routes, Sync, and Energy/P2P routing checked on 4 October. UI account-switch checks remain open.
 - SOL-180: Tamil Impact card overflow reproduced and fixed within the component; refreshed browser confirmed wrapping, 40 tests and production build passed. Shared bottom-navigation crowding recorded without editing teammate code.
 - SOL-182: real readings/freshness/name/loading/retry integrated. Daily average/comparison/trend calculations remain unavailable with unknown record semantics.
 - SOL-183: real completed outgoing month-to-date total integrated. Generation and Estimated solar coverage calculations remain unavailable for the same reason.
@@ -38,6 +38,8 @@ Browser navigation/requester history checks were performed before analytics chan
 New analytics explanatory text has component-local English/Sinhala/Tamil translations; existing shared translated labels remain. Copy and browser language-switch checks passed; native-speaker wording review and physical-device checks remain pending. English was restored after verification. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
 
 All current changes are inside src/trade. No new database mutation, schema/policy change, teammate edit, or dependency change was performed. Two pre-existing untracked documents remain untouched, and earlier local drafts remain preserved in the recorded stash.
+
+Provider P2P screenshots and rehearsal findings are recorded in `evidence/sprint4/README.md`. This was read-only testing of existing records; no new request or transfer was created.
 
 ## Next work
 
