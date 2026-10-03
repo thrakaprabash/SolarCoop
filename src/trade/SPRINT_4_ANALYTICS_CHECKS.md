@@ -29,8 +29,9 @@ These hook checks use an isolated state harness, not a mounted native screen. Br
 
 - [ ] Verified daily normalization and supported consumption rules/generation/coverage calculations. User directed us to continue without a teammate dependency; this does not supply missing measurement semantics.
 - [x] User-provided screenshots of Insights/Impact on the current test account: no energy records, correct account greeting, October reporting period, zero shared energy, and unavailable solar indicators.
-- [ ] Successful refresh/retry in the browser; screenshots alone do not verify these actions.
-- [ ] Provider UI check with a stale reading and current guarded balance.
+- [x] Successful Sync on both screens, reported by the user: loading finishes without errors and the no-readings state remains. This verifies a successful empty read, not retry after a failed read.
+- [ ] Real failed-read recovery/retry in the browser.
+- [x] Provider UI screenshot reviewed: Vihanga Perera, latest reading 26 August, no reading for today, and guarded available balance 3.7 kWh. The requester greeting is absent after the account switch.
 - [ ] Physical-device and real network recovery checks.
 - [ ] Localization of the new status/explanation text. Existing translated tabs, headings, and shared action labels are preserved; new explanatory text is currently English.
 
@@ -45,3 +46,7 @@ The user reports identical results under Household and Co-op. The global selecto
 ## User-provided Impact screenshot
 
 The screenshot shows month-to-date 2026-10-01 to 2026-10-03 (Asia/Colombo), no energy readings for the account, shared energy 0.0 kWh, and unavailable solar generation/Estimated solar coverage. The sample totals and self-sufficiency percentage are absent. Zero October outgoing sharing is consistent with the saved September received trade being excluded. This is visual evidence; no additional database reconciliation, refresh, provider login, or network recovery was performed from the screenshot.
+
+## User-provided provider Insights screenshot
+
+After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Provider Impact and physical-device/network checks remain pending.
