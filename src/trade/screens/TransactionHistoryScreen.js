@@ -1,22 +1,60 @@
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDown, ArrowUp } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { HISTORY_FILTERS, HISTORY_FILTER_LABEL_KEY } from '../data/transactions';
-import { useTrade } from '../context/TradeContext';
+import { useAuth } from '../../context/AuthContext';
+import { fetchMyTransactions } from '../services/transactionService';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
 import { byNewest, emptyCopy, groupByMonth, matchesFilter, monthTotals } from '../utils/transactions';
 import { TransactionCard } from '../components';
-import { Card, Chip, Divider, IconBadge, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
+import { Card, Chip, Divider, IconBadge, Notice, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
 
 export default function TransactionHistoryScreen() {
   const { t } = useTranslation();
-  const { transactions } = useTrade();
+  const { user } = useAuth();
   const { navigate } = useNavigation();
   const [filter, setFilter] = useState('All');
+  const activeUser = useRef(user?.id);
+  activeUser.current = user?.id;
+  const fetchId = useRef(0);
+  const [state, setState] = useState({ userId: null, rows: [], loading: true, refreshing: false, error: '' });
+  const belongsToUser = state.userId === (user?.id ?? null);
+  const transactions = belongsToUser ? state.rows : [];
+  const loading = !belongsToUser || state.loading;
+  const error = belongsToUser ? state.error : '';
+  const refreshing = belongsToUser && state.refreshing;
+
+  const refresh = useCallback(async (isRefresh = false) => {
+    const userId = user?.id ?? null;
+    const id = ++fetchId.current;
+    setState((previous) => ({
+      userId,
+      rows: previous.userId === userId ? previous.rows : [],
+      loading: !isRefresh,
+      refreshing: isRefresh,
+      error: '',
+    }));
+    try {
+      const rows = await fetchMyTransactions(userId);
+      if ((activeUser.current ?? null) === userId && fetchId.current === id) {
+        setState({ userId, rows, loading: false, refreshing: false, error: '' });
+      }
+    } catch (reason) {
+      if ((activeUser.current ?? null) === userId && fetchId.current === id) {
+        setState((previous) => ({ ...previous, loading: false, refreshing: false,
+          error: reason?.message || t('common.error') }));
+      }
+    }
+  }, [user?.id, t]);
+
+  useEffect(() => {
+    refresh();
+    return () => { fetchId.current += 1; };
+  }, [refresh]);
 
   const visible = useMemo(
     () => transactions.filter((t) => matchesFilter(t, filter)).sort(byNewest),
@@ -27,8 +65,18 @@ export default function TransactionHistoryScreen() {
   const empty = emptyCopy(filter);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenTitle title={t('trade.nav.transactionHistory')} subtitle={t('trade.history.subtitle')} />
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh(true)} tintColor={colors.tealLight} />}>
+      <ScreenTitle title={t('trade.nav.transactionHistory')} />
+
+      {error ? <View style={{ gap: 8 }}>
+        <Notice tone="error" message={error} />
+        <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={() => refresh(true)} />
+      </View> : null}
+      {loading && transactions.length === 0 ? <Card style={{ alignItems: 'center', padding: 24 }}>
+        <ActivityIndicator color={colors.tealLight} />
+      </Card> : null}
+      {(!loading && !error) || transactions.length > 0 ? <>
 
       <Card padding={18} style={styles.summary}>
         <Text style={styles.summaryLabel}>{t('trade.history.thisMonth')}</Text>
@@ -96,6 +144,9 @@ export default function TransactionHistoryScreen() {
           ) : null}
         </Card>
       ) : null}
+      </> : null}
+      <PrimaryButton label={t(refreshing ? 'member.telemetry.syncing' : 'member.telemetry.sync')} variant="ghost"
+        disabled={loading || refreshing} onPress={() => refresh(true)} />
     </ScrollView>
   );
 }

@@ -57,7 +57,7 @@ test('My Requests is scoped to the requester and maps server data for the UI', a
   assert.deepEqual(calls[1].filters, [['in', 'id', ['owner-1', 'owner-2']]]);
   assert.deepEqual(rows.map(({ id, name, kwh, status, ts, rate }) => ({ id, name, kwh, status, ts, rate })), [
     { id: '12', name: 'Solar Home', kwh: 2.5, status: 'Completed', ts: '2026-09-29T10:00:00.000Z', rate: null },
-    { id: '11', name: 'Household', kwh: 1.25, status: 'Pending', ts: '2026-09-28T10:00:00.000Z', rate: null },
+    { id: '11', name: null, kwh: 1.25, status: 'Pending', ts: '2026-09-28T10:00:00.000Z', rate: null },
   ]);
 });
 
@@ -76,7 +76,7 @@ test('Incoming Requests is scoped to the provider and maps requester data', asyn
   assert.deepEqual(calls[1].filters, [['in', 'id', ['member-1', 'member-2']]]);
   assert.deepEqual(rows.map(({ id, name, initials, kwh, status }) => ({ id, name, initials, kwh, status })), [
     { id: '18', name: 'Test Requester', initials: 'TR', kwh: 0.5, status: 'Pending' },
-    { id: '17', name: 'Community Member', initials: 'CM', kwh: 1, status: 'Rejected' },
+    { id: '17', name: null, initials: '', kwh: 1, status: 'Rejected' },
   ]);
 });
 

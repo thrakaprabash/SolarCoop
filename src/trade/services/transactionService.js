@@ -3,6 +3,27 @@ import { supabase } from '../../lib/supabase';
 const TRANSACTION_COLUMNS =
   'id, request_id, sender_id, receiver_id, energy_amount, status, reference_code, created_at';
 
+/** Read the participant's complete ledger in pages to avoid the API row limit. */
+export async function fetchMyTransactions(userId) {
+  if (!userId) return [];
+  const rows = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(TRANSACTION_COLUMNS)
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+  const names = await loadProfiles(rows);
+  return rows.map((row) => mapTransaction(row, userId, names));
+}
+
 async function loadProfiles(rows) {
   const ids = [...new Set(rows.flatMap((row) => [row.sender_id, row.receiver_id]).filter(Boolean))];
   if (ids.length === 0) return new Map();
