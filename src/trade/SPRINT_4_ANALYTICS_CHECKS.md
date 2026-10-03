@@ -28,9 +28,20 @@ These hook checks use an isolated state harness, not a mounted native screen. Br
 ## Remaining acceptance work
 
 - [ ] Verified daily normalization and supported consumption rules/generation/coverage calculations. User directed us to continue without a teammate dependency; this does not supply missing measurement semantics.
-- [ ] Browser check of Insights/Impact on the current test account, including refresh and zero October sharing.
+- [x] User-provided screenshots of Insights/Impact on the current test account: no energy records, correct account greeting, October reporting period, zero shared energy, and unavailable solar indicators.
+- [ ] Successful refresh/retry in the browser; screenshots alone do not verify these actions.
 - [ ] Provider UI check with a stale reading and current guarded balance.
 - [ ] Physical-device and real network recovery checks.
 - [ ] Localization of the new status/explanation text. Existing translated tabs, headings, and shared action labels are preserved; new explanatory text is currently English.
 
 SOL-182 and SOL-183 are partially implemented, not fully accepted. No fake daily figures or sample greetings remain in their live paths.
+
+## User-provided Insights screenshot
+
+The screenshot shows the signed-in SolarCoop Test Requester greeting, no energy readings for this account, Sync, and unavailable daily consumption calculations. The previous Menuka greeting and sample figures are absent. This verifies the rendered no-record state only, not a successful refresh or measured-data calculation.
+
+The user reports identical results under Household and Co-op. The global selector is owned by shared EnergyContext/Header. App.js passes only initialScreen to TradeModule; component analytics deliberately reads the signed-in user's data and does not consume viewScope. Thus changing the selector does not select community-wide analytics. A community analytics mode would require an agreed scope/data-access contract; it is not implemented or authorized by this screenshot. No shared selector code was changed.
+
+## User-provided Impact screenshot
+
+The screenshot shows month-to-date 2026-10-01 to 2026-10-03 (Asia/Colombo), no energy readings for the account, shared energy 0.0 kWh, and unavailable solar generation/Estimated solar coverage. The sample totals and self-sufficiency percentage are absent. Zero October outgoing sharing is consistent with the saved September received trade being excluded. This is visual evidence; no additional database reconciliation, refresh, provider login, or network recovery was performed from the screenshot.
