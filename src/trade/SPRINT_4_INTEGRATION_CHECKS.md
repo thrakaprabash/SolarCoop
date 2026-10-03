@@ -32,4 +32,4 @@ TradeModule now keys its internal NavigationProvider by initialScreen. Switching
 
 Analytics may proceed with read/error/freshness states and confirmed ledger semantics. Unknown energy-record aggregation remains explicitly unavailable; old readings must not appear as current-day measurements.
 
-The current Insights and Impact screens still show sample data (including the fixed Menuka greeting). This is a known remaining Phase 3/4 task, not verified live analytics. Expo web development bundle succeeded with 2,438 modules; the preview remains on port 8082.
+At the time of these navigation checks, Insights and Impact still showed sample data. Commit `9efd7b2` subsequently removed those samples and added real reads; see `SPRINT_4_ANALYTICS_CHECKS.md` for current verification and limits. The navigation-session Expo web development bundle succeeded with 2,438 modules; the preview used port 8082.
