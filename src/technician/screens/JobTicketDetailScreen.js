@@ -10,6 +10,8 @@ import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
 import { buildDirectionsUrl } from '../utils/maps';
 
+import RepairEvidenceCard from '../components/RepairEvidenceCard';
+
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}
 
@@ -176,6 +178,20 @@ export default function JobTicketDetailScreen() {
           </View>
         )}
       </DossierCard>
+
+      {job.status === 'completed' && (
+        <>
+          <DossierCard icon={CircleCheck} title={t('technician.detail.closureRecord')}>
+            <Text style={styles.infoValue}>{job.closureRecord?.notes ?? job.resolutionNotes ?? '—'}</Text>
+            {(job.closureRecord?.checklist ?? job.checklist).map((item, i) => (
+              <Text key={i} style={styles.infoLine}>{item.done ? '✓' : '○'} {item.label}</Text>
+            ))}
+          </DossierCard>
+          {(job.closureRecord?.photos ?? job.repairPhotos).length > 0 && job.technicianId === technicianId && (
+            <RepairEvidenceCard photos={job.closureRecord?.photos ?? job.repairPhotos} readOnly />
+          )}
+        </>
+      )}
 
       {/* ── Workflow action ── */}
       {job.status === 'pending' ? (

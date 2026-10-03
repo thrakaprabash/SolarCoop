@@ -232,9 +232,18 @@
         "household": "e.g. HH-ADMIN-01"
       },
       "menu": {
-        "about": { "label": "About SolarCoop", "sub": "Community Energy Sharing App v1.0.0" },
-        "adminPrivileges": { "label": "Admin Privileges", "sub": "Full system access · Real-time Member Sync" },
-        "systemEnv": { "label": "System Environment", "sub": "Expo SDK 57 · React Native 0.86" }
+        "about": {
+          "label": "About SolarCoop",
+          "sub": "Community Energy Sharing App v1.0.0"
+        },
+        "adminPrivileges": {
+          "label": "Admin Privileges",
+          "sub": "Full system access · Real-time Member Sync"
+        },
+        "systemEnv": {
+          "label": "System Environment",
+          "sub": "Expo SDK 57 · React Native 0.86"
+        }
       }
     },
     "alerts": {
@@ -403,7 +412,8 @@
       "acceptErrorBody": "Please try again.",
       "acceptedByYou": "You accepted this job on {{date}}.",
       "acceptedBy": "Accepted by {{name}}.",
-      "completedOn": "Completed on {{date}}."
+      "completedOn": "Completed on {{date}}.",
+      "closureRecord": "Repair Completion Record"
     },
     "alert": {
       "sectionTitle": "Open Fault Alerts",
@@ -429,9 +439,25 @@
       "notes": "Resolution Notes",
       "notesPlaceholder": "e.g. Replaced damaged MC4 connector on string 2. System verified stable.",
       "notesHint": "Write at least {{min}} characters describing the repair.",
-      "complete": "Complete Repair & Close Ticket",
+      "complete": "Complete Resolution & Close Ticket",
       "errorTitle": "Could not close ticket",
-      "errorBody": "Please try again."
+      "errorBody": "Please try again.",
+      "evidence": "Repair Evidence",
+      "photoHint": "Take a photo or choose a JPG/PNG from your gallery, up to 10 MB.",
+      "takePhoto": "Take Photo",
+      "choosePhoto": "Choose Photo",
+      "uploadingPhoto": "Uploading photo…",
+      "noPhotos": "No repair photos added yet.",
+      "photoSaved": "Saved {{date}}",
+      "photoNumber": "Repair photo {{number}}",
+      "cameraPermission": "Allow camera access in your device settings to take a repair photo. You can also choose one from your gallery.",
+      "photoError": "Could not upload this photo. Please try again.",
+      "retryPhotos": "Retry photo previews",
+      "saveNotes": "Save Notes",
+      "notesUnsaved": "Unsaved changes",
+      "notesSaved": "Notes saved",
+      "notesErrorTitle": "Could not save repair notes",
+      "photoRequired": "Add at least one repair photo before closing the ticket."
     }
   }
 }

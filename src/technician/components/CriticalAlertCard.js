@@ -50,6 +50,7 @@ export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem,
             onPress={() => onToggleItem(i)}
             disabled={!canEditChecklist}
             accessibilityRole="checkbox"
+              aria-checked={item.done}
             accessibilityState={{ checked: item.done, disabled: !canEditChecklist }}
           >
             <View style={[
@@ -57,7 +58,7 @@ export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem,
               item.done && { backgroundColor: accent, borderColor: accent },
               !canEditChecklist && styles.boxLocked,
             ]}>
-              {item.done ? <Check size={11} color="#FFFFFF" strokeWidth={3} /> : null}
+              {item.done ? <Check size={16} color="#FFFFFF" strokeWidth={3} /> : null}
             </View>
             <Text style={[styles.checkText, item.done && styles.checkTextDone]}>{item.label}</Text>
           </Pressable>
@@ -95,10 +96,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
   },
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, minHeight: 48 },
   box: {
-    width: 18,
-    height: 18,
+    width: 26,
+    height: 26,
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: TECH.borderStrong,
