@@ -8,7 +8,7 @@ function loadService(supabase) {
   const code = source
     .replace("import { supabase } from '../../lib/supabase';", 'const { supabase } = require("../../lib/supabase");')
     .replaceAll('export async function ', 'async function ')
-    + '\nmodule.exports = { fetchTransactionById, fetchTransactionByRequestId };';
+    + '\nmodule.exports = { fetchTransactionById, fetchTransactionByRequestId, fetchMyTransactions };';
   const module = { exports: {} };
   new Function('require', 'module', 'exports', code)(
     (specifier) => {
@@ -32,6 +32,8 @@ function fakeSupabase(responses) {
         eq(column, value) { call.filters.push(['eq', column, value]); return query; },
         or(value) { call.filters.push(['or', value]); return query; },
         in(column, values) { call.filters.push(['in', column, values]); return query; },
+        order(column, options) { (call.orders ||= []).push([column, options]); return query; },
+        range(start, end) { call.range = [start, end]; return query; },
         maybeSingle() { return Promise.resolve(responses.shift()); },
         then(resolve, reject) { return Promise.resolve(responses.shift()).then(resolve, reject); },
       };
@@ -129,4 +131,51 @@ test('lookup failures are surfaced to the retry state', async () => {
     loadService(failed.supabase).fetchTransactionByRequestId('18', 'owner-1'),
     /connection unavailable/,
   );
+});
+
+test('history reads every page and scopes both directions to the current member', async () => {
+  const sent = Array.from({ length: 500 }, (_, id) => ({
+    id: `txn-${id}`, sender_id: 'owner-1', receiver_id: 'member-1',
+    energy_amount: '0.5', status: 'COMPLETED', created_at: '2026-09-30T10:00:00Z',
+  }));
+  const { supabase, calls } = fakeSupabase([
+    { data: sent, error: null },
+    { data: [{ ...sent[0], id: 'received-1', sender_id: 'member-1', receiver_id: 'owner-1' }], error: null },
+    { data: [{ id: 'member-1', name: 'Other Member' }], error: null },
+  ]);
+  const rows = await loadService(supabase).fetchMyTransactions('owner-1');
+  assert.equal(rows.length, 501);
+  assert.deepEqual(calls[0].range, [0, 499]);
+  assert.deepEqual(calls[1].range, [500, 999]);
+  assert.deepEqual(calls[0].filters, [['or', 'sender_id.eq.owner-1,receiver_id.eq.owner-1']]);
+  assert.deepEqual(calls[0].orders, [['created_at', { ascending: false }], ['id', { ascending: false }]]);
+  assert.equal(rows[0].dir, 'sent');
+  assert.equal(rows[500].dir, 'received');
+  assert.equal(rows[500].party, 'Other Member');
+});
+
+test('empty history, signed-out history and failed history remain distinct', async () => {
+  const empty = fakeSupabase([{ data: [], error: null }]);
+  const service = loadService(empty.supabase);
+  assert.deepEqual(await service.fetchMyTransactions(null), []);
+  assert.equal(empty.calls.length, 0);
+  assert.deepEqual(await service.fetchMyTransactions('owner-1'), []);
+  assert.equal(empty.calls.length, 1);
+  const failed = fakeSupabase([{ data: null, error: new Error('history unavailable') }]);
+  await assert.rejects(loadService(failed.supabase).fetchMyTransactions('owner-1'), /history unavailable/);
+});
+
+test('retry after a history failure reads fresh data rather than returning partial rows', async () => {
+  const fake = fakeSupabase([
+    { data: null, error: new Error('Network unavailable') },
+    { data: [{ id: 'saved', sender_id: 'owner-1', receiver_id: 'member-1',
+      energy_amount: '0.5', status: 'COMPLETED', created_at: '2026-09-30T10:00:00Z' }], error: null },
+    { data: [{ id: 'member-1', name: 'Requester' }], error: null },
+  ]);
+  const service = loadService(fake.supabase);
+  await assert.rejects(service.fetchMyTransactions('owner-1'), /Network unavailable/);
+  const rows = await service.fetchMyTransactions('owner-1');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, 'saved');
+  assert.equal(rows[0].party, 'Requester');
 });

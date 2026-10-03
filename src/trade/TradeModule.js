@@ -5,7 +5,7 @@ import TradeShell from './navigation/TradeShell';
 
 export default function TradeModule({ initialScreen = 'list' }) {
   return (
-    <NavigationProvider initialScreen={initialScreen}>
+    <NavigationProvider key={initialScreen} initialScreen={initialScreen}>
       <TradeShell />
     </NavigationProvider>
   );
