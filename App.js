@@ -50,14 +50,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Header } from './src/components/common/Header';
 import { SegmentedTabs } from './src/components/common/SegmentedTabs';
 import BottomTabBar from './src/components/common/BottomTabBar';
-import { HomeDashboard } from './src/components/dashboard/HomeDashboard';
-import { ProductionView } from './src/components/dashboard/ProductionView';
-import { ConsumptionView } from './src/components/dashboard/ConsumptionView';
-import { SurplusView } from './src/components/dashboard/SurplusView';
-import { DeficitView } from './src/components/dashboard/DeficitView';
-import { EnergyHistoryView } from './src/components/dashboard/EnergyHistoryView';
-import { ChartsView } from './src/components/dashboard/ChartsView';
-import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView';
+import { CachedDashboardContainer } from './src/components/dashboard/CachedDashboardContainer';
 import TradeModule from './src/trade/TradeModule';
 import { AlertsSection } from './src/components/alerts/AlertsSection';
 import { ProfileScreen } from './src/screens/ProfileScreen';
@@ -290,27 +283,13 @@ function PendingApprovalLock() {
 
 function MemberApp() {
   const { profile, user } = useAuth();
-  const { mainBottomTab, setMainBottomTab, activeTab } = useEnergy();
+  const { mainBottomTab, setMainBottomTab } = useEnergy();
 
   const role = profile?.role || user?.user_metadata?.role || 'consumer';
   const status =
     profile?.status || (role === 'owner' ? 'pending_approval' : 'active');
   // A solar owner awaiting admin validation may only open their Profile.
   const isPendingOwner = role === 'owner' && status === 'pending_approval';
-
-  const renderDashboardView = () => {
-    switch (activeTab) {
-      case 'dashboard':   return <HomeDashboard />;
-      case 'production':  return <ProductionView />;
-      case 'consumption': return <ConsumptionView />;
-      case 'surplus':     return <SurplusView />;
-      case 'deficit':     return <DeficitView />;
-      case 'history':     return <EnergyHistoryView />;
-      case 'charts':      return <ChartsView />;
-      case 'summary':     return <EnergySummaryView />;
-      default:            return <HomeDashboard />;
-    }
-  };
 
   const renderMainContent = () => {
     // Guarding: pending solar owners see the lock screen everywhere except
@@ -324,7 +303,9 @@ function MemberApp() {
         return (
           <View style={styles.dashboardContainer}>
             <SegmentedTabs />
-            <View style={styles.viewContainer}>{renderDashboardView()}</View>
+            <View style={styles.viewContainer}>
+              <CachedDashboardContainer />
+            </View>
           </View>
         );
       case 'trade':   return <TradeModule initialScreen="list" />;
@@ -335,7 +316,9 @@ function MemberApp() {
         return (
           <View style={styles.dashboardContainer}>
             <SegmentedTabs />
-            <View style={styles.viewContainer}>{renderDashboardView()}</View>
+            <View style={styles.viewContainer}>
+              <CachedDashboardContainer />
+            </View>
           </View>
         );
     }
