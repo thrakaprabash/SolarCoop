@@ -10,7 +10,8 @@ import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
 import { analyticsText } from '../utils/analyticsText';
 import { dayPart } from '../utils/format';
-import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
+import { kwh } from '../utils/format';
+import { Card, Chip, ScreenTitle, SectionLabel } from '../components/ui';
 
 const GREETING_KEY = {
   morning: 'trade.greeting.morning',
@@ -27,6 +28,8 @@ export default function SmartEnergyInsightsScreen() {
   useEffect(() => { refreshProviders(); }, [refreshProviders]);
 
   const refresh = () => { analytics.refresh(); refreshProviders(); };
+  const daily = analytics.daily;
+  const comparison = daily?.comparison;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}
@@ -42,10 +45,20 @@ export default function SmartEnergyInsightsScreen() {
       />
       <SectionLabel>{t('trade.insightsScreen.sectionLabel')}</SectionLabel>
       <AnalyticsStatus analytics={{ ...analytics, refresh }} />
-      <Text style={styles.notice}>{copy('dailyUnavailable')}</Text>
+      {daily ? <Card style={{ gap: 10 }}>
+        <Text style={styles.metric}>{copy('todayConsumption', { amount: daily.current == null ? '—' : kwh(daily.current) })}</Text>
+        <Text style={styles.metric}>{copy('averageConsumption', { amount: daily.average == null ? '—' : kwh(daily.average) })}</Text>
+        <Text style={styles.notice}>{copy('baselineCoverage', { days: daily.baselineDays })}</Text>
+        {comparison ? <Text style={styles.notice}>{copy(comparison.kind === 'inLine' && comparison.percent == null
+          ? 'comparison_zeroBoth' : `comparison_${comparison.kind}`, {
+          percent: comparison.percent == null ? '—' : Math.abs(comparison.percent).toFixed(1),
+          amount: kwh(comparison.absolute),
+        })}</Text> : <Text style={styles.notice}>{copy('comparisonUnavailable')}</Text>}
+        {daily.trend ? <Text style={styles.notice}>{copy(`trend_${daily.trend.kind}`)}</Text> : null}
+      </Card> : null}
       {analytics.signedIn && !providersLoading && !providersError && surplus > 0 ?
         <Text style={styles.notice}>{copy('available', { amount: surplus.toFixed(1) })}</Text> : null}
-      <Text style={styles.footNote}>{copy('insightsNote')}</Text>
+      <Text style={styles.footNote}>{copy('snapshotNote')}</Text>
     </ScrollView>
   );
 }
@@ -55,6 +68,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 14 },
   tabs: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   notice: { color: colors.textMuted, fontSize: 14, lineHeight: 21 },
+  metric: { color: colors.textStrong, fontSize: 16, fontWeight: weight.bold, lineHeight: 24 },
   footNote: {
     fontSize: 11,
     fontWeight: weight.medium,

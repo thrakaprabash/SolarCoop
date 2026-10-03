@@ -18,6 +18,9 @@ export default function SustainabilityImpactScreen() {
   const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
   const analytics = useEnergyAnalytics({ includeLedger: true });
   const { navigate } = useNavigation();
+  const daily = analytics.daily;
+  const generation = daily?.generation;
+  const coverage = daily?.estimatedSolarCoverage;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}
@@ -38,7 +41,8 @@ export default function SustainabilityImpactScreen() {
         icon={Sun}
         iconColor={colors.amberLight}
         tint={colors.amberTint}
-        value="—"
+        value={generation == null ? '—' : kwh(generation)}
+        unit={generation == null ? null : 'kWh'}
         label={t('trade.impact.solarGenerated')}
       />
 
@@ -51,10 +55,18 @@ export default function SustainabilityImpactScreen() {
 
       <ImpactStatCard
         icon={Leaf}
-        value="—"
+        value={coverage == null ? '—' : coverage.toFixed(1)}
+        unit={coverage == null ? null : '%'}
+        progress={coverage == null ? null : coverage}
         label={copy('coverage')}
       />
-      <Text style={styles.notice}>{copy('solarUnavailable')}</Text>
+      {daily ? <Text style={styles.notice}>{copy('impactCoverage', {
+        generationDays: daily.generationDays, matchedDays: daily.matchedDays,
+        days: Number(analytics.period.day.slice(-2)),
+      })}</Text> : null}
+      {daily && (generation == null || coverage == null) ? <Text style={styles.notice}>{copy('solarMissing')}</Text> : null}
+      <Text style={styles.notice}>{copy('snapshotNote')}</Text>
+      <Text style={styles.notice}>{copy('coverageEstimateNote')}</Text>
 
       <SectionLabel style={styles.sdgLabel}>{t('trade.impact.sdgSectionLabel')}</SectionLabel>
       <SdgCard goals={SDGS} />

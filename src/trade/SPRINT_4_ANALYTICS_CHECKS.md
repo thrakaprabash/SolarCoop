@@ -74,3 +74,11 @@ On 4 October browser control reconnected. Language checks found a Tamil Impact c
 Received 4 October 2026 following the disconnect/Sync test request. The Impact screenshot shows both energy/ledger load failures, Try Again, and unavailable shared energy rather than a misleading 0.0 kWh. No loading spinner is visible. It confirms the rendered failure state; reconnection and successful retry have not yet been confirmed. The screenshot's reporting period ends 3 October, so it is recorded as shown rather than treated as proof of a refreshed 4 October period.
 
 The subsequent retry screenshot shows errors removed, Sync restored, latest reading 2026-08-26, and shared energy 0.0 kWh. The month-to-date period now ends 2026-10-04, confirming fresh period calculation during retry across the date change. This completes the user-performed Impact browser failure/recovery check. No new energy records or trades were created.
+
+## Daily analytics integration — 4 October
+
+User adopted latest snapshot per Asia/Colombo day as the project convention. Read-only paginated history, normalization, calculated Insights and Impact are connected. Snapshot ties use exact bigint IDs; invalid latest amounts stay unavailable. Missing days are excluded with coverage, current consumption is so far, comparisons are provisional, and the estimated percentage uses matched daily energy.
+
+48 tests pass. The requester browser shows no readings, unavailable consumption/average, baseline coverage 0/7, October generation/matched coverage 0/4, and independent shared energy 0.0 kWh. Captures: evidence/sprint4/daily-insights-empty.jpg and daily-impact-empty.jpg. Numeric normalization-to-calculation fixtures produce average 10, current 15, 50% higher comparison and decreasing trend; positive-data live screen verification remains pending.
+
+Proposed SPRINT_4_ANALYTICS_TEST_DATA.sql has NOT been executed. User approval is required for its nine synthetic requester-only readings; they have zero surplus and do not overwrite existing records. This script is separate from sensor inputs and should not be represented as real measurement evidence.

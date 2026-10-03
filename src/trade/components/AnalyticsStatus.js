@@ -23,9 +23,10 @@ export default function AnalyticsStatus({ analytics }) {
   return <View style={styles.container}>
     {loading ? <ActivityIndicator color={colors.tealLight} /> : null}
     <Text style={styles.text}>{message}</Text>
+    {analytics.dailyError ? <Text style={styles.text}>{copy('dailyError')}</Text> : null}
     {analytics.ledgerError ? <Text style={styles.text}>{copy('ledgerError')}</Text> : null}
     {signedIn ? <Pressable accessibilityRole="button" disabled={loading} onPress={refresh}>
-      <Text style={styles.action}>{t(energyError || analytics.ledgerError ? 'trade.tryAgain' : 'member.telemetry.sync')}</Text>
+      <Text style={styles.action}>{t(energyError || analytics.dailyError || analytics.ledgerError ? 'trade.tryAgain' : 'member.telemetry.sync')}</Text>
     </Pressable> : null}
   </View>;
 }

@@ -50,10 +50,14 @@ Checked on 4 October after the user switched from provider to SolarCoop Test Req
 
 Back to My Requests returned correctly. Browser reload retained the session and reopening My Requests restored both outcomes. This verifies settled UI after the account switch, not every intermediate frame or concurrent in-flight account change. No new live data was created. Profile/credential screens were excluded from evidence.
 
-## Still needed
+## Daily analytics after contract adoption
+
+The user adopted latest snapshot per Colombo day as daily accumulated kWh. Current requester browser checks: [Insights](daily-insights-empty.jpg), [Impact](daily-impact-empty.jpg). With no readings, daily values remain unavailable, baseline coverage is 0/7, and October coverage is 0/4. Completed outgoing sharing remains independently valid at 0.0 kWh. Lower Impact explanations/SDGs remain reachable by scrolling. These are live empty-state checks; positive numeric rendering is not yet verified with live test data. Earlier screenshots/copy predate this contract adoption.
 
 History offline check supplied by the user: [original error state](history-offline-before.png). Loading ended, Try Again appeared, and the saved September transaction remained visible. The raw fetch error and unlabelled cached totals prompted a component-only copy/state fix. The user subsequently reported the updated History and Insights offline checks work fine; no updated offline screenshots were supplied. Direct browser checks after reconnection verified History Sync restored the saved received trade and Insights Sync ended with the requester no-readings state, without errors. Recovery captures: [History](history-recovered.jpg), [Insights](insights-recovered.jpg).
 
-- P2P request/provider/history/details recording and final rehearsal.
-- Native phone, keyboard, and gesture checks.
-- Verified daily source contract before live averages/generation/coverage can appear.
+## Still needed
+
+- P2P recording and playback review; new live actions only if separately authorized.
+- Positive-data live analytics check under the adopted snapshot convention.
+- Native phone checks remain unverified outside the selected browser-demo scope.
