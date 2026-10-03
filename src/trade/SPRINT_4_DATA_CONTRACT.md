@@ -1,6 +1,17 @@
 # Sprint 4 Phase 0 — data contract and baseline
 
-Updated: 3 October 2026. Status: **baseline ready to continue with an analytics limitation**. Live inspection complete; unknown energy-record semantics remain documented.
+Updated: 4 October 2026. Status: **daily snapshot convention adopted by the user; read-only analytics connected**.
+
+## Current daily contract (supersedes earlier unresolved notes)
+
+The user explicitly chose to define each energy_records reading as accumulated production/consumption for its Asia/Colombo calendar day, using the latest reading per day. This is a campus-project convention, not an independently verified sensor specification. Earlier unknown-semantics notes below record the history before this decision.
+
+- `utils/dailyEnergyReadings.js` is the replaceable normalization adapter. It selects greatest recorded_at, then greatest bigint id for equal timestamps; it never sums snapshots or falls back to an older amount when the latest amount is invalid.
+- Bounded, authenticated-user history reads cover both month-to-date and the previous seven completed days, paginate before returning input, and exclude future readings. A failed page makes calculations unavailable rather than partial.
+- Today's value is labelled so far. Previous days use their last recorded snapshots; no finality flag exists, so absence of a later snapshot is not proof of sensor completeness.
+- Missing/invalid consumption days are excluded from averages and their coverage is shown. Generation and estimated coverage use their own valid/matched day coverage.
+- Live screens are connected under this convention. Current requester has no readings; the provider's known August reading still cannot supply October values. Numeric fixture calculations pass; positive-data live UI verification is pending.
+- Changing the source interpretation later requires replacing the adapter and updating tests/documentation. No teammate producer, shared table, sensor reading, policy or migration was changed.
 
 ## Integration baseline
 

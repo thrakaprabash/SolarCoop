@@ -24,6 +24,40 @@ export async function fetchLatestEnergyReading(userId) {
   return data;
 }
 
+/** Read enough history for both the previous seven days and month-to-date. */
+export async function fetchAnalyticsReadings(userId, period) {
+  if (!userId) return [];
+  const todayStart = Date.parse(`${period.day}T00:00:00+05:30`);
+  const monthStart = Date.parse(period.start);
+  const end = Date.parse(period.end);
+  const start = Math.min(todayStart - 7 * 86400000, monthStart);
+  if (![start, end].every(Number.isFinite) || end < todayStart) {
+    throw new Error('The energy reporting period is invalid.');
+  }
+  const readings = [];
+  const seen = new Set();
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from('energy_records')
+      .select('id, user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at')
+      .eq('user_id', userId)
+      .gte('recorded_at', new Date(start).toISOString()).lte('recorded_at', period.end)
+      .order('recorded_at', { ascending: true }).order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    for (const row of data || []) {
+      const timestamp = row.recorded_at ? Date.parse(row.recorded_at) : NaN;
+      if (row.user_id !== userId || row.id == null || seen.has(String(row.id)) ||
+        !Number.isFinite(timestamp) || timestamp < start || timestamp > end) {
+        throw new Error('The energy history could not be verified.');
+      }
+      seen.add(String(row.id));
+      readings.push(row);
+    }
+    if (!data || data.length < pageSize) return readings;
+  }
+}
+
 /** Only completed sent trades count; paginate before returning any total. */
 export async function fetchSharedEnergy(userId, period) {
   if (!userId) return null;

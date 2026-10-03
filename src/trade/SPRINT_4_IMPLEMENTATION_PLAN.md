@@ -4,6 +4,8 @@ Prepared: 3 October 2026
 Sprint dates in the supplied guide: 30 September–4 October 2026  
 Scope: finish and stabilize P2P, connect Smart Energy Insights and Sustainability Impact to real data, and prepare the demonstration.
 
+Current decision, 4 October: the user adopted latest reading per Asia/Colombo day as accumulated daily totals. The normalization adapter and read-only daily screens are now connected. Earlier unresolved-contract gates describe planning history; see SPRINT_4_DATA_CONTRACT.md and SPRINT_4_HANDOFF.md for current verification and remaining acceptance.
+
 ## 1. Stories and implementation order
 
 | Phase | Story | Points | Outcome |

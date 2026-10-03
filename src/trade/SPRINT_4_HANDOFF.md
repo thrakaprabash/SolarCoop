@@ -28,13 +28,13 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 - SOL-179: navigation corrected; requester persistence/history/details and authenticated database access checked. Provider saved outcomes, direction/history filters, details/return routes, Sync, and Energy/P2P routing checked on 4 October. Provider-to-requester switch checked: requester name/no-reading state, provider balance absent, saved outcomes and matching received history/details, persistence after browser reload. Concurrent in-flight switching remains covered only by automated tests.
 - SOL-180: Tamil Impact card overflow reproduced and fixed within the component; refreshed browser confirmed wrapping, 40 tests and production build passed. Shared bottom-navigation crowding recorded without editing teammate code.
-- SOL-182: real readings/freshness/name/loading/retry integrated. Daily average/comparison/trend calculations remain unavailable with unknown record semantics.
-- SOL-183: real completed outgoing month-to-date total integrated. Generation and Estimated solar coverage calculations remain unavailable for the same reason.
+- SOL-182: daily average/comparison/trend screens connected under the user-adopted latest snapshot per Colombo day convention, with coverage and provisional comparisons. Numeric fixtures pass; positive-data live UI check pending.
+- SOL-183: completed outgoing month-to-date total remains independent. Generation and Estimated solar coverage connected to normalized current-period readings, with separate generation/matched coverage and valid-only progress. Positive-data live UI check pending.
 - SOL-181: runbook, short narration script (`SPRINT_4_DEMO_SCRIPT.md`) and screenshot evidence prepared. Saved-record browser walkthrough verified. Recording/playback review and new authorized live actions if required by the rubric remain open. Browser selected for demo; native phone checks remain unverified outside that demo scope.
 
 ## Verification and limitations
 
-40 automated tests pass, including ten daily calculation fixture tests. Latest UI production web export passed with 2,406 modules. The scoped database checks confirmed authenticated non-admin provider access, the saved completed trade, RPC grants, guarded pending insert, and unique linked transaction index. One August energy reading was observed; it cannot provide October energy coverage. Pure calculation tests do not establish source semantics.
+48 automated tests pass, including snapshot normalization, bounded historical reads, daily calculations, localization and account/read failure tests. Daily-analytics production export passed with 2,408 modules. The scoped database checks confirmed authenticated non-admin provider access, the saved completed trade, RPC grants, guarded pending insert, and unique linked transaction index. One August energy reading was observed; it cannot provide October energy coverage. The user explicitly adopted the daily-snapshot interpretation as a project convention; it is not independently verified sensor semantics.
 
 Browser navigation/requester history checks were performed before analytics changes. User-provided screenshots subsequently verified requester no-record states and provider stale-reading/balance/Impact states. The user reported successful Sync on both requester analytics screens. On 4 October, paired Impact failure/retry screenshots verified error handling, restored reading/zero sharing, and reporting-period refresh to 4 October. Direct browser control reconnected on 4 October; Sinhala/Tamil rendering, lower-content scrolling, and the Tamil card fix were checked. Updated History/Insights offline checks were reported successful by the user; recovery was checked directly. Native device checks and new live-action outage scenarios remain unverified.
 
@@ -50,5 +50,5 @@ History offline rehearsal exposed raw fetch error text and unlabelled retained d
 
 1. Verify new Insights/Impact UI, retry, period boundaries, and zero versus unavailable states.
 2. Browser History/Insights offline checks reported successful by the user; their recovery checked directly. Capture updated offline screenshots if needed for presentation evidence. Saved-record walkthrough and settled account-switch check are verified.
-3. Resolve daily calculation acceptance separately without inventing measurement semantics or changing teammates' sources.
+3. Verify numeric results in a controlled live account under the adopted snapshot convention. Proposed requester-only test readings require approval before creation; do not change teammate sources.
 4. Record the selected web-browser demo and perform final review before merge/Jira completion. Native phone checks are outside the chosen demo scope and remain unverified.

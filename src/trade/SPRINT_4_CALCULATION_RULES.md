@@ -1,8 +1,10 @@
 # SOL-182 / SOL-183 — daily calculation rules
 
-Prepared: 4 October 2026. Status: pure calculation engine implemented and fixture-tested; live daily integration remains unavailable.
+Updated: 4 October 2026. Status: daily calculations connected under the user-adopted latest-snapshot convention; positive-data live UI verification pending.
 
 `utils/energyAnalytics.js` accepts **already normalized daily totals**, one reporting-calendar date per day. It does not normalize raw energy_records or assume that their rows are daily totals. The caller must establish that contract explicitly. With the default `contractConfirmed=false`, all metrics remain unavailable even for plausible-looking inputs.
+
+The user has now adopted daily cumulative snapshots as the project convention. `utils/dailyEnergyReadings.js` normalizes bounded history into one latest snapshot per Colombo day. Timestamp ties use exact bigint IDs. The hook enables the calculation engine only after that adapter; it reloads on entry/account change/Sync and rejects late results. This is an adopted project interpretation, not independently measured source semantics.
 
 ## Rules
 
@@ -22,8 +24,8 @@ Ten focused tests cover unknown-contract gating, a cross-month seven-day window,
 node --test src/trade/utils/energyAnalytics.test.cjs
 ```
 
-These are explicit local test fixtures. They do not seed live records or prove the meaning of the shared energy source. The live screens still show unavailable daily metrics, as verified in the user's screenshots. No sensor, database, shared translation, or teammate file changed.
+These are explicit local test fixtures. They do not seed live records or independently prove the meaning of the shared energy source. The live screens now calculate when suitable readings exist under the adopted convention; the current requester still shows unavailable values because it has no readings. No sensor, database, shared translation, or teammate file changed.
 
-## Remaining integration gate
+## Verification still needed
 
-Connect a verified daily-normalization adapter and bounded account-scoped historical reads before displaying these calculations. Unknown raw readings must never be passed with contractConfirmed=true. This engine prepares the calculation work; it does not close SOL-182/SOL-183 live calculation acceptance.
+The adapter, bounded paginated reads, hook and both screens are connected. 48 tests pass, including history scoping/pagination, timestamp/Colombo boundaries, exact ID tie-breaks, invalid latest values, raw snapshots through calculations, independent read failures/retry and account races. Live empty-state rendering is verified. Positive-data browser verification requires suitable readings in a controlled account. The proposed `SPRINT_4_ANALYTICS_TEST_DATA.sql` creates explicitly synthetic requester-only fixtures and requires user approval before execution. It has not been executed or verified on the live database.

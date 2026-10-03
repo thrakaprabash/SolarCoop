@@ -2,6 +2,8 @@
 
 Prepared: 3 October 2026. Status: saved-record provider/requester browser walkthrough and analytics screenshots verified; recording and additional outage checks pending.
 
+Update, 4 October: daily snapshots are now the user-adopted project convention and both screens are connected. Earlier unavailable-contract statements below describe prior rehearsal. Use SPRINT_4_DEMO_SCRIPT.md for current narration. Missing current-period data still gives unavailable values; positive-data verification is pending. History/Insights offline checks were reported successful and recovery was verified directly.
+
 ## Setup
 
 Working directory: `D:/GitHub/SolarCoop`.
