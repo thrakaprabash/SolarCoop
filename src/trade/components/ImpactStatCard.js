@@ -15,7 +15,7 @@ export default function ImpactStatCard({
 }) {
   return (
     <Card padding={18} style={progress != null ? styles.stacked : styles.row}>
-      <View style={styles.row}>
+      <View style={[styles.row, styles.fullWidth]}>
         <IconBadge size={50} background={tint}>
           <Icon size={24} color={iconColor} strokeWidth={2} />
         </IconBadge>
@@ -33,6 +33,7 @@ export default function ImpactStatCard({
 }
 
 const styles = StyleSheet.create({
+  fullWidth: { width: '100%' },
   details: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   stacked: { gap: 14 },
