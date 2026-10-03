@@ -42,6 +42,7 @@ import {
   User,
   Wrench,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { showAlert } from '../utils/alert';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -50,15 +51,16 @@ import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
 
 const ROLES = [
-  { id: 'consumer', label: 'CONSUMER', Icon: Home },
-  { id: 'owner', label: 'SOLAR OWNER', Icon: Sun },
-  { id: 'technician', label: 'TECHNICIAN', Icon: Wrench },
+  { id: 'consumer', labelKey: 'auth.register.role.consumer', Icon: Home },
+  { id: 'owner', labelKey: 'auth.register.role.owner', Icon: Sun },
+  { id: 'technician', labelKey: 'auth.register.role.technician', Icon: Wrench },
 ];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SEGMENT_GAP = 6;
 
 export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => {
+  const { t } = useTranslation();
   const { signUp } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
@@ -152,22 +154,22 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
   // ── Validation ──────────────────────────────────────────────────────────
   const validateStep1 = () => {
     const next = {};
-    if (!name.trim()) next.name = 'Please enter your full name.';
+    if (!name.trim()) next.name = t('auth.register.errorName');
     if (!email.trim()) {
-      next.email = 'Email is required.';
+      next.email = t('auth.field.emailRequired');
     } else if (!EMAIL_REGEX.test(email.trim())) {
-      next.email = 'Please enter a valid email address.';
+      next.email = t('auth.field.emailInvalid');
     }
     if (!password) {
-      next.password = 'Password is required.';
+      next.password = t('auth.field.passwordRequired');
     } else if (password.length < 6) {
-      next.password = 'Password must be at least 6 characters.';
+      next.password = t('auth.register.errorPasswordLength');
     }
     const digits = mobile.replace(/\D/g, '');
     if (!mobile.trim()) {
-      next.mobile = 'Mobile number is required.';
+      next.mobile = t('auth.field.mobileRequired');
     } else if (digits.length < 9 || digits.length > 12) {
-      next.mobile = 'Enter a valid mobile number (9–12 digits).';
+      next.mobile = t('auth.field.mobileInvalid');
     }
     return next;
   };
@@ -177,9 +179,9 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
     if (role === 'owner') {
       const capacity = parseFloat(solarCapacity);
       if (!solarCapacity.trim()) {
-        next.solarCapacity = 'Enter your solar capacity.';
+        next.solarCapacity = t('auth.register.errorCapacityRequired');
       } else if (Number.isNaN(capacity) || capacity <= 0) {
-        next.solarCapacity = 'Enter a valid capacity in kW (e.g. 5.6).';
+        next.solarCapacity = t('auth.register.errorCapacityInvalid');
       }
     }
     return next;
@@ -189,7 +191,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
     setErrors(next);
     const messages = Object.values(next).filter(Boolean);
     if (messages.length > 0) {
-      showAlert('Check your details', messages.join('\n'));
+      showAlert(t('auth.checkDetailsTitle'), messages.join('\n'));
     }
   };
 
@@ -235,18 +237,18 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
       // silently.
       if (result.error) {
         showAlert(
-          'Registration Failed',
-          result.error.message || 'An unknown error occurred. Please try again.',
+          t('auth.register.failedTitle'),
+          result.error.message || t('auth.register.unknownError'),
         );
         return;
       }
 
       showAlert(
-        'Success!',
-        'Your account has been created successfully. Please check your inbox if email verification is required.',
+        t('auth.register.successTitle'),
+        t('auth.register.successMessage'),
         [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => {
               // react-navigation compatibility — this shell routes via
               // callbacks, so fall back to them when no navigator exists.
@@ -263,8 +265,8 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
       // Defensive: AuthContext returns { data, error } and never throws, but
       // an unexpected crash here must still surface to the user.
       showAlert(
-        'Registration Failed',
-        error?.message || 'An unknown error occurred. Please try again.',
+        t('auth.register.failedTitle'),
+        error?.message || t('auth.register.unknownError'),
       );
     } finally {
       setLoading(false);
@@ -282,15 +284,15 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
 
   return (
     <AuthLayout
-      title="Create Account"
-      subtitle="Join SolarCoop and manage shared clean energy with your community."
+      title={t('auth.register.title')}
+      subtitle={t('auth.register.subtitle')}
       footer={
         <View style={styles.footerRow}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            Already a member?
+            {t('auth.register.alreadyMember')}
           </Text>
           <PrimaryButton
-            label="Login"
+            label={t('auth.login.submitButton')}
             variant="secondary"
             onPress={onBackToLogin}
             style={styles.footerButton}
@@ -301,7 +303,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
       {/* Step indicator */}
       <View style={styles.stepHeader}>
         <Text style={[styles.stepText, { color: colors.textSecondary }]}>
-          Step {step} of 2
+          {t('auth.register.stepLabel', { step })}
         </Text>
         <View
           style={[styles.progressTrack, { backgroundColor: colors.track }]}
@@ -338,14 +340,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
           {/* STEP 1 — Basic credentials */}
           <View style={[styles.stepColumn, { width: trackWidth }]}>
             <AuthField
-              label="Full Name"
+              label={t('auth.field.fullNameLabel')}
               icon={User}
               value={name}
               onChangeText={(text) => {
                 setName(text);
                 clearError('name');
               }}
-              placeholder="e.g. Amara Perera"
+              placeholder={t('auth.register.namePlaceholder')}
               autoCapitalize="words"
               autoComplete="name"
               textContentType="name"
@@ -353,14 +355,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             />
 
             <AuthField
-              label="Email Address"
+              label={t('auth.field.emailLabel')}
               icon={Mail}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
                 clearError('email');
               }}
-              placeholder="you@example.com"
+              placeholder={t('auth.register.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -369,14 +371,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             />
 
             <AuthField
-              label="Password"
+              label={t('auth.field.passwordLabel')}
               icon={Lock}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
                 clearError('password');
               }}
-              placeholder="Minimum 6 characters"
+              placeholder={t('auth.register.passwordPlaceholder')}
               secureTextEntry
               autoComplete="password-new"
               textContentType="newPassword"
@@ -384,14 +386,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             />
 
             <AuthField
-              label="Mobile Number"
+              label={t('auth.field.mobileLabel')}
               icon={Phone}
               value={mobile}
               onChangeText={(text) => {
                 setMobile(text);
                 clearError('mobile');
               }}
-              placeholder="e.g. +94 77 123 4567"
+              placeholder={t('auth.field.mobilePlaceholder')}
               keyboardType="phone-pad"
               autoComplete="tel"
               textContentType="telephoneNumber"
@@ -399,7 +401,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             />
 
             <PrimaryButton
-              label="Continue"
+              label={t('auth.register.continueButton')}
               icon={ArrowRight}
               onPress={handleContinue}
               disabled={loading}
@@ -409,7 +411,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
           {/* STEP 2 — Role customization */}
           <View style={[styles.stepColumn, { width: trackWidth }]}>
             <Text style={[styles.roleLabel, { color: colors.textSecondary }]}>
-              I am joining as
+              {t('auth.register.joiningAs')}
             </Text>
 
             {/* Segmented role control */}
@@ -442,7 +444,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                   },
                 ]}
               />
-              {ROLES.map(({ id, label, Icon }) => {
+              {ROLES.map(({ id, labelKey, Icon }) => {
                 const isActive = role === id;
                 return (
                   <TouchableOpacity
@@ -467,7 +469,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                         },
                       ]}
                     >
-                      {label}
+                      {t(labelKey)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -486,14 +488,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             >
               <View onLayout={handleCapacityLayout}>
                 <AuthField
-                  label="Solar Capacity (kW)"
+                  label={t('auth.register.capacityLabel')}
                   icon={Sun}
                   value={solarCapacity}
                   onChangeText={(text) => {
                     setSolarCapacity(text);
                     clearError('solarCapacity');
                   }}
-                  placeholder="e.g. 5.6"
+                  placeholder={t('auth.register.capacityPlaceholder')}
                   keyboardType="decimal-pad"
                   error={errors.solarCapacity}
                 />
@@ -503,7 +505,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             {/* Action row */}
             <View style={styles.actionRow}>
               <PrimaryButton
-                label="Back"
+                label={t('auth.register.backButton')}
                 variant="secondary"
                 icon={ArrowLeft}
                 onPress={handleBack}
@@ -511,7 +513,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                 style={styles.backButton}
               />
               <PrimaryButton
-                label="Complete Registration"
+                label={t('auth.register.completeButton')}
                 onPress={handleComplete}
                 loading={loading}
                 disabled={loading}

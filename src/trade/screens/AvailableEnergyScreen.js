@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownToLine, ArrowDownWideNarrow, ChevronRight, Clock, History } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { SORTS } from '../data/households';
@@ -11,10 +12,12 @@ import { HouseholdCard, PoolSummaryCard } from '../components';
 import { Card, EmptyState, IconBadge, PrimaryButton, ScreenTitle, SearchInput } from '../components/ui';
 
 export default function AvailableEnergyScreen({ showPoolSummary = true }) {
+  const { t } = useTranslation();
   const {
     households,
     providersLoading,
     providersError,
+    refreshProviders,
     requestedIds,
     pool,
     pendingCount,
@@ -23,6 +26,10 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
   const { navigate } = useNavigation();
   const [query, setQuery] = useState('');
   const [sortIndex, setSortIndex] = useState(0);
+
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -44,30 +51,29 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <ScreenTitle title="Available Community Energy" />
+      <ScreenTitle title={t('trade.availableEnergy.title')} />
 
       {providersLoading ? (
         <Card style={styles.empty}>
           <ActivityIndicator color={colors.tealLight} />
         </Card>
       ) : providersError ? (
-        <EmptyState
-          title="Couldn't load available energy"
-          body={providersError}
-          style={styles.empty}
-        />
+        <View style={styles.empty}>
+          <EmptyState title={t('trade.availableEnergy.loadErrorTitle')} body={providersError} />
+          <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={refreshProviders} />
+        </View>
       ) : (
         <>
           {showPoolSummary ? <PoolSummaryCard pool={pool} /> : null}
 
           <View style={styles.controls}>
-            <SearchInput value={query} onChangeText={setQuery} placeholder="Search households" />
+            <SearchInput value={query} onChangeText={setQuery} placeholder={t('trade.availableEnergy.searchPlaceholder')} />
             <Pressable
               onPress={() => setSortIndex((i) => (i + 1) % SORTS.length)}
               style={({ pressed }) => [styles.sort, pressed && { opacity: 0.8 }]}
             >
               <ArrowDownWideNarrow size={14} color={colors.amberLight} strokeWidth={2} />
-              <Text style={styles.sortLabel}>{SORTS[sortIndex].label}</Text>
+              <Text style={styles.sortLabel}>{t(SORTS[sortIndex].labelKey)}</Text>
             </Pressable>
           </View>
 
@@ -82,22 +88,22 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
 
           {list.length === 0 ? (
             <EmptyState
-              title="No households match"
-              body="Try a different search term."
+              title={t('trade.availableEnergy.noMatchTitle')}
+              body={t('trade.availableEnergy.noMatchBody')}
               style={styles.empty}
             />
           ) : null}
         </>
       )}
 
-      <PrimaryButton label="My Requests" icon={Clock} variant="ghost" onPress={() => navigate('requests')}>
+      <PrimaryButton label={t('trade.nav.myRequests')} icon={Clock} variant="ghost" onPress={() => navigate('requests')}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{pendingCount}</Text>
         </View>
       </PrimaryButton>
 
       <PrimaryButton
-        label="Incoming Requests"
+        label={t('trade.nav.incomingRequests')}
         icon={ArrowDownToLine}
         background={colors.surfaceAlt}
         style={styles.neutralButton}
@@ -114,8 +120,8 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
             <History size={18} color={colors.amberLight} strokeWidth={2} />
           </IconBadge>
           <View style={styles.historyBody}>
-            <Text style={styles.historyTitle}>Transaction History</Text>
-            <Text style={styles.historyDesc}>View your completed P2P trades</Text>
+            <Text style={styles.historyTitle}>{t('trade.nav.transactionHistory')}</Text>
+            <Text style={styles.historyDesc}>{t('trade.availableEnergy.historyDesc')}</Text>
           </View>
           <ChevronRight size={16} color={colors.textFaint} strokeWidth={2.4} />
         </Card>

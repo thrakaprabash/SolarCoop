@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { BatteryCharging, ArrowUpRight, Share2, Coins, CheckCircle2, ShieldCheck, Zap } from 'lucide-react-native';
 
 // SOL-99: Surplus View Component
 export const SurplusView = () => {
-  const { 
-    metrics, 
-    autoShareEnabled, 
-    setAutoShareEnabled, 
-    autoShareThreshold, 
+  const { t } = useTranslation();
+  const {
+    metrics,
+    autoShareEnabled,
+    setAutoShareEnabled,
+    autoShareThreshold,
     setAutoShareThreshold,
-    executeShareEnergy 
+    executeShareEnergy
   } = useEnergy();
 
   const [shareAmount, setShareAmount] = useState('3.5');
-  const [recipientHousehold, setRecipientHousehold] = useState('House #04 (Shared Pool)');
+  const [recipientHousehold, setRecipientHousehold] = useState(t('member.surplus.defaultRecipient'));
   const [shareSuccess, setShareSuccess] = useState(false);
 
   const handleShare = () => {
@@ -32,7 +34,7 @@ export const SurplusView = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Surplus Energy & Co-op Sharing</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.surplus.header')}</Text>
       </View>
 
       {/* Main Surplus Meter Card */}
@@ -42,7 +44,7 @@ export const SurplusView = () => {
             <BatteryCharging size={28} color={COLORS.tealLight} />
           </View>
           <View>
-            <Text style={styles.label}>Current Solar Surplus Rate</Text>
+            <Text style={styles.label}>{t('member.surplus.currentRate')}</Text>
             <Text style={styles.val}>
               {metrics.surplusAvailable} <Text style={styles.unit}>kW</Text>
             </Text>
@@ -51,7 +53,7 @@ export const SurplusView = () => {
 
         <View style={styles.batteryProgressContainer}>
           <View style={styles.batteryHeader}>
-            <Text style={styles.batteryLabel}>Tesla Powerwall Battery State (SoC)</Text>
+            <Text style={styles.batteryLabel}>{t('member.surplus.batteryState')}</Text>
             <Text style={styles.batteryVal}>{metrics.batteryLevel}% (11.8 kWh)</Text>
           </View>
 
@@ -63,12 +65,12 @@ export const SurplusView = () => {
 
         <View style={styles.statsFooter}>
           <View style={styles.statCol}>
-            <Text style={styles.statLabel}>Co-op Shared Today</Text>
+            <Text style={styles.statLabel}>{t('member.surplus.coopSharedToday')}</Text>
             <Text style={styles.statValText}>{metrics.coopPoolSharedToday} kWh</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statCol}>
-            <Text style={styles.statLabel}>Tokens Earned</Text>
+            <Text style={styles.statLabel}>{t('member.surplus.tokensEarned')}</Text>
             <Text style={[styles.statValText, { color: COLORS.amber }]}>+{metrics.coopTokensEarned} pts</Text>
           </View>
         </View>
@@ -78,15 +80,15 @@ export const SurplusView = () => {
       <View style={[styles.sectionCard, GLASS.card, SHADOWS.glass]}>
         <View style={styles.sectionHeaderRow}>
           <Share2 size={20} color={COLORS.tealLight} />
-          <Text style={styles.sectionTitle}>Direct Peer-to-Peer Energy Transfer</Text>
+          <Text style={styles.sectionTitle}>{t('member.surplus.transferTitle')}</Text>
         </View>
 
         <Text style={styles.formSubtitle}>
-          Transfer excess solar power directly to co-op neighbors or into the shared community pool.
+          {t('member.surplus.transferSubtitle')}
         </Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Amount to Transfer (kWh):</Text>
+          <Text style={styles.inputLabel}>{t('member.surplus.amountLabel')}</Text>
           <TextInput
             style={[styles.input, GLASS.input]}
             keyboardType="numeric"
@@ -97,7 +99,7 @@ export const SurplusView = () => {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Recipient Destination:</Text>
+          <Text style={styles.inputLabel}>{t('member.surplus.recipientLabel')}</Text>
           <TextInput
             style={[styles.input, GLASS.input]}
             value={recipientHousehold}
@@ -109,7 +111,7 @@ export const SurplusView = () => {
         {shareSuccess && (
           <View style={styles.successBanner}>
             <CheckCircle2 size={18} color={COLORS.tealLight} />
-            <Text style={styles.successText}>Success! Shared {shareAmount} kWh to {recipientHousehold}</Text>
+            <Text style={styles.successText}>{t('member.surplus.successMessage', { amount: shareAmount, recipient: recipientHousehold })}</Text>
           </View>
         )}
 
@@ -119,7 +121,7 @@ export const SurplusView = () => {
           activeOpacity={0.7}
         >
           <ArrowUpRight size={18} color="#FFFFFF" />
-          <Text style={styles.shareSubmitText}>Confirm & Transfer Surplus Energy</Text>
+          <Text style={styles.shareSubmitText}>{t('member.surplus.confirmTransfer')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -129,8 +131,8 @@ export const SurplusView = () => {
           <View style={styles.settingLeft}>
             <ShieldCheck size={20} color={COLORS.tealLight} />
             <View>
-              <Text style={styles.settingTitle}>Automated Co-op Pool Sharing</Text>
-              <Text style={styles.settingSub}>Automatically export surplus when battery &gt; 75%</Text>
+              <Text style={styles.settingTitle}>{t('member.surplus.autoShareTitle')}</Text>
+              <Text style={styles.settingSub}>{t('member.surplus.autoShareSub')}</Text>
             </View>
           </View>
           <Switch

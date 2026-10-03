@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import {
@@ -15,6 +16,7 @@ import { ShareImpactModal } from './ShareImpactModal';
 
 // SOL-103 & SOL-188: Energy Summary View & Impact Scorecard Export Component
 export const EnergySummaryView = () => {
+  const { t } = useTranslation();
   const { metrics } = useEnergy();
   const [shareModalVisible, setShareModalVisible] = useState(false);
 
@@ -30,7 +32,7 @@ export const EnergySummaryView = () => {
       {/* Header with Title & SOL-188 Share Button */}
       <View style={styles.headerRow}>
         <View style={styles.storyBadgeHeader}>
-          <Text style={styles.storyBadgeTitle}>Energy Summary</Text>
+          <Text style={styles.storyBadgeTitle}>{t('member.summary.header')}</Text>
           <Text style={styles.storyBadgeSub}>Household sustainability & grid independence</Text>
         </View>
         <TouchableOpacity
@@ -50,8 +52,8 @@ export const EnergySummaryView = () => {
             <Award size={28} color={COLORS.amber} />
           </View>
           <View style={styles.scoreHeaderTextCol}>
-            <Text style={styles.scoreLabel}>Off-Grid Independence Rating</Text>
-            <Text style={styles.scoreVal}>{metrics.gridIndependence}% Self-Sufficient</Text>
+            <Text style={styles.scoreLabel}>{t('member.summary.gridIndependenceRating')}</Text>
+            <Text style={styles.scoreVal}>{t('member.summary.selfSufficient', { percent: metrics.gridIndependence })}</Text>
           </View>
         </View>
 
@@ -61,7 +63,7 @@ export const EnergySummaryView = () => {
         </View>
 
         <Text style={styles.scoreSubText}>
-          Your household is producing {metrics.gridIndependence}% of its energy locally through clean solar arrays and co-op sharing, avoiding grid fossil fuel power.
+          {t('member.summary.scoreSubText', { percent: metrics.gridIndependence })}
         </Text>
       </View>
 
@@ -73,8 +75,8 @@ export const EnergySummaryView = () => {
             <CloudOff size={20} color={COLORS.teal} />
           </View>
           <Text style={styles.impactValue}>{metrics.co2SavedKg} kg</Text>
-          <Text style={styles.impactLabel}>CO₂ Offset Today</Text>
-          <Text style={styles.impactSub}>Equivalent to {monthlyCo2} kg / month</Text>
+          <Text style={styles.impactLabel}>{t('member.summary.co2OffsetToday')}</Text>
+          <Text style={styles.impactSub}>{t('member.summary.equivalentMonthly', { value: monthlyCo2 })}</Text>
         </View>
 
         {/* Metric 2: Equivalent Trees Planted */}
@@ -82,9 +84,9 @@ export const EnergySummaryView = () => {
           <View style={[styles.impactIconBadge, { backgroundColor: COLORS.tealGlow }]}>
             <TreePine size={20} color={COLORS.tealLight} />
           </View>
-          <Text style={styles.impactValue}>{treesCount} Trees</Text>
-          <Text style={styles.impactLabel}>Trees Saved Equivalent</Text>
-          <Text style={styles.impactSub}>Forest carbon absorption equal</Text>
+          <Text style={styles.impactValue}>{t('member.summary.treesCount', { count: treesCount })}</Text>
+          <Text style={styles.impactLabel}>{t('member.summary.treesSavedLabel')}</Text>
+          <Text style={styles.impactSub}>{t('member.summary.treesSavedSub')}</Text>
         </View>
 
         {/* Metric 3: Financial Savings */}
@@ -93,8 +95,8 @@ export const EnergySummaryView = () => {
             <DollarSign size={20} color={COLORS.amber} />
           </View>
           <Text style={styles.impactValue}>${billSavings}</Text>
-          <Text style={styles.impactLabel}>Direct Bill Savings</Text>
-          <Text style={styles.impactSub}>Calculated vs grid tariff</Text>
+          <Text style={styles.impactLabel}>{t('member.summary.billSavingsLabel')}</Text>
+          <Text style={styles.impactSub}>{t('member.summary.billSavingsSub')}</Text>
         </View>
 
         {/* Metric 4: Coal Avoided */}
@@ -103,8 +105,8 @@ export const EnergySummaryView = () => {
             <Flame size={20} color={COLORS.red} />
           </View>
           <Text style={styles.impactValue}>{coalAvoided} kg</Text>
-          <Text style={styles.impactLabel}>Coal Fuel Avoided</Text>
-          <Text style={styles.impactSub}>Thermal plant savings</Text>
+          <Text style={styles.impactLabel}>{t('member.summary.coalAvoidedLabel')}</Text>
+          <Text style={styles.impactSub}>{t('member.summary.coalAvoidedSub')}</Text>
         </View>
       </View>
 

@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 
 export const AuthField = ({
@@ -38,6 +39,7 @@ export const AuthField = ({
   returnKeyType = 'next',
   onSubmitEditing,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { colors, radius, spacing } = theme;
 
@@ -118,7 +120,7 @@ export const AuthField = ({
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={styles.eyeButton}
             accessibilityRole="button"
-            accessibilityLabel={isHidden ? 'Show password' : 'Hide password'}
+            accessibilityLabel={isHidden ? t('auth.field.showPassword') : t('auth.field.hidePassword')}
           >
             {isHidden ? (
               <Eye size={18} color={colors.textMuted} />

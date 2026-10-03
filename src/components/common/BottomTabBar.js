@@ -1,18 +1,20 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowRightLeft, Bell, LayoutDashboard, User, Zap } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../trade/theme';
 
 const TABS = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'trade', label: 'P2P Trade', icon: ArrowRightLeft },
-  { key: 'energy', label: 'Energy', icon: Zap },
-  { key: 'alerts', label: 'Alerts', icon: Bell },
-  { key: 'profile', label: 'Profile', icon: User },
+  { key: 'dashboard', labelKey: 'member.nav.dashboard', icon: LayoutDashboard },
+  { key: 'trade', labelKey: 'member.nav.trade', icon: ArrowRightLeft },
+  { key: 'energy', labelKey: 'member.nav.energy', icon: Zap },
+  { key: 'alerts', labelKey: 'member.nav.alerts', icon: Bell },
+  { key: 'profile', labelKey: 'member.nav.profile', icon: User },
 ];
 
 export default function BottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(bottomInset, 12) }]}>
       {TABS.map((tab) => {
@@ -34,7 +36,7 @@ export default function BottomTabBar({ activeKey, onSelect, bottomInset = 20 }) 
               <Icon size={18} color={color} strokeWidth={2} />
             </View>
             <Text style={[styles.label, { color, fontWeight: active ? weight.heavy : weight.medium }]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </Pressable>
         );

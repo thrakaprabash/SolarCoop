@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { useAuth } from '../../context/AuthContext';
+import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 import {
   UserCog,
   ShieldCheck,
@@ -29,6 +30,14 @@ import {
   Mail,
   Shield,
 } from 'lucide-react-native';
+
+const SWITCHER_COLORS = {
+  card: GLASS.card.backgroundColor,
+  border: GLASS.card.borderColor,
+  text: COLORS.textBright,
+  textSecondary: COLORS.textSecondary,
+  primary: COLORS.amberLight,
+};
 
 const getInitials = (name = '') => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -327,6 +336,8 @@ export default function AdminSettingsScreen() {
           </View>
         )}
       </View>
+
+      <LanguageSwitcher colors={SWITCHER_COLORS} />
 
       {/* System Information Card */}
       <View style={[GLASS.card, styles.menuCard]}>

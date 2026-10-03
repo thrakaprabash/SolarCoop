@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { AlertTriangle, ArrowDownLeft, ShieldAlert, DollarSign, Zap, CheckCircle2, TrendingDown } from 'lucide-react-native';
 
 // SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
+  const { t } = useTranslation();
   const { metrics, executeBorrowEnergy } = useEnergy();
   
   const [borrowAmount, setBorrowAmount] = useState('2.0');
@@ -24,7 +26,7 @@ export const DeficitView = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Energy Shortfall & Grid Backup</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.deficit.header')}</Text>
       </View>
 
       {/* Main Deficit Status Card */}
@@ -34,9 +36,9 @@ export const DeficitView = () => {
             <AlertTriangle size={28} color={COLORS.red} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.alertLabel}>Current Grid Import Deficit</Text>
+            <Text style={styles.alertLabel}>{t('member.deficit.currentDeficit')}</Text>
             <Text style={styles.alertVal}>
-              0.0 <Text style={styles.unit}>kW (Zero Deficit)</Text>
+              0.0 <Text style={styles.unit}>{t('member.deficit.zeroDeficit')}</Text>
             </Text>
           </View>
         </View>
@@ -44,30 +46,30 @@ export const DeficitView = () => {
         <View style={styles.alertBanner}>
           <ShieldAlert size={18} color={COLORS.teal} />
           <Text style={styles.alertBannerText}>
-            Solar generation + home battery capacity are fully covering household load. No grid buy required.
+            {t('member.deficit.coveredBanner')}
           </Text>
         </View>
       </View>
 
       {/* Rate Comparison Card: Co-op Peer Rate vs Main Utility Grid */}
       <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Energy Rate Cost Comparison</Text>
+        <Text style={styles.sectionTitle}>{t('member.deficit.rateComparison')}</Text>
 
         <View style={styles.compareRow}>
           {/* Co-op Rate */}
           <View style={[styles.compareCard, { backgroundColor: 'rgba(45, 212, 191, 0.08)', borderColor: 'rgba(45, 212, 191, 0.25)' }]}>
-            <Text style={[styles.compareTag, { color: COLORS.teal }]}>RECOMMENDED</Text>
-            <Text style={[styles.compareTitle, { color: COLORS.tealLight }]}>Co-op Peer Rate</Text>
+            <Text style={[styles.compareTag, { color: COLORS.teal }]}>{t('member.deficit.recommended')}</Text>
+            <Text style={[styles.compareTitle, { color: COLORS.tealLight }]}>{t('member.deficit.coopRate')}</Text>
             <Text style={styles.comparePrice}>$0.20 <Text style={styles.priceUnit}>/ kWh</Text></Text>
-            <Text style={styles.compareSub}>Clean solar power from neighbors</Text>
+            <Text style={styles.compareSub}>{t('member.deficit.coopRateSub')}</Text>
           </View>
 
           {/* Utility Grid Rate */}
           <View style={[styles.compareCard, { backgroundColor: 'rgba(239, 68, 68, 0.08)', borderColor: 'rgba(239, 68, 68, 0.25)' }]}>
-            <Text style={[styles.compareTag, { color: COLORS.red }]}>HIGH PEAK</Text>
-            <Text style={[styles.compareTitle, { color: COLORS.red }]}>Utility Main Grid</Text>
+            <Text style={[styles.compareTag, { color: COLORS.red }]}>{t('member.deficit.highPeak')}</Text>
+            <Text style={[styles.compareTitle, { color: COLORS.red }]}>{t('member.deficit.utilityRate')}</Text>
             <Text style={styles.comparePrice}>$0.45 <Text style={styles.priceUnit}>/ kWh</Text></Text>
-            <Text style={styles.compareSub}>Fossil grid peak demand price</Text>
+            <Text style={styles.compareSub}>{t('member.deficit.utilityRateSub')}</Text>
           </View>
         </View>
       </View>
@@ -76,15 +78,15 @@ export const DeficitView = () => {
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeaderRow}>
           <ArrowDownLeft size={20} color={COLORS.amber} />
-          <Text style={styles.sectionTitle}>Request Emergency Co-op Draw</Text>
+          <Text style={styles.sectionTitle}>{t('member.deficit.requestDraw')}</Text>
         </View>
 
         <Text style={styles.formSub}>
-          Borrow clean energy from community battery reserves at discounted co-op rates during low solar output.
+          {t('member.deficit.borrowSub')}
         </Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Amount to Borrow (kWh):</Text>
+          <Text style={styles.inputLabel}>{t('member.deficit.amountLabel')}</Text>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -97,7 +99,7 @@ export const DeficitView = () => {
         {borrowSuccess && (
           <View style={styles.successBanner}>
             <CheckCircle2 size={18} color={COLORS.teal} />
-            <Text style={styles.successText}>Success! Borrowed {borrowAmount} kWh from Co-op Pool</Text>
+            <Text style={styles.successText}>{t('member.deficit.successMessage', { amount: borrowAmount })}</Text>
           </View>
         )}
 
@@ -107,7 +109,7 @@ export const DeficitView = () => {
           activeOpacity={0.7}
         >
           <ArrowDownLeft size={18} color="#FFFFFF" />
-          <Text style={styles.borrowSubmitText}>Execute Co-op Energy Borrow</Text>
+          <Text style={styles.borrowSubmitText}>{t('member.deficit.executeBorrow')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

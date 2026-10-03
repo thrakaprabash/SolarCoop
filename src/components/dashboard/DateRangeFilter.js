@@ -8,37 +8,38 @@ import {
   Modal, 
   TouchableWithoutFeedback 
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Calendar, Clock, Sliders, Check, X } from 'lucide-react-native';
 
 export const DATE_RANGES = [
-  { key: 'today', label: 'Today', shortLabel: 'Today' },
-  { key: 'yesterday', label: 'Yesterday', shortLabel: 'Yest' },
-  { key: '7d', label: 'Last 7 Days', shortLabel: '7D' },
-  { key: '30d', label: 'Last 30 Days', shortLabel: '30D' },
-  { key: 'custom', label: 'Custom Range', shortLabel: 'Custom' },
+  { key: 'today', labelKey: 'member.dateFilter.range.today', shortLabel: 'Today' },
+  { key: 'yesterday', labelKey: 'member.dateFilter.range.yesterday', shortLabel: 'Yest' },
+  { key: '7d', labelKey: 'member.dateFilter.range.last7d', shortLabel: '7D' },
+  { key: '30d', labelKey: 'member.dateFilter.range.last30d', shortLabel: '30D' },
+  { key: 'custom', labelKey: 'member.dateFilter.range.custom', shortLabel: 'Custom' },
 ];
 
 export const GRANULARITY_OPTIONS_BY_RANGE = {
   today: [
-    { key: '30m', label: '30 Min' },
-    { key: '1h', label: '1 Hour' },
+    { key: '30m', labelKey: 'member.dateFilter.granularity.30min' },
+    { key: '1h', labelKey: 'member.dateFilter.granularity.1hour' },
   ],
   yesterday: [
-    { key: '30m', label: '30 Min' },
-    { key: '1h', label: '1 Hour' },
+    { key: '30m', labelKey: 'member.dateFilter.granularity.30min' },
+    { key: '1h', labelKey: 'member.dateFilter.granularity.1hour' },
   ],
   '7d': [
-    { key: '6h', label: '6 Hours' },
-    { key: '1d', label: 'Daily' },
+    { key: '6h', labelKey: 'member.dateFilter.granularity.6hours' },
+    { key: '1d', labelKey: 'member.dateFilter.granularity.daily' },
   ],
   '30d': [
-    { key: '1d', label: 'Daily' },
-    { key: '1w', label: 'Weekly' },
+    { key: '1d', labelKey: 'member.dateFilter.granularity.daily' },
+    { key: '1w', labelKey: 'member.dateFilter.granularity.weekly' },
   ],
   custom: [
-    { key: '1d', label: 'Daily' },
-    { key: '1w', label: 'Weekly' },
+    { key: '1d', labelKey: 'member.dateFilter.granularity.daily' },
+    { key: '1w', labelKey: 'member.dateFilter.granularity.weekly' },
   ],
 };
 
@@ -54,13 +55,14 @@ export const DateRangeFilter = ({
   customRange = { startDate: '2026-09-01', endDate: '2026-09-29' },
   onSelectCustomRange,
 }) => {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [tempStart, setTempStart] = useState(customRange.startDate);
   const [tempEnd, setTempEnd] = useState(customRange.endDate);
 
   const availableGranularities = GRANULARITY_OPTIONS_BY_RANGE[activeRange] || [
-    { key: '1h', label: '1 Hour' },
-    { key: '1d', label: 'Daily' },
+    { key: '1h', labelKey: 'member.dateFilter.granularity.1hour' },
+    { key: '1d', labelKey: 'member.dateFilter.granularity.daily' },
   ];
 
   const handleRangePress = (key) => {
@@ -114,7 +116,7 @@ export const DateRangeFilter = ({
                 />
               )}
               <Text style={[styles.rangeText, isActive && styles.rangeTextActive]}>
-                {item.label}
+                {t(item.labelKey)}
               </Text>
             </TouchableOpacity>
           );
@@ -126,21 +128,21 @@ export const DateRangeFilter = ({
         <View style={styles.activeWindowIndicator}>
           <Clock size={11} color={COLORS.amberLight} />
           <Text style={styles.activeWindowText}>
-            {activeRange === 'custom' 
-              ? `${tempStart} → ${tempEnd}` 
+            {activeRange === 'custom'
+              ? `${tempStart} → ${tempEnd}`
               : activeRange === 'today'
-              ? 'Today (Live 24h)'
+              ? t('member.dateFilter.windowToday')
               : activeRange === 'yesterday'
-              ? 'Yesterday (Full 24h)'
+              ? t('member.dateFilter.windowYesterday')
               : activeRange === '7d'
-              ? 'Past 7 Days'
-              : 'Past 30 Days'}
+              ? t('member.dateFilter.windowPast7d')
+              : t('member.dateFilter.windowPast30d')}
           </Text>
         </View>
 
         {/* Granularity Selector */}
         <View style={styles.granularityContainer}>
-          <Text style={styles.granularityLabel}>Step:</Text>
+          <Text style={styles.granularityLabel}>{t('member.dateFilter.step')}</Text>
           <View style={styles.granularityPills}>
             {availableGranularities.map((gran) => {
               const isGranActive = activeGranularity === gran.key;
@@ -155,7 +157,7 @@ export const DateRangeFilter = ({
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.granText, isGranActive && styles.granTextActive]}>
-                    {gran.label}
+                    {t(gran.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -178,7 +180,7 @@ export const DateRangeFilter = ({
                 <View style={styles.modalHeader}>
                   <View style={styles.modalHeaderTitleRow}>
                     <Calendar size={18} color={COLORS.amber} />
-                    <Text style={styles.modalTitle}>Select Custom Time Range</Text>
+                    <Text style={styles.modalTitle}>{t('member.dateFilter.modalTitle')}</Text>
                   </View>
                   <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCloseBtn}>
                     <X size={16} color={COLORS.textSecondary} />
@@ -187,25 +189,25 @@ export const DateRangeFilter = ({
 
                 {/* Quick Range Presets */}
                 <View style={styles.presetSection}>
-                  <Text style={styles.presetSectionTitle}>Select Window:</Text>
+                  <Text style={styles.presetSectionTitle}>{t('member.dateFilter.selectWindow')}</Text>
                   <View style={styles.presetButtonsRow}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.presetBtn, tempStart === '2026-09-01' && styles.presetBtnActive]}
                       onPress={() => { setTempStart('2026-09-01'); setTempEnd('2026-09-29'); }}
                     >
-                      <Text style={styles.presetBtnText}>Month-to-Date</Text>
+                      <Text style={styles.presetBtnText}>{t('member.dateFilter.presetMonthToDate')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.presetBtn, tempStart === '2026-09-15' && styles.presetBtnActive]}
                       onPress={() => { setTempStart('2026-09-15'); setTempEnd('2026-09-22'); }}
                     >
-                      <Text style={styles.presetBtnText}>Mid-Month Week</Text>
+                      <Text style={styles.presetBtnText}>{t('member.dateFilter.presetMidMonthWeek')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.presetBtn, tempStart === '2026-08-01' && styles.presetBtnActive]}
                       onPress={() => { setTempStart('2026-08-01'); setTempEnd('2026-08-31'); }}
                     >
-                      <Text style={styles.presetBtnText}>Previous Month</Text>
+                      <Text style={styles.presetBtnText}>{t('member.dateFilter.presetPreviousMonth')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -213,24 +215,24 @@ export const DateRangeFilter = ({
                 {/* Date Display Card */}
                 <View style={styles.dateDisplayCard}>
                   <View style={styles.dateBox}>
-                    <Text style={styles.dateBoxLabel}>START DATE</Text>
+                    <Text style={styles.dateBoxLabel}>{t('member.dateFilter.startDate')}</Text>
                     <Text style={styles.dateBoxValue}>{tempStart}</Text>
                   </View>
                   <Text style={styles.dateArrow}>→</Text>
                   <View style={styles.dateBox}>
-                    <Text style={styles.dateBoxLabel}>END DATE</Text>
+                    <Text style={styles.dateBoxLabel}>{t('member.dateFilter.endDate')}</Text>
                     <Text style={styles.dateBoxValue}>{tempEnd}</Text>
                   </View>
                 </View>
 
                 {/* Apply Button */}
-                <TouchableOpacity 
-                  style={styles.applyBtn} 
+                <TouchableOpacity
+                  style={styles.applyBtn}
                   onPress={handleApplyCustom}
                   activeOpacity={0.8}
                 >
                   <Check size={16} color="#FFFFFF" />
-                  <Text style={styles.applyBtnText}>Apply Filter</Text>
+                  <Text style={styles.applyBtnText}>{t('member.dateFilter.applyFilter')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

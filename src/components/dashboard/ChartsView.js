@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
@@ -8,7 +9,8 @@ import { DateRangeFilter } from './DateRangeFilter';
 
 // SOL-102 / SOL-153 / SOL-186: Interactive Energy Charts View Component & Multi-Range Filter
 export const ChartsView = () => {
-  const { 
+  const { t } = useTranslation();
+  const {
     chartData, 
     loadChartData,
     dateRange,
@@ -79,7 +81,7 @@ export const ChartsView = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.storyBadgeHeader}>
-        <Text style={styles.storyBadgeTitle}>Interactive Energy Charts</Text>
+        <Text style={styles.storyBadgeTitle}>{t('member.charts.header')}</Text>
       </View>
 
       {/* Date Range & Granularity Filter (SOL-186) */}
@@ -107,8 +109,8 @@ export const ChartsView = () => {
       <View style={styles.chartCard}>
         <View style={styles.chartHeaderRow}>
           <View>
-            <Text style={styles.chartTitle}>Generation vs. Consumption</Text>
-            <Text style={styles.chartSub}>Tap points on chart to inspect power balance</Text>
+            <Text style={styles.chartTitle}>{t('member.charts.genVsCons')}</Text>
+            <Text style={styles.chartSub}>{t('member.charts.tapHint')}</Text>
           </View>
           <Activity size={20} color={COLORS.amber} />
         </View>
@@ -117,11 +119,11 @@ export const ChartsView = () => {
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: COLORS.amber }]} />
-            <Text style={styles.legendText}>Solar Production</Text>
+            <Text style={styles.legendText}>{t('member.charts.legendSolar')}</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: COLORS.teal }]} />
-            <Text style={styles.legendText}>Household Consumption</Text>
+            <Text style={styles.legendText}>{t('member.charts.legendHousehold')}</Text>
           </View>
         </View>
 
@@ -211,22 +213,22 @@ export const ChartsView = () => {
 
         {/* Point Inspection Details Banner */}
         <View style={styles.inspectionBanner}>
-          <Text style={styles.inspectionTime}>Inspection Window: {selectedHour}</Text>
+          <Text style={styles.inspectionTime}>{t('member.charts.inspectionWindow', { hour: selectedHour })}</Text>
           <View style={styles.inspectionGrid}>
             <View style={styles.inspectionCol}>
-              <Text style={styles.inspectionLabel}>Production</Text>
+              <Text style={styles.inspectionLabel}>{t('member.tabs.production')}</Text>
               <Text style={[styles.inspectionVal, { color: COLORS.amber }]}>
                 {selectedProd.toFixed(1)} {metricUnit}
               </Text>
             </View>
             <View style={styles.inspectionCol}>
-              <Text style={styles.inspectionLabel}>Consumption</Text>
+              <Text style={styles.inspectionLabel}>{t('member.tabs.consumption')}</Text>
               <Text style={[styles.inspectionVal, { color: COLORS.teal }]}>
                 {selectedCons.toFixed(1)} {metricUnit}
               </Text>
             </View>
             <View style={styles.inspectionCol}>
-              <Text style={styles.inspectionLabel}>Net Delta</Text>
+              <Text style={styles.inspectionLabel}>{t('member.charts.netDelta')}</Text>
               <Text style={[styles.inspectionVal, { color: selectedProd >= selectedCons ? COLORS.tealLight : COLORS.red }]}>
                 {(selectedProd - selectedCons >= 0 ? '+' : '') + (selectedProd - selectedCons).toFixed(1)} {metricUnit}
               </Text>
@@ -237,7 +239,7 @@ export const ChartsView = () => {
 
       {/* Chart 2: Net Energy Delta (Surplus / Deficit) */}
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Net Energy Delta (Surplus / Deficit)</Text>
+        <Text style={styles.chartTitle}>{t('member.charts.netDeltaChart')}</Text>
         
         <Svg height="130" width="100%" viewBox="0 0 300 130">
           <Line x1="10" y1="65" x2="290" y2="65" stroke={COLORS.glassBorderLight} strokeWidth="1" />

@@ -1,26 +1,26 @@
 export const MODULE_FEATURES = [
   {
-    title: 'Available Community Energy',
-    desc: 'Browse available solar energy pools across co-op households',
+    titleKey: 'trade.availableEnergy.title',
+    descKey: 'trade.feature.availableDesc',
     screen: 'list',
   },
   {
-    title: 'Energy Requests Management',
-    desc: 'Submit and track P2P energy request orders',
+    titleKey: 'trade.feature.requestsTitle',
+    descKey: 'trade.feature.requestsDesc',
     screen: 'requests',
   },
   {
-    title: 'Request Approval / Rejection',
-    desc: 'Review incoming requests from neighbouring households',
+    titleKey: 'trade.feature.approvalTitle',
+    descKey: 'trade.feature.approvalDesc',
     screen: 'incoming',
   },
   {
-    title: 'Transaction Ledger & History',
-    desc: 'Immutable ledger of completed energy exchanges & token payouts',
+    titleKey: 'trade.feature.ledgerTitle',
+    descKey: 'trade.feature.ledgerDesc',
     screen: 'history',
   },
 ];
 
-export const MEMBER = { label: 'Member 2 — Pawan Menuka' };
+export const MEMBER = { number: 2, name: 'Pawan Menuka' };
 
 export default MODULE_FEATURES;

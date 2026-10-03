@@ -1,30 +1,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS } from '../../theme/colors';
-import { 
-  LayoutDashboard, 
-  Sun, 
-  Zap, 
-  BatteryCharging, 
-  AlertTriangle, 
-  History, 
-  BarChart3, 
-  Leaf 
+import {
+  LayoutDashboard,
+  Sun,
+  Zap,
+  BatteryCharging,
+  AlertTriangle,
+  History,
+  BarChart3,
+  Leaf
 } from 'lucide-react-native';
 
 export const tabsConfig = [
-  { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
-  { id: 'production', label: 'Production', Icon: Sun },
-  { id: 'consumption', label: 'Consumption', Icon: Zap },
-  { id: 'surplus', label: 'Surplus', Icon: BatteryCharging },
-  { id: 'deficit', label: 'Deficit', Icon: AlertTriangle },
-  { id: 'history', label: 'History', Icon: History },
-  { id: 'charts', label: 'Charts', Icon: BarChart3 },
-  { id: 'summary', label: 'Summary', Icon: Leaf },
+  { id: 'dashboard', labelKey: 'member.tabs.dashboard', Icon: LayoutDashboard },
+  { id: 'production', labelKey: 'member.tabs.production', Icon: Sun },
+  { id: 'consumption', labelKey: 'member.tabs.consumption', Icon: Zap },
+  { id: 'surplus', labelKey: 'member.tabs.surplus', Icon: BatteryCharging },
+  { id: 'deficit', labelKey: 'member.tabs.deficit', Icon: AlertTriangle },
+  { id: 'history', labelKey: 'member.tabs.history', Icon: History },
+  { id: 'charts', labelKey: 'member.tabs.charts', Icon: BarChart3 },
+  { id: 'summary', labelKey: 'member.tabs.summary', Icon: Leaf },
 ];
 
 export const SegmentedTabs = () => {
+  const { t } = useTranslation();
   const { activeTab, setActiveTab } = useEnergy();
 
   return (
@@ -37,6 +39,7 @@ export const SegmentedTabs = () => {
         {tabsConfig.map(tab => {
           const isActive = activeTab === tab.id;
           const IconComponent = tab.Icon;
+          const label = t(tab.labelKey);
 
           return (
             <TouchableOpacity
@@ -58,7 +61,7 @@ export const SegmentedTabs = () => {
                   isActive && styles.tabLabelActive,
                 ]}
               >
-                {tab.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );

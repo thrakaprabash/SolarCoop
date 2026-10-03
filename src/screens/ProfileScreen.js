@@ -45,17 +45,21 @@ import {
   User as UserIcon,
   X,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { AuthField } from '../components/auth/AuthField';
+import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
 import { showAlert, showConfirm } from '../utils/alert';
 
-const ROLE_LABELS = {
-  consumer: 'Consumer',
-  owner: 'Solar Owner',
-  technician: 'Technician',
-  admin: 'Administrator',
+// Canonical role/status values stay in English — only the label shown is
+// translated. Reused verbatim in App.js's role-router shell.
+const ROLE_LABEL_KEY = {
+  consumer: 'common.role.consumer',
+  owner: 'common.role.owner',
+  technician: 'common.role.technician',
+  admin: 'common.role.admin',
 };
 
 /** Role → accent palette (badge text, soft background, hero gradient). */
@@ -78,12 +82,12 @@ const ROLE_THEMES = {
   },
 };
 
-const STATUS_LABELS = {
-  active: 'Active',
-  pending_approval: 'Pending Approval',
-  pending: 'Pending Approval',
-  blocked: 'Blocked',
-  inactive: 'Inactive',
+const STATUS_LABEL_KEY = {
+  active: 'common.accountStatus.active',
+  pending_approval: 'common.accountStatus.pendingApproval',
+  pending: 'common.accountStatus.pendingApproval',
+  blocked: 'common.accountStatus.blocked',
+  inactive: 'common.accountStatus.inactive',
 };
 
 const STATUS_COLORS = {
@@ -104,6 +108,7 @@ const getInitials = (name = '') => {
 };
 
 export const ProfileScreen = () => {
+  const { t } = useTranslation();
   const { user, profile, signOut, loading, refreshProfile, updateProfile } =
     useAuth();
   const theme = useTheme();
@@ -137,10 +142,10 @@ export const ProfileScreen = () => {
     profile?.name || user?.user_metadata?.name || user?.email || 'Member';
   const firstName = displayName.trim().split(/\s+/)[0];
   const role = profile?.role || user?.user_metadata?.role || 'consumer';
-  const roleLabel = ROLE_LABELS[role] || role;
+  const roleLabel = t(ROLE_LABEL_KEY[role] ?? role);
 
   const status = profile?.status || 'pending_approval';
-  const statusLabel = STATUS_LABELS[status] || status;
+  const statusLabel = t(STATUS_LABEL_KEY[status] ?? status);
   const statusColor = STATUS_COLORS[status] || '#94A3B8';
 
   const roleTheme = ROLE_THEMES[role] || ROLE_THEMES.consumer;
@@ -186,17 +191,17 @@ export const ProfileScreen = () => {
     // ── Local validation ────────────────────────────────────────────────
     const nextErrors = {};
     if (!trimmedName) {
-      nextErrors.name = 'Full name is required.';
+      nextErrors.name = t('profile.errorNameRequired');
     }
     if (trimmedMobile) {
       const digits = trimmedMobile.replace(/\D/g, '');
       if (digits.length < 9 || digits.length > 12) {
-        nextErrors.mobileNumber = 'Enter a valid mobile number (9–12 digits).';
+        nextErrors.mobileNumber = t('auth.field.mobileInvalid');
       }
     }
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      showAlert('Check your details', Object.values(nextErrors).join('\n'));
+      showAlert(t('auth.checkDetailsTitle'), Object.values(nextErrors).join('\n'));
       return;
     }
 
@@ -210,22 +215,21 @@ export const ProfileScreen = () => {
 
       if (result.error) {
         showAlert(
-          'Update Failed',
-          result.error.message ||
-            'An unknown error occurred. Please try again.',
+          t('profile.updateFailedTitle'),
+          result.error.message || t('auth.register.unknownError'),
         );
         return;
       }
 
-      showAlert('Success!', 'Your profile has been updated.', [
-        { text: 'OK' },
+      showAlert(t('profile.successTitle'), t('profile.successMessage'), [
+        { text: t('common.ok') },
       ]);
       setEditing(false);
       setFieldErrors({});
     } catch (error) {
       showAlert(
-        'Update Failed',
-        error?.message || 'An unknown error occurred. Please try again.',
+        t('profile.updateFailedTitle'),
+        error?.message || t('auth.register.unknownError'),
       );
     } finally {
       setSaving(false);
@@ -233,9 +237,9 @@ export const ProfileScreen = () => {
   };
 
   const handleSignOut = () => {
-    showConfirm('Logout', 'Are you sure you want to log out of SolarCoop?', {
-      confirmText: 'Log Out',
-      cancelText: 'Cancel',
+    showConfirm(t('profile.logoutTitle'), t('profile.logoutConfirm'), {
+      confirmText: t('profile.logoutAction'),
+      cancelText: t('common.cancel'),
       destructive: true,
       onConfirm: async () => {
         // Global signOut() clears the Supabase session + AsyncStorage token
@@ -282,7 +286,7 @@ export const ProfileScreen = () => {
             </Text>
           </View>
 
-          <Text style={styles.heroGreeting}>Welcome, {firstName}</Text>
+          <Text style={styles.heroGreeting}>{t('profile.welcome', { name: firstName })}</Text>
           <Text style={styles.heroEmail}>{user?.email}</Text>
 
           <View style={styles.badgeRow}>
@@ -306,7 +310,7 @@ export const ProfileScreen = () => {
                 style={[styles.statusDot, { backgroundColor: statusColor }]}
               />
               <Text style={[styles.statusText, { color: statusColor }]}>
-                Status: {statusLabel}
+                {t('profile.statusLabel', { status: statusLabel })}
               </Text>
             </View>
           </View>
@@ -324,14 +328,14 @@ export const ProfileScreen = () => {
         >
           <View style={styles.detailsHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Profile Details
+              {t('profile.detailsTitle')}
             </Text>
             <TouchableOpacity
               onPress={handleToggleEdit}
               disabled={saving}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
-              accessibilityLabel={editing ? 'Cancel editing' : 'Edit profile'}
+              accessibilityLabel={editing ? t('profile.cancelEditingA11y') : t('profile.editProfileA11y')}
             >
               <View style={styles.editToggle}>
                 {editing ? (
@@ -340,7 +344,7 @@ export const ProfileScreen = () => {
                   <Pencil size={14} color={colors.primary} strokeWidth={2.4} />
                 )}
                 <Text style={[styles.editToggleText, { color: colors.primary }]}>
-                  {editing ? 'Cancel' : 'Edit'}
+                  {editing ? t('common.cancel') : t('profile.edit')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -348,20 +352,20 @@ export const ProfileScreen = () => {
 
           <DetailRow
             icon={Shield}
-            label="Registered Role"
+            label={t('profile.registeredRole')}
             value={roleLabel}
           />
 
           {editing ? (
             <AuthField
-              label="Full Name"
+              label={t('auth.field.fullNameLabel')}
               icon={UserIcon}
               value={name}
               onChangeText={(text) => {
                 setName(text);
                 clearError('name');
               }}
-              placeholder="e.g. Amara Perera"
+              placeholder={t('auth.register.namePlaceholder')}
               autoCapitalize="words"
               autoComplete="name"
               textContentType="name"
@@ -370,21 +374,21 @@ export const ProfileScreen = () => {
           ) : (
             <DetailRow
               icon={UserIcon}
-              label="Full Name"
+              label={t('auth.field.fullNameLabel')}
               value={displayName}
             />
           )}
 
           {editing ? (
             <AuthField
-              label="Mobile Number"
+              label={t('auth.field.mobileLabel')}
               icon={Phone}
               value={mobileNumber}
               onChangeText={(text) => {
                 setMobileNumber(text);
                 clearError('mobileNumber');
               }}
-              placeholder="e.g. +94 77 123 4567"
+              placeholder={t('auth.field.mobilePlaceholder')}
               keyboardType="phone-pad"
               autoComplete="tel"
               textContentType="telephoneNumber"
@@ -393,21 +397,21 @@ export const ProfileScreen = () => {
           ) : (
             <DetailRow
               icon={Phone}
-              label="Mobile Number"
+              label={t('auth.field.mobileLabel')}
               value={profile?.mobile_number || '—'}
             />
           )}
 
           {editing ? (
             <AuthField
-              label="Household ID"
+              label={t('profile.householdIdLabel')}
               icon={HomeIcon}
               value={householdId}
               onChangeText={(text) => {
                 setHouseholdId(text);
                 clearError('householdId');
               }}
-              placeholder="e.g. H-0091"
+              placeholder={t('profile.householdIdPlaceholder')}
               autoCapitalize="characters"
               autoComplete="off"
               error={fieldErrors.householdId}
@@ -415,7 +419,7 @@ export const ProfileScreen = () => {
           ) : (
             <DetailRow
               icon={HomeIcon}
-              label="Household ID"
+              label={t('profile.householdIdLabel')}
               value={profile?.household_id || '—'}
             />
           )}
@@ -424,22 +428,24 @@ export const ProfileScreen = () => {
           {isOwner ? (
             <DetailRow
               icon={Sun}
-              label="Solar Capacity"
+              label={t('profile.solarCapacityLabel')}
               value={solarCapacityValue ?? '—'}
             />
           ) : null}
 
           <DetailRow
             icon={Activity}
-            label="Account Status"
+            label={t('profile.accountStatusLabel')}
             value={statusLabel}
           />
         </View>
 
+        <LanguageSwitcher colors={colors} />
+
         {/* Save button — visible only while editing */}
         {editing ? (
           <PrimaryButton
-            label="Save Changes"
+            label={t('admin.settings.saveChanges')}
             icon={Check}
             onPress={handleSave}
             loading={saving}
@@ -449,7 +455,7 @@ export const ProfileScreen = () => {
 
         {/* Logout (SOL-92 cross-platform confirmation) */}
         <PrimaryButton
-          label="Logout"
+          label={t('profile.logoutTitle')}
           variant="danger"
           icon={LogOut}
           onPress={handleSignOut}
