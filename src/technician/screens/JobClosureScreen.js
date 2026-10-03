@@ -9,6 +9,8 @@ import { ArrowLeft, Check } from 'lucide-react-native';
 import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 
+import RepairEvidenceCard from '../components/RepairEvidenceCard';
+
 const MIN_NOTES = 10;
 
 const notify = (title, message) => {
@@ -16,18 +18,12 @@ const notify = (title, message) => {
   else Alert.alert(title, message);
 };
 
-/**
- * SOL-201 — close out an active job: confirm the repair checklist, write
- * what was done, and mark the ticket completed. Completing updates the one
- * jobs row both sides read, so the household's card flips to "complete".
- *
- * Photo evidence (the upload box in the Figma closure frame) needs a storage
- * bucket and an image picker — tracked as a Sprint 4 follow-up.
- */
+/** Repair evidence, checklist and notes for an active job. */
 export default function JobClosureScreen() {
   const { t } = useTranslation();
-  const { selectedJob: job, closeClosure, toggleChecklistItem, completeJob } = useTechnician();
+  const { selectedJob: job, closeClosure, toggleChecklistItem, completeJob, uploadRepairPhoto } = useTechnician();
   const [notes, setNotes] = useState(job.resolutionNotes ?? '');
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -80,6 +76,9 @@ export default function JobClosureScreen() {
           <Text style={styles.subtitle}>{t('technician.closure.subtitle')}</Text>
         </View>
 
+        <RepairEvidenceCard photos={job.repairPhotos} onUpload={asset => uploadRepairPhoto(job.id, asset)}
+          onBusyChange={setUploading} disabled={saving} />
+
         {/* ── Parts & repair checklist ── */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -124,14 +123,14 @@ export default function JobClosureScreen() {
 
         <Pressable
           onPress={handleComplete}
-          disabled={!notesOk || saving}
+          disabled={!notesOk || saving || uploading}
           style={({ pressed }) => pressed && styles.pressed}
         >
           <LinearGradient
             colors={[TECH.orange, TECH.orangeDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={[styles.completeBtn, (!notesOk || saving) && styles.btnDisabled]}
+            style={[styles.completeBtn, (!notesOk || saving || uploading) && styles.btnDisabled]}
           >
             {saving
               ? <ActivityIndicator size="small" color="#FFFFFF" />

@@ -25,7 +25,7 @@ export const JOB_COLUMNS =
   'id, ticket_code, household_user_id, client_name, client_phone, site_address, site_area, ' +
   'distance_km, title, device, error_code, error_message, fault_location, urgency, ' +
   'diagnostic_checklist, consumer_message, status, technician_id, technician_name, ' +
-  'resolution_notes, source, created_at, accepted_at, completed_at, updated_at';
+  'resolution_notes, repair_photos, source, created_at, accepted_at, completed_at, updated_at';
 
 // ─── Job Shape Builder ────────────────────────────────────────────────────────
 
@@ -57,6 +57,7 @@ export function buildJob(row) {
     technicianId:    row.technician_id,
     technicianName:  row.technician_name,
     resolutionNotes: row.resolution_notes,
+    repairPhotos:    Array.isArray(row.repair_photos) ? row.repair_photos : [],
     source:          row.source,
     createdAt:       row.created_at,
     acceptedAt:      row.accepted_at,

@@ -9,6 +9,8 @@ import {
   buildJob,
 } from '../services/jobService';
 
+import { uploadRepairPhoto as serviceUploadRepairPhoto } from '../services/repairPhotoService';
+
 const TechnicianContext = createContext(null);
 
 export const TechnicianProvider = ({ children, onExit }) => {
@@ -131,6 +133,14 @@ export const TechnicianProvider = ({ children, onExit }) => {
     }
   }, [jobs]);
 
+  const uploadRepairPhoto = useCallback(async (jobId, asset) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) throw new Error('This job is no longer on your board.');
+    const updated = await serviceUploadRepairPhoto(job, technicianId, asset);
+    setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    return updated;
+  }, [jobs, technicianId]);
+
   // ─── completeJob ────────────────────────────────────────────────────────────
   /**
    * SOL-201 — Active → Completed, with resolution notes. The household's
@@ -197,6 +207,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
         loadJobs,
         acceptJob,
         completeJob,
+        uploadRepairPhoto,
         // Diagnostics
         openAlerts,
         urgentAlertCount,

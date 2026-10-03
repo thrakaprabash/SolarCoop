@@ -21,7 +21,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow SolarCoop to select repair evidence photos.",
+          "cameraPermission": "Allow SolarCoop to photograph completed repairs.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
