@@ -29,6 +29,8 @@ Saved transaction UUID: `e3bed65b-5b06-41ce-870e-330558931bec`.
 
 ## Read-only walkthrough to perform now
 
+For presentation timing and spoken narration, use `SPRINT_4_DEMO_SCRIPT.md`. The saved-record provider/requester walkthrough has been verified; video capture and playback review remain pending.
+
 1. Sign into the requester account and open P2P Trade -> My Requests. Confirm completed and rejected 0.5 kWh requests.
 2. Open the completed request's transaction. Confirm COMPLETED, 0.5 kWh, Vihanga Perera -> requester, 30 September, and the saved reference. Return to My Requests.
 3. Open Transaction History. The saved received trade belongs to September. October totals must exclude it.
