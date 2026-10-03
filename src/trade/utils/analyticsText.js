@@ -1,6 +1,8 @@
 // Component-owned copy; shared locale dictionaries remain unchanged.
 const messages = {
   en: {
+    historyError: 'Transaction history could not be refreshed. Check your connection and try again.',
+    historyStale: 'Showing previously loaded history and totals. They may be out of date.',
     signIn: 'Sign in to view your energy activity.',
     loading: 'Loading your energy readings…',
     noRecords: 'No energy readings are available for your account.',
@@ -18,6 +20,8 @@ const messages = {
     sharingNote: 'Shared energy includes only your completed outgoing trades during this period.',
   },
   si: {
+    historyError: 'ගනුදෙනු ඉතිහාසය යාවත්කාලීන කළ නොහැකි විය. ඔබේ සම්බන්ධතාව පරීක්ෂා කර නැවත උත්සාහ කරන්න.',
+    historyStale: 'කලින් පූරණය කළ ඉතිහාසය සහ එකතුව පෙන්වයි. ඒවා යාවත්කාලීන නොවිය හැක.',
     signIn: 'ඔබේ බලශක්ති ක්‍රියාකාරකම් බැලීමට පිවිසෙන්න.',
     loading: 'ඔබේ බලශක්ති කියවීම් පූරණය වෙමින් පවතී…',
     noRecords: 'ඔබේ ගිණුම සඳහා බලශක්ති කියවීම් නොමැත.',
@@ -35,6 +39,8 @@ const messages = {
     sharingNote: 'බෙදාගත් බලශක්තියට ඇතුළත් වන්නේ මෙම කාලය තුළ ඔබ විසින් යවන ලද සම්පූර්ණ කළ වෙළඳ ගනුදෙනු පමණි.',
   },
   ta: {
+    historyError: 'பரிவர்த்தனை வரலாற்றைப் புதுப்பிக்க முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+    historyStale: 'முன்பு ஏற்றப்பட்ட வரலாறும் மொத்தங்களும் காட்டப்படுகின்றன. அவை தற்போதைய தரவாக இல்லாமல் இருக்கலாம்.',
     signIn: 'உங்கள் ஆற்றல் செயல்பாட்டைப் பார்க்க உள்நுழையவும்.',
     loading: 'உங்கள் ஆற்றல் அளவீடுகள் ஏற்றப்படுகின்றன…',
     noRecords: 'உங்கள் கணக்கிற்கான ஆற்றல் அளவீடுகள் இல்லை.',

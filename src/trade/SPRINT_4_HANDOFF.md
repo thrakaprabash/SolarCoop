@@ -41,9 +41,11 @@ All current changes are inside src/trade. No new database mutation, schema/polic
 
 Provider P2P screenshots and rehearsal findings are recorded in `evidence/sprint4/README.md`. This was read-only testing of existing records; no new request or transfer was created.
 
+History offline rehearsal exposed raw fetch error text and unlabelled retained data. The component now uses localized retry copy and labels retained history/totals as potentially outdated. All 40 tests and the web export passed. See the bug log and evidence README for reported offline checks and directly verified recovery.
+
 ## Next work
 
 1. Verify new Insights/Impact UI, retry, period boundaries, and zero versus unavailable states.
-2. Complete remaining browser outage checks; provider/requester saved-record walkthrough and settled account-switch check are verified.
+2. Browser History/Insights offline checks reported successful by the user; their recovery checked directly. Capture updated offline screenshots if needed for presentation evidence. Saved-record walkthrough and settled account-switch check are verified.
 3. Resolve daily calculation acceptance separately without inventing measurement semantics or changing teammates' sources.
 4. Record the selected web-browser demo and perform final review before merge/Jira completion. Native phone checks are outside the chosen demo scope and remain unverified.

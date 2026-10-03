@@ -9,24 +9,27 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchMyTransactions } from '../services/transactionService';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
+import { analyticsText } from '../utils/analyticsText';
 import { byNewest, emptyCopy, groupByMonth, matchesFilter, monthTotals } from '../utils/transactions';
 import { TransactionCard } from '../components';
 import { Card, Chip, Divider, IconBadge, Notice, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
 
 export default function TransactionHistoryScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const copy = (key) => analyticsText(i18n.language, key);
   const { user } = useAuth();
   const { navigate } = useNavigation();
   const [filter, setFilter] = useState('All');
   const activeUser = useRef(user?.id);
   activeUser.current = user?.id;
   const fetchId = useRef(0);
-  const [state, setState] = useState({ userId: null, rows: [], loading: true, refreshing: false, error: '' });
+  const [state, setState] = useState({ userId: null, rows: [], loaded: false, loading: true, refreshing: false, error: '' });
   const belongsToUser = state.userId === (user?.id ?? null);
   const transactions = belongsToUser ? state.rows : [];
   const loading = !belongsToUser || state.loading;
   const error = belongsToUser ? state.error : '';
   const refreshing = belongsToUser && state.refreshing;
+  const hasSavedHistory = belongsToUser && state.loaded;
 
   const refresh = useCallback(async (isRefresh = false) => {
     const userId = user?.id ?? null;
@@ -34,6 +37,7 @@ export default function TransactionHistoryScreen() {
     setState((previous) => ({
       userId,
       rows: previous.userId === userId ? previous.rows : [],
+      loaded: previous.userId === userId && previous.loaded,
       loading: !isRefresh,
       refreshing: isRefresh,
       error: '',
@@ -41,12 +45,12 @@ export default function TransactionHistoryScreen() {
     try {
       const rows = await fetchMyTransactions(userId);
       if ((activeUser.current ?? null) === userId && fetchId.current === id) {
-        setState({ userId, rows, loading: false, refreshing: false, error: '' });
+        setState({ userId, rows, loaded: true, loading: false, refreshing: false, error: '' });
       }
-    } catch (reason) {
+    } catch {
       if ((activeUser.current ?? null) === userId && fetchId.current === id) {
         setState((previous) => ({ ...previous, loading: false, refreshing: false,
-          error: reason?.message || t('common.error') }));
+          error: 'load-failed' }));
       }
     }
   }, [user?.id, t]);
@@ -70,13 +74,14 @@ export default function TransactionHistoryScreen() {
       <ScreenTitle title={t('trade.nav.transactionHistory')} />
 
       {error ? <View style={{ gap: 8 }}>
-        <Notice tone="error" message={error} />
-        <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={() => refresh(true)} />
+        <Notice tone="error" message={copy('historyError')} />
+        {hasSavedHistory ? <Text style={styles.emptyBody}>{copy('historyStale')}</Text> : null}
+        <PrimaryButton label={t('trade.tryAgain')} variant="ghost" disabled={loading || refreshing} onPress={() => refresh(true)} />
       </View> : null}
       {loading && transactions.length === 0 ? <Card style={{ alignItems: 'center', padding: 24 }}>
         <ActivityIndicator color={colors.tealLight} />
       </Card> : null}
-      {(!loading && !error) || transactions.length > 0 ? <>
+      {(!loading && !error) || hasSavedHistory ? <>
 
       <Card padding={18} style={styles.summary}>
         <Text style={styles.summaryLabel}>{t('trade.history.thisMonth')}</Text>
