@@ -8,6 +8,7 @@ import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
+import { analyticsText } from '../utils/analyticsText';
 import { dayPart } from '../utils/format';
 import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
 
@@ -18,7 +19,8 @@ const GREETING_KEY = {
 };
 
 export default function SmartEnergyInsightsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
   const analytics = useEnergyAnalytics();
   const { surplus, providersLoading, providersError, refreshProviders } = useTrade();
   const { navigate } = useNavigation();
@@ -40,10 +42,10 @@ export default function SmartEnergyInsightsScreen() {
       />
       <SectionLabel>{t('trade.insightsScreen.sectionLabel')}</SectionLabel>
       <AnalyticsStatus analytics={{ ...analytics, refresh }} />
-      <Text style={styles.notice}>Daily consumption insights are unavailable. These readings do not yet support verified daily totals.</Text>
+      <Text style={styles.notice}>{copy('dailyUnavailable')}</Text>
       {analytics.signedIn && !providersLoading && !providersError && surplus > 0 ?
-        <Text style={styles.notice}>Available to share: {surplus.toFixed(1)} kWh, based on your current trade balance.</Text> : null}
-      <Text style={styles.footNote}>Daily averages and trends will appear when supported by your energy data.</Text>
+        <Text style={styles.notice}>{copy('available', { amount: surplus.toFixed(1) })}</Text> : null}
+      <Text style={styles.footNote}>{copy('insightsNote')}</Text>
     </ScrollView>
   );
 }

@@ -33,7 +33,8 @@ These hook checks use an isolated state harness, not a mounted native screen. Br
 - [ ] Real failed-read recovery/retry in the browser.
 - [x] Provider UI screenshot reviewed: Vihanga Perera, latest reading 26 August, no reading for today, and guarded available balance 3.7 kWh. The requester greeting is absent after the account switch.
 - [ ] Physical-device and real network recovery checks.
-- [ ] Localization of the new status/explanation text. Existing translated tabs, headings, and shared action labels are preserved; new explanatory text is currently English.
+- [x] New status/explanation text has English, Sinhala, and Tamil component-local translations, using the current app language. All 15 keys, value substitutions, locale variants, and English fallback were checked. Impact card text can wrap within available width.
+- [ ] Visual language-switch checks and Sinhala/Tamil wording review on the intended device.
 
 SOL-182 and SOL-183 are partially implemented, not fully accepted. No fake daily figures or sample greetings remain in their live paths.
 
@@ -50,3 +51,9 @@ The screenshot shows month-to-date 2026-10-01 to 2026-10-03 (Asia/Colombo), no e
 ## User-provided provider Insights screenshot
 
 After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Provider Impact and physical-device/network checks remain pending.
+
+## Component-local localization follow-up
+
+`utils/analyticsText.js` supplies the new status/explanation strings without editing shared dictionaries. Existing translated tabs, headings, and action labels still use the shared translation hook. No calculation or query contract changed. Automated copy checks passed for all 15 keys in all three languages, date/amount/period substitution, regional language identifiers, and unknown-language fallback. The 30-test regression suite still passes. Mounted language switching and phone layout remain unverified because browser control is disconnected.
+
+Production web export for this follow-up passed with 2,406 modules into ignored `.expo/sprint4-localized-analytics-export`.

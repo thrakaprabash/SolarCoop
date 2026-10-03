@@ -30,7 +30,7 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 Browser navigation/requester history checks were performed before analytics changes. Browser verification of the new analytics UI is pending: browser control reported Transport closed. The user can follow `SPRINT_4_DEMO_RUNBOOK.md` until the connection is restored.
 
-New analytics explanatory text is English; existing shared translated labels remain. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
+New analytics explanatory text now has component-local English/Sinhala/Tamil translations; existing shared translated labels remain. Copy checks passed; visual language-switch and wording review remain pending. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
 
 All current changes are inside src/trade. No new database mutation, schema/policy change, teammate edit, or dependency change was performed. Two pre-existing untracked documents remain untouched, and earlier local drafts remain preserved in the recorded stash.
 

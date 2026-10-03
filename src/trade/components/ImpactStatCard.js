@@ -19,7 +19,7 @@ export default function ImpactStatCard({
         <IconBadge size={50} background={tint}>
           <Icon size={24} color={iconColor} strokeWidth={2} />
         </IconBadge>
-        <View>
+        <View style={styles.details}>
           <Text style={[styles.value, { color: iconColor }]}>
             {value}
             {unit ? <Text style={styles.unit}> {unit}</Text> : null}
@@ -33,6 +33,7 @@ export default function ImpactStatCard({
 }
 
 const styles = StyleSheet.create({
+  details: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   stacked: { gap: 14 },
   value: { fontSize: 32, fontWeight: weight.heavy, lineHeight: 36 },
