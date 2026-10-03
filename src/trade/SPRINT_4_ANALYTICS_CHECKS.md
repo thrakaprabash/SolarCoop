@@ -23,19 +23,24 @@ Production Expo web export passed with 2,405 modules into ignored `.expo/sprint4
 node --test src/trade/services/energyAnalyticsService.test.cjs src/trade/context/useEnergyAnalytics.test.cjs src/trade/context/TradeContext.test.cjs src/trade/services/requestService.test.cjs src/trade/services/transactionService.test.cjs src/trade/utils/transactions.test.cjs
 ```
 
-These hook checks use an isolated state harness, not a mounted native screen. Browser verification of the new analytics UI was attempted twice, but the browser-control connection reported Transport closed. It remains pending. The previously recorded SOL-179 navigation checks predate these analytics changes.
+These hook checks use an isolated state harness, not a mounted native screen. Direct browser automation of the new analytics UI is blocked by Transport closed. Subsequent user-provided screenshots and Sync reports are recorded below. The previously recorded SOL-179 navigation checks predate these analytics changes.
 
 ## Remaining acceptance work
 
 - [ ] Verified daily normalization and supported consumption rules/generation/coverage calculations. User directed us to continue without a teammate dependency; this does not supply missing measurement semantics.
 - [x] User-provided screenshots of Insights/Impact on the current test account: no energy records, correct account greeting, October reporting period, zero shared energy, and unavailable solar indicators.
 - [x] Successful Sync on both screens, reported by the user: loading finishes without errors and the no-readings state remains. This verifies a successful empty read, not retry after a failed read.
-- [ ] Real failed-read recovery/retry in the browser.
+- [x] User-performed Impact failure/recovery check: error screenshot followed by successful retry screenshot. Reading date and genuine zero shared total returned; period refreshed to 4 October.
+- [x] User-provided failure-state screenshot reviewed: energy and shared-energy errors shown, Try Again visible, and shared total unavailable rather than zero. Successful retry after reconnection remains pending.
 - [x] Provider UI screenshot reviewed: Vihanga Perera, latest reading 26 August, no reading for today, and guarded available balance 3.7 kWh. The requester greeting is absent after the account switch.
-- [ ] Physical-device and real network recovery checks.
-- [ ] Localization of the new status/explanation text. Existing translated tabs, headings, and shared action labels are preserved; new explanatory text is currently English.
+- [x] Provider Impact screenshot reviewed: same 26 August reading, October 1–3 reporting period, 0.0 kWh shared, and unavailable generation.
+- [ ] Physical-device checks and network recovery on the other P2P/Insights screens. Impact browser recovery is verified by user-provided screenshots.
+- [x] New status/explanation text has English, Sinhala, and Tamil component-local translations, using the current app language. All 15 keys, value substitutions, locale variants, and English fallback were checked. Impact card text can wrap within available width.
+- [ ] Visual language-switch checks and Sinhala/Tamil wording review on the intended device.
 
 SOL-182 and SOL-183 are partially implemented, not fully accepted. No fake daily figures or sample greetings remain in their live paths.
+
+On 4 October, `utils/energyAnalytics.js` added fixture-tested rules for verified normalized daily input. See `SPRINT_4_CALCULATION_RULES.md`. Unknown-contract gating is the default; these calculations are not connected to the unknown live source and do not change the unavailable screen states.
 
 ## User-provided Insights screenshot
 
@@ -49,4 +54,20 @@ The screenshot shows month-to-date 2026-10-01 to 2026-10-03 (Asia/Colombo), no e
 
 ## User-provided provider Insights screenshot
 
-After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Provider Impact and physical-device/network checks remain pending.
+After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Physical-device/network checks remain pending.
+
+## User-provided provider Impact screenshot
+
+The screenshot shows the 2026-10-01 to 2026-10-03 Colombo period, latest reading 2026-08-26 with no reading today, unavailable solar generation, and 0.0 kWh shared. This is consistent with excluding the saved September outgoing trade. Co-op is selected in the shared header; the displayed analytics remains account-scoped, as previously documented. The lower coverage card is only partly visible, so this screenshot does not verify its full label/explanation or scrolling. A screenshot with the Sync control visible does not establish that provider refresh or failed-read recovery was exercised.
+
+## Component-local localization follow-up
+
+`utils/analyticsText.js` supplies the new status/explanation strings without editing shared dictionaries. Existing translated tabs, headings, and action labels still use the shared translation hook. No calculation or query contract changed. Automated copy checks passed for all 15 keys in all three languages, date/amount/period substitution, regional language identifiers, and unknown-language fallback. The 30-test regression suite still passes. Mounted language switching and phone layout remain unverified because browser control is disconnected.
+
+Production web export for this follow-up passed with 2,406 modules into ignored `.expo/sprint4-localized-analytics-export`.
+
+## User-provided network failure screenshot
+
+Received 4 October 2026 following the disconnect/Sync test request. The Impact screenshot shows both energy/ledger load failures, Try Again, and unavailable shared energy rather than a misleading 0.0 kWh. No loading spinner is visible. It confirms the rendered failure state; reconnection and successful retry have not yet been confirmed. The screenshot's reporting period ends 3 October, so it is recorded as shown rather than treated as proof of a refreshed 4 October period.
+
+The subsequent retry screenshot shows errors removed, Sync restored, latest reading 2026-08-26, and shared energy 0.0 kWh. The month-to-date period now ends 2026-10-04, confirming fresh period calculation during retry across the date change. This completes the user-performed Impact browser failure/recovery check. No new energy records or trades were created.

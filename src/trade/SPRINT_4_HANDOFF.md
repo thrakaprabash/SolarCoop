@@ -28,9 +28,9 @@ These commits are pushed. Story keys support Jira's GitHub integration; issue st
 
 30 automated tests and production web export pass. The scoped database checks confirmed authenticated non-admin provider access, the saved completed trade, RPC grants, guarded pending insert, and unique linked transaction index. One August energy reading was observed; it cannot provide October energy coverage.
 
-Browser navigation/requester history checks were performed before analytics changes. Browser verification of the new analytics UI is pending: browser control reported Transport closed. The user can follow `SPRINT_4_DEMO_RUNBOOK.md` until the connection is restored.
+Browser navigation/requester history checks were performed before analytics changes. User-provided screenshots subsequently verified requester no-record states and provider stale-reading/balance/Impact states. The user reported successful Sync on both requester analytics screens. On 4 October, paired Impact failure/retry screenshots verified error handling, restored reading/zero sharing, and reporting-period refresh to 4 October. Direct browser control remains disconnected. Full P2P/Insights outage checks and physical-device rehearsal remain pending.
 
-New analytics explanatory text is English; existing shared translated labels remain. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
+New analytics explanatory text now has component-local English/Sinhala/Tamil translations; existing shared translated labels remain. Copy checks passed; visual language-switch and wording review remain pending. Dependencies were restored from the preserved prior worktree snapshot; a fresh lockfile install has not succeeded. See `SPRINT_4_DATA_CONTRACT.md` for details.
 
 All current changes are inside src/trade. No new database mutation, schema/policy change, teammate edit, or dependency change was performed. Two pre-existing untracked documents remain untouched, and earlier local drafts remain preserved in the recorded stash.
 
