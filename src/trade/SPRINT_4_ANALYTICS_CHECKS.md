@@ -40,6 +40,8 @@ These hook checks use an isolated state harness, not a mounted native screen. Di
 
 SOL-182 and SOL-183 are partially implemented, not fully accepted. No fake daily figures or sample greetings remain in their live paths.
 
+On 4 October, `utils/energyAnalytics.js` added fixture-tested rules for verified normalized daily input. See `SPRINT_4_CALCULATION_RULES.md`. Unknown-contract gating is the default; these calculations are not connected to the unknown live source and do not change the unavailable screen states.
+
 ## User-provided Insights screenshot
 
 The screenshot shows the signed-in SolarCoop Test Requester greeting, no energy readings for this account, Sync, and unavailable daily consumption calculations. The previous Menuka greeting and sample figures are absent. This verifies the rendered no-record state only, not a successful refresh or measured-data calculation.
