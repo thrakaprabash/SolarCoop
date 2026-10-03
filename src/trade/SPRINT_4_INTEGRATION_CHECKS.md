@@ -18,15 +18,18 @@ TradeModule now keys its internal NavigationProvider by initialScreen. Switching
 - Three trade RPCs exist, permit authenticated execution, and deny anonymous execution.
 - Pending insert policy and unique linked-transaction index confirmed from live results.
 - Saved previously authorized trade remains COMPLETED, 0.5 kWh.
+- Current requester UI: history showed the received 0.5 kWh September trade, with October totals of zero. Details loaded Vihanga Perera -> You, COMPLETED, 30 September, and the matching TXN-E3BED65B5B0641CE870E330558931BEC reference. Back to History returned to history and started its fresh read.
 - All 20 existing trade tests passed after the internal navigation key change; these test services, totals, and asynchronous context state, not mounted UI navigation. git diff --check passed.
 - Sprint 3 approval, rejection, private access, and persistence checks are historical evidence; they have not been repeated through the current Sprint 4 UI.
 
 ## Remaining checks
 
-- [ ] Browser tab switching: P2P -> nested route -> Energy starts Insights; Energy -> Impact -> P2P starts list. No prior request/transaction params leak across entries.
+- [x] Browser tab switching: My Requests -> Energy starts Insights; Energy -> Impact -> P2P starts Available Community Energy. The requester list showed the previously authorized completed and rejected 0.5 kWh requests. No new request or action was submitted.
 - [ ] Requester/provider lists, history/details, refresh and back paths on the integrated UI.
 - [ ] Current account switch/sign-out behavior in the UI.
 - [ ] Any new live request/approval/rejection requires explicit approval for the test records.
 - [ ] Physical-device, real network recovery, and simultaneous-session checks.
 
 Analytics may proceed with read/error/freshness states and confirmed ledger semantics. Unknown energy-record aggregation remains explicitly unavailable; old readings must not appear as current-day measurements.
+
+The current Insights and Impact screens still show sample data (including the fixed Menuka greeting). This is a known remaining Phase 3/4 task, not verified live analytics. Expo web development bundle succeeded with 2,438 modules; the preview remains on port 8082.
