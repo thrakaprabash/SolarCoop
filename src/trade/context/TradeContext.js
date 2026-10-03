@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ENERGY, IMPACT } from '../data/energy';
 import { sum } from '../utils/format';
 import { approveRequest, fetchIncomingRequests, fetchMyRequests, rejectRequest } from '../services/requestService';
 import { supabase } from '../../lib/supabase';
@@ -317,8 +316,6 @@ export function TradeProvider({ children }) {
       refreshIncoming,
       incomingPendingCount,
       surplus,
-      energy: ENERGY,
-      impact: IMPACT,
       toast,
       showToast,
       submitRequest,
