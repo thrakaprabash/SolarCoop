@@ -30,10 +30,11 @@ These hook checks use an isolated state harness, not a mounted native screen. Di
 - [ ] Verified daily normalization and supported consumption rules/generation/coverage calculations. User directed us to continue without a teammate dependency; this does not supply missing measurement semantics.
 - [x] User-provided screenshots of Insights/Impact on the current test account: no energy records, correct account greeting, October reporting period, zero shared energy, and unavailable solar indicators.
 - [x] Successful Sync on both screens, reported by the user: loading finishes without errors and the no-readings state remains. This verifies a successful empty read, not retry after a failed read.
-- [ ] Real failed-read recovery/retry in the browser.
+- [x] User-performed Impact failure/recovery check: error screenshot followed by successful retry screenshot. Reading date and genuine zero shared total returned; period refreshed to 4 October.
+- [x] User-provided failure-state screenshot reviewed: energy and shared-energy errors shown, Try Again visible, and shared total unavailable rather than zero. Successful retry after reconnection remains pending.
 - [x] Provider UI screenshot reviewed: Vihanga Perera, latest reading 26 August, no reading for today, and guarded available balance 3.7 kWh. The requester greeting is absent after the account switch.
 - [x] Provider Impact screenshot reviewed: same 26 August reading, October 1–3 reporting period, 0.0 kWh shared, and unavailable generation.
-- [ ] Physical-device and real network recovery checks.
+- [ ] Physical-device checks and network recovery on the other P2P/Insights screens. Impact browser recovery is verified by user-provided screenshots.
 - [x] New status/explanation text has English, Sinhala, and Tamil component-local translations, using the current app language. All 15 keys, value substitutions, locale variants, and English fallback were checked. Impact card text can wrap within available width.
 - [ ] Visual language-switch checks and Sinhala/Tamil wording review on the intended device.
 
@@ -62,3 +63,9 @@ The screenshot shows the 2026-10-01 to 2026-10-03 Colombo period, latest reading
 `utils/analyticsText.js` supplies the new status/explanation strings without editing shared dictionaries. Existing translated tabs, headings, and action labels still use the shared translation hook. No calculation or query contract changed. Automated copy checks passed for all 15 keys in all three languages, date/amount/period substitution, regional language identifiers, and unknown-language fallback. The 30-test regression suite still passes. Mounted language switching and phone layout remain unverified because browser control is disconnected.
 
 Production web export for this follow-up passed with 2,406 modules into ignored `.expo/sprint4-localized-analytics-export`.
+
+## User-provided network failure screenshot
+
+Received 4 October 2026 following the disconnect/Sync test request. The Impact screenshot shows both energy/ledger load failures, Try Again, and unavailable shared energy rather than a misleading 0.0 kWh. No loading spinner is visible. It confirms the rendered failure state; reconnection and successful retry have not yet been confirmed. The screenshot's reporting period ends 3 October, so it is recorded as shown rather than treated as proof of a refreshed 4 October period.
+
+The subsequent retry screenshot shows errors removed, Sync restored, latest reading 2026-08-26, and shared energy 0.0 kWh. The month-to-date period now ends 2026-10-04, confirming fresh period calculation during retry across the date change. This completes the user-performed Impact browser failure/recovery check. No new energy records or trades were created.
