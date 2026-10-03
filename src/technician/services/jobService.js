@@ -127,29 +127,17 @@ export async function acceptJob(jobId, { id: technicianId, name: technicianName 
   return buildJob(data);
 }
 
-/**
- * Save the diagnostic checklist (SOL-198). The whole array is written, which
- * is fine: only the assigned technician can update the job (RLS), so there's
- * no one else editing it concurrently.
- *
- * @param {string} jobId
- * @param {{label: string, done: boolean}[]} checklist
- * @returns {Promise<object>} the updated job
- */
-export async function updateChecklist(jobId, checklist) {
-  const { data, error } = await supabase
-    .from('jobs')
-    .update({ diagnostic_checklist: checklist.map(({ label, done }) => ({ label, done })) })
-    .eq('id', jobId)
-    .select(JOB_COLUMNS)
-    .single();
+/** Toggle one saved step under a server row lock (SOL-203). */
+export async function toggleChecklistItem(jobId, index) {
+  const { data, error } = await supabase.rpc('toggle_job_checklist_item', { p_job_id: jobId, p_index: index });
+  if (error) throw error;
+  return buildJob(data);
+}
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new Error('Only the technician assigned to this job can update its checklist.');
-    }
-    throw error;
-  }
+/** Save a draft independently of closing the ticket. */
+export async function saveResolutionNotes(jobId, notes) {
+  const { data, error } = await supabase.rpc('save_job_resolution_notes', { p_job_id: jobId, p_notes: notes });
+  if (error) throw error;
   return buildJob(data);
 }
 

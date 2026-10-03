@@ -19,7 +19,7 @@ const notify = (title, message) => {
 export default function DiagnosticsScreen() {
   const { t } = useTranslation();
   const {
-    openAlerts, technicianId, toggleChecklistItem, openJob, jobsLoading, loadJobs,
+    openAlerts, technicianId, toggleChecklistItem, openJob, jobsLoading, loadJobs, pendingWrites,
   } = useTechnician();
 
   const handleToggle = async (jobId, index) => {
@@ -52,7 +52,7 @@ export default function DiagnosticsScreen() {
           <CriticalAlertCard
             key={job.id}
             job={job}
-            canEditChecklist={job.status === 'active' && job.technicianId === technicianId}
+            canEditChecklist={job.status === 'active' && job.technicianId === technicianId && !(pendingWrites[job.id] > 0)}
             onToggleItem={(i) => handleToggle(job.id, i)}
             onViewJob={() => openJob(job.id)}
           />

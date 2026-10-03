@@ -451,7 +451,11 @@
       "photoNumber": "Repair photo {{number}}",
       "cameraPermission": "Allow camera access in your device settings to take a repair photo. You can also choose one from your gallery.",
       "photoError": "Could not upload this photo. Please try again.",
-      "retryPhotos": "Retry photo previews"
+      "retryPhotos": "Retry photo previews",
+      "saveNotes": "Save Notes",
+      "notesUnsaved": "Unsaved changes",
+      "notesSaved": "Notes saved",
+      "notesErrorTitle": "Could not save repair notes"
     }
   }
 }

@@ -34,6 +34,7 @@ async function database() {
   await db.exec(fs.readFileSync('supabase/migrations/0006_technician_jobs.sql', 'utf8'));
   const photoMigration = fs.readFileSync('supabase/migrations/0008_job_repair_photos.sql', 'utf8');
   await db.exec(photoMigration);
+  await db.exec(fs.readFileSync('supabase/migrations/0009_job_repair_drafts.sql', 'utf8'));
   await db.exec(photoMigration); // migrations must also tolerate being run again in the SQL Editor.
   await db.exec(`
     grant usage on schema public, storage, auth to authenticated, anon;
@@ -97,5 +98,29 @@ test('attachment requires a real matching upload, valid metadata and an active j
     await asUser(db, TECH);
     await assert.rejects(upload(db, JOB + '/late.jpg'), /row-level security/);
     await assert.rejects(attach(db), /active job/);
+  } finally { await db.close(); }
+});
+
+test('checklist toggles keep saved steps and notes persist without closing the job', async () => {
+  const db = await database();
+  try {
+    await asUser(db, TECH);
+    const toggle = index => db.query('select (public.toggle_job_checklist_item($1, $2)).*', [JOB, index]);
+    await toggle(0);
+    const after = await toggle(1);
+    assert.equal(after.rows[0].diagnostic_checklist[0].done, true);
+    assert.equal(after.rows[0].diagnostic_checklist[1].done, true);
+    await toggle(0);
+    assert.equal((await db.query('select diagnostic_checklist from public.jobs where id=$1', [JOB])).rows[0].diagnostic_checklist[0].done, false);
+    await assert.rejects(toggle(-1), /does not exist/);
+    await assert.rejects(toggle(99), /does not exist/);
+    const saved = await db.query('select (public.save_job_resolution_notes($1, $2)).*', [JOB, '  Replaced connector  ']);
+    assert.equal(saved.rows[0].resolution_notes, 'Replaced connector');
+    assert.equal(saved.rows[0].status, 'active');
+    await db.query('select public.save_job_resolution_notes($1, $2)', [JOB, '']);
+    await assert.rejects(db.query('select public.save_job_resolution_notes($1, $2)', [JOB, 'x'.repeat(501)]), /500 characters/);
+    await asUser(db, OTHER);
+    await assert.rejects(toggle(0), /assigned technician/);
+    await assert.rejects(db.query('select public.save_job_resolution_notes($1, $2)', [JOB, 'Not my repair']), /assigned technician/);
   } finally { await db.close(); }
 });
