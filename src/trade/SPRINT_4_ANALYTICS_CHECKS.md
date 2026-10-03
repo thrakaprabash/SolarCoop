@@ -23,7 +23,7 @@ Production Expo web export passed with 2,405 modules into ignored `.expo/sprint4
 node --test src/trade/services/energyAnalyticsService.test.cjs src/trade/context/useEnergyAnalytics.test.cjs src/trade/context/TradeContext.test.cjs src/trade/services/requestService.test.cjs src/trade/services/transactionService.test.cjs src/trade/utils/transactions.test.cjs
 ```
 
-These hook checks use an isolated state harness, not a mounted native screen. Browser verification of the new analytics UI was attempted twice, but the browser-control connection reported Transport closed. It remains pending. The previously recorded SOL-179 navigation checks predate these analytics changes.
+These hook checks use an isolated state harness, not a mounted native screen. Direct browser automation of the new analytics UI is blocked by Transport closed. Subsequent user-provided screenshots and Sync reports are recorded below. The previously recorded SOL-179 navigation checks predate these analytics changes.
 
 ## Remaining acceptance work
 
@@ -32,6 +32,7 @@ These hook checks use an isolated state harness, not a mounted native screen. Br
 - [x] Successful Sync on both screens, reported by the user: loading finishes without errors and the no-readings state remains. This verifies a successful empty read, not retry after a failed read.
 - [ ] Real failed-read recovery/retry in the browser.
 - [x] Provider UI screenshot reviewed: Vihanga Perera, latest reading 26 August, no reading for today, and guarded available balance 3.7 kWh. The requester greeting is absent after the account switch.
+- [x] Provider Impact screenshot reviewed: same 26 August reading, October 1–3 reporting period, 0.0 kWh shared, and unavailable generation.
 - [ ] Physical-device and real network recovery checks.
 - [x] New status/explanation text has English, Sinhala, and Tamil component-local translations, using the current app language. All 15 keys, value substitutions, locale variants, and English fallback were checked. Impact card text can wrap within available width.
 - [ ] Visual language-switch checks and Sinhala/Tamil wording review on the intended device.
@@ -50,7 +51,11 @@ The screenshot shows month-to-date 2026-10-01 to 2026-10-03 (Asia/Colombo), no e
 
 ## User-provided provider Insights screenshot
 
-After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Provider Impact and physical-device/network checks remain pending.
+After switching to Vihanga Perera, the screen shows the provider's name, latest reading 2026-08-26 (Asia/Colombo), no reading for today, and available to share 3.7 kWh from the guarded trade balance. This matches the earlier scoped database sample and the saved 0.5 kWh completion against 4.2 kWh surplus. The screen is displaying real provider data; unavailable daily calculations do not indicate an empty or failed read. The screenshot confirms the settled account-switch result, not the timing of hiding data during a pending response. Physical-device/network checks remain pending.
+
+## User-provided provider Impact screenshot
+
+The screenshot shows the 2026-10-01 to 2026-10-03 Colombo period, latest reading 2026-08-26 with no reading today, unavailable solar generation, and 0.0 kWh shared. This is consistent with excluding the saved September outgoing trade. Co-op is selected in the shared header; the displayed analytics remains account-scoped, as previously documented. The lower coverage card is only partly visible, so this screenshot does not verify its full label/explanation or scrolling. A screenshot with the Sync control visible does not establish that provider refresh or failed-read recovery was exercised.
 
 ## Component-local localization follow-up
 
