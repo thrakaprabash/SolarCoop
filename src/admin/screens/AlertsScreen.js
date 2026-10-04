@@ -159,6 +159,9 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
   const status = STATUS_STYLE[alert.status] ?? STATUS_STYLE.Open;
   const StatusIcon = status.Icon;
   const isOpen = alert.status === 'Open';
+  // The scan raises a system alert again while its cause persists, so deleting one
+  // only makes it come back. Those are resolved instead; Delete is for admin-written alerts.
+  const canDelete = alert.source !== 'system';
 
   const changeStatus = async (kind, action) => {
     if (busy) return;
@@ -286,18 +289,20 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.deleteBtn, busy && styles.actionBtnDisabled]}
-              onPress={handleDelete}
-              disabled={!!busy}
-              activeOpacity={0.8}
-            >
-              {busy === 'delete'
-                ? <ActivityIndicator size="small" color={COLORS.red} />
-                : <Trash2 size={13} color={COLORS.red} />
-              }
-              <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.alerts.action.delete')}</Text>
-            </TouchableOpacity>
+            {canDelete && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn, busy && styles.actionBtnDisabled]}
+                onPress={handleDelete}
+                disabled={!!busy}
+                activeOpacity={0.8}
+              >
+                {busy === 'delete'
+                  ? <ActivityIndicator size="small" color={COLORS.red} />
+                  : <Trash2 size={13} color={COLORS.red} />
+                }
+                <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.alerts.action.delete')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
