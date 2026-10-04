@@ -42,7 +42,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { I18nextProvider } from 'react-i18next';
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './src/i18n';
 import { EnergyProvider, useEnergy } from './src/context/EnergyContext';
 import { TradeProvider } from './src/trade/context/TradeContext';
@@ -50,14 +50,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Header } from './src/components/common/Header';
 import { SegmentedTabs } from './src/components/common/SegmentedTabs';
 import BottomTabBar from './src/components/common/BottomTabBar';
-import { HomeDashboard } from './src/components/dashboard/HomeDashboard';
-import { ProductionView } from './src/components/dashboard/ProductionView';
-import { ConsumptionView } from './src/components/dashboard/ConsumptionView';
-import { SurplusView } from './src/components/dashboard/SurplusView';
-import { DeficitView } from './src/components/dashboard/DeficitView';
-import { EnergyHistoryView } from './src/components/dashboard/EnergyHistoryView';
-import { ChartsView } from './src/components/dashboard/ChartsView';
-import { EnergySummaryView } from './src/components/dashboard/EnergySummaryView';
+import { CachedDashboardContainer } from './src/components/dashboard/CachedDashboardContainer';
 import TradeModule from './src/trade/TradeModule';
 import { AlertsSection } from './src/components/alerts/AlertsSection';
 import { ProfileScreen } from './src/screens/ProfileScreen';
@@ -207,6 +200,7 @@ function ShellFrame({ header, children }) {
 }
 
 function PortalHeader({ title, subtitle, accentColor }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <View style={styles.portalHeader}>
@@ -220,9 +214,9 @@ function PortalHeader({ title, subtitle, accentColor }) {
           <Sun size={18} color={accentColor} />
         </View>
         <View>
-          <Text style={styles.portalBrandName}>SolarCoop</Text>
+          <Text style={styles.portalBrandName}>{t('common.appName')}</Text>
           <Text style={[styles.portalBrandSub, { color: theme.colors.textSecondary }]}>
-            Community Energy Sharing
+            {t('app.communityEnergySharing')}
           </Text>
         </View>
       </View>
@@ -239,6 +233,7 @@ function PortalHeader({ title, subtitle, accentColor }) {
 /* ─── Pending-approval lock screen (Solar Owners awaiting Admin validation) ── */
 
 function PendingApprovalLock() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { refreshProfile } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
@@ -258,14 +253,13 @@ function PendingApprovalLock() {
         <Lock size={34} color={theme.colors.primary} strokeWidth={2.2} />
       </View>
       <Text style={[styles.lockTitle, { color: theme.colors.text }]}>
-        Pending Admin Validation
+        {t('app.pendingLock.title')}
       </Text>
       <Text style={[styles.lockMessage, { color: theme.colors.textSecondary }]}>
-        Your solar assets are currently pending Admin validation.
+        {t('app.pendingLock.message')}
       </Text>
       <Text style={[styles.lockHint, { color: theme.colors.textMuted }]}>
-        You can still open your Profile. Energy sharing &amp; trading tabs
-        unlock automatically as soon as an administrator activates your account.
+        {t('app.pendingLock.hint')}
       </Text>
       <TouchableOpacity
         style={[styles.lockRefreshBtn, { backgroundColor: theme.colors.primary }]}
@@ -278,7 +272,7 @@ function PendingApprovalLock() {
         ) : (
           <>
             <RefreshCw size={16} color="#FFFFFF" />
-            <Text style={styles.lockRefreshText}>Check Status</Text>
+            <Text style={styles.lockRefreshText}>{t('app.pendingLock.checkStatus')}</Text>
           </>
         )}
       </TouchableOpacity>
@@ -290,27 +284,13 @@ function PendingApprovalLock() {
 
 function MemberApp() {
   const { profile, user } = useAuth();
-  const { mainBottomTab, setMainBottomTab, activeTab } = useEnergy();
+  const { mainBottomTab, setMainBottomTab } = useEnergy();
 
   const role = profile?.role || user?.user_metadata?.role || 'consumer';
   const status =
     profile?.status || (role === 'owner' ? 'pending_approval' : 'active');
   // A solar owner awaiting admin validation may only open their Profile.
   const isPendingOwner = role === 'owner' && status === 'pending_approval';
-
-  const renderDashboardView = () => {
-    switch (activeTab) {
-      case 'dashboard':   return <HomeDashboard />;
-      case 'production':  return <ProductionView />;
-      case 'consumption': return <ConsumptionView />;
-      case 'surplus':     return <SurplusView />;
-      case 'deficit':     return <DeficitView />;
-      case 'history':     return <EnergyHistoryView />;
-      case 'charts':      return <ChartsView />;
-      case 'summary':     return <EnergySummaryView />;
-      default:            return <HomeDashboard />;
-    }
-  };
 
   const renderMainContent = () => {
     // Guarding: pending solar owners see the lock screen everywhere except
@@ -324,7 +304,9 @@ function MemberApp() {
         return (
           <View style={styles.dashboardContainer}>
             <SegmentedTabs />
-            <View style={styles.viewContainer}>{renderDashboardView()}</View>
+            <View style={styles.viewContainer}>
+              <CachedDashboardContainer />
+            </View>
           </View>
         );
       case 'trade':   return <TradeModule initialScreen="list" />;
@@ -335,7 +317,9 @@ function MemberApp() {
         return (
           <View style={styles.dashboardContainer}>
             <SegmentedTabs />
-            <View style={styles.viewContainer}>{renderDashboardView()}</View>
+            <View style={styles.viewContainer}>
+              <CachedDashboardContainer />
+            </View>
           </View>
         );
     }

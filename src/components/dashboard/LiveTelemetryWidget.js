@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { 
@@ -19,7 +20,8 @@ import {
  * inverter performance telemetry, and auto-updating heartbeat ticker.
  */
 export const LiveTelemetryWidget = () => {
-  const { 
+  const { t } = useTranslation();
+  const {
     telemetryStatus = 'live', 
     lastFetchedAt, 
     telemetryHealth = { inverterStatus: 'Optimal', gridFrequency: '50.0 Hz', pingMs: 38, efficiency: 99.2 },
@@ -27,7 +29,7 @@ export const LiveTelemetryWidget = () => {
   } = useEnergy();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [relativeTime, setRelativeTime] = useState('just now');
+  const [relativeTime, setRelativeTime] = useState(t('member.telemetry.justNow'));
 
   // Looping pulse animation for live beacon
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -49,17 +51,17 @@ export const LiveTelemetryWidget = () => {
   useEffect(() => {
     const updateRelative = () => {
       if (!lastFetchedAt) {
-        setRelativeTime('just now');
+        setRelativeTime(t('member.telemetry.justNow'));
         return;
       }
       const diffSec = Math.max(0, Math.floor((Date.now() - new Date(lastFetchedAt).getTime()) / 1000));
       if (diffSec < 5) {
-        setRelativeTime('just now');
+        setRelativeTime(t('member.telemetry.justNow'));
       } else if (diffSec < 60) {
-        setRelativeTime(`${diffSec}s ago`);
+        setRelativeTime(t('member.telemetry.secondsAgo', { count: diffSec }));
       } else {
         const mins = Math.floor(diffSec / 60);
-        setRelativeTime(`${mins}m ago`);
+        setRelativeTime(t('member.telemetry.minutesAgo', { count: mins }));
       }
     };
 
@@ -99,9 +101,9 @@ export const LiveTelemetryWidget = () => {
   };
 
   const getStatusLabel = () => {
-    if (telemetryStatus === 'live') return 'Realtime Stream';
-    if (telemetryStatus === 'polling') return 'Polling 30s';
-    return 'Offline Cached';
+    if (telemetryStatus === 'live') return t('member.telemetry.status.realtime');
+    if (telemetryStatus === 'polling') return t('member.telemetry.status.polling');
+    return t('member.telemetry.status.offline');
   };
 
   const statusColor = getStatusColor();
@@ -122,14 +124,14 @@ export const LiveTelemetryWidget = () => {
                   { backgroundColor: statusColor, opacity: pulseAnim }
                 ]} 
               />
-              <Text style={styles.widgetTitle}>Live Inverter Telemetry</Text>
+              <Text style={styles.widgetTitle}>{t('member.telemetry.widgetTitle')}</Text>
               <View style={[styles.badge, { borderColor: `${statusColor}55`, backgroundColor: `${statusColor}18` }]}>
                 <Text style={[styles.badgeText, { color: statusColor }]}>{getStatusLabel()}</Text>
               </View>
             </View>
             <View style={styles.timeRow}>
               <Clock size={11} color={COLORS.textMuted} />
-              <Text style={styles.timeText}>Heartbeat: {relativeTime}</Text>
+              <Text style={styles.timeText}>{t('member.telemetry.heartbeat', { time: relativeTime })}</Text>
             </View>
           </View>
         </View>
@@ -143,7 +145,7 @@ export const LiveTelemetryWidget = () => {
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
             <RotateCw size={13} color={COLORS.textPrimary} />
           </Animated.View>
-          <Text style={styles.refreshBtnText}>{refreshing ? 'Syncing' : 'Sync'}</Text>
+          <Text style={styles.refreshBtnText}>{refreshing ? t('member.telemetry.syncing') : t('member.telemetry.sync')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -152,10 +154,10 @@ export const LiveTelemetryWidget = () => {
         <View style={styles.telemetryItem}>
           <View style={styles.metricHeader}>
             <Activity size={12} color={COLORS.tealLight} />
-            <Text style={styles.metricLabel}>Inverter Health</Text>
+            <Text style={styles.metricLabel}>{t('member.telemetry.inverterHealth')}</Text>
           </View>
           <Text style={styles.metricValue}>{telemetryHealth.efficiency || 99.2}%</Text>
-          <Text style={[styles.metricSub, { color: COLORS.tealLight }]}>Optimal (99.2%)</Text>
+          <Text style={[styles.metricSub, { color: COLORS.tealLight }]}>{t('member.telemetry.inverterHealthSub')}</Text>
         </View>
 
         <View style={styles.divider} />
@@ -163,10 +165,10 @@ export const LiveTelemetryWidget = () => {
         <View style={styles.telemetryItem}>
           <View style={styles.metricHeader}>
             <Cpu size={12} color={COLORS.amberLight} />
-            <Text style={styles.metricLabel}>Grid Frequency</Text>
+            <Text style={styles.metricLabel}>{t('member.telemetry.gridFrequency')}</Text>
           </View>
           <Text style={styles.metricValue}>{telemetryHealth.gridFrequency || '50.0 Hz'}</Text>
-          <Text style={styles.metricSub}>Synchronized</Text>
+          <Text style={styles.metricSub}>{t('member.telemetry.gridFrequencySub')}</Text>
         </View>
 
         <View style={styles.divider} />
@@ -174,10 +176,10 @@ export const LiveTelemetryWidget = () => {
         <View style={styles.telemetryItem}>
           <View style={styles.metricHeader}>
             <Wifi size={12} color={COLORS.tealLight} />
-            <Text style={styles.metricLabel}>Telemetry Ping</Text>
+            <Text style={styles.metricLabel}>{t('member.telemetry.telemetryPing')}</Text>
           </View>
           <Text style={styles.metricValue}>{telemetryHealth.pingMs || 38} ms</Text>
-          <Text style={styles.metricSub}>Ultra Low</Text>
+          <Text style={styles.metricSub}>{t('member.telemetry.telemetryPingSub')}</Text>
         </View>
       </View>
     </View>

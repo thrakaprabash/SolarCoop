@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { timeAgo } from '../../admin/data/mockAdminData';
 import { FaultAlertCard } from './FaultAlertCard';
@@ -44,6 +45,13 @@ const STATUS_BG = {
   'Rejected':     'rgba(255,255,255,0.05)',
 };
 
+const STATUS_LABEL_KEY = {
+  'Open':         'common.status.open',
+  'Under Review': 'common.status.underReview',
+  'Resolved':     'common.status.resolved',
+  'Rejected':     'common.status.rejected',
+};
+
 const TYPE_COLOR = {
   'Transaction Error': COLORS.red,
   'Billing Dispute':   COLORS.amberLight,
@@ -51,10 +59,25 @@ const TYPE_COLOR = {
   'Other':             COLORS.textSecondary,
 };
 
+const TYPE_LABEL_KEY = {
+  'Transaction Error': 'admin.complaints.type.transactionError',
+  'Billing Dispute':   'admin.complaints.type.billingDispute',
+  'System Fault':      'admin.complaints.type.systemFault',
+  'Other':             'admin.complaints.type.other',
+};
+
 // ─── 4-Step Stepper ──────────────────────────────────────────────────────────
 const STEPS = ['Open', 'Under Review', 'Investigated', 'Resolved'];
 
+const STEP_LABEL_KEY = {
+  'Open':         'common.status.open',
+  'Under Review': 'common.status.underReview',
+  'Investigated': 'admin.complaints.investigated',
+  'Resolved':     'common.status.resolved',
+};
+
 function StatusStepper({ currentStatus }) {
+  const { t } = useTranslation();
   const stepMap = {
     'Open': 0, 'Under Review': 1, 'Investigated': 2, 'Resolved': 3, 'Rejected': -1,
   };
@@ -78,7 +101,7 @@ function StatusStepper({ currentStatus }) {
                   <Text style={[styles.stepNum, { color }]}>{i + 1}</Text>
                 )}
               </View>
-              <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{step}</Text>
+              <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{t(STEP_LABEL_KEY[step])}</Text>
             </View>
             {i < STEPS.length - 1 && (
               <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : 'rgba(255,255,255,0.1)' }]} />
@@ -92,9 +115,10 @@ function StatusStepper({ currentStatus }) {
 
 // ─── Complaint Card (Member View) ─────────────────────────────────────────────
 function MemberComplaintCard({ complaint, onEdit, onDelete }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const status = complaint.status;
   const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
   const canEditOrDelete = complaint.canEdit || complaint.canDelete || status === 'Open';
@@ -110,24 +134,24 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
         setIsDeleting(true);
         await onDelete(complaint.id);
       } catch (err) {
-        const msg = err?.message || 'Could not delete complaint.';
+        const msg = err?.message || t('member.alertsHub.deleteFailed');
         if (Platform.OS === 'web') window.alert(msg);
-        else Alert.alert('Error', msg);
+        else Alert.alert(t('common.error'), msg);
         setIsDeleting(false);
       }
     };
 
     if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to delete this open complaint?')) {
+      if (window.confirm(t('member.alertsHub.deleteConfirmMessage'))) {
         confirmDelete();
       }
     } else {
       Alert.alert(
-        'Delete Complaint',
-        'Are you sure you want to delete this open complaint?',
+        t('member.alertsHub.deleteConfirmTitle'),
+        t('member.alertsHub.deleteConfirmMessage'),
         [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Delete', style: 'destructive', onPress: confirmDelete },
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.delete'), style: 'destructive', onPress: confirmDelete },
         ]
       );
     }
@@ -142,7 +166,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
         {/* Type badge */}
         <View style={[styles.typeBadge, { backgroundColor: `${TYPE_COLOR[complaint.type] ?? COLORS.textMuted}15` }]}>
           <Text style={[styles.typeText, { color: TYPE_COLOR[complaint.type] ?? COLORS.textSecondary }]}>
-            {complaint.type}
+            {t(TYPE_LABEL_KEY[complaint.type] ?? TYPE_LABEL_KEY.Other)}
           </Text>
         </View>
 
@@ -150,7 +174,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
           <View style={styles.headerTop}>
             <Text style={styles.descPreview} numberOfLines={1}>{complaint.description}</Text>
             <View style={[styles.statusPill, { backgroundColor: STATUS_BG[status], borderColor: `${accentColor}30` }]}>
-              <Text style={[styles.statusPillText, { color: accentColor }]}>{status}</Text>
+              <Text style={[styles.statusPillText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[status] ?? STATUS_LABEL_KEY.Open)}</Text>
             </View>
           </View>
           <Text style={styles.cardTime}>{timeAgo(complaint.submittedAt)}</Text>
@@ -164,14 +188,14 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
         <View style={styles.expandedPanel}>
           {/* Full description */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Your Description</Text>
+            <Text style={styles.expandSectionTitle}>{t('member.alertsHub.yourDescription')}</Text>
             <Text style={styles.expandBody}>{complaint.description}</Text>
           </View>
 
           {/* Related transaction */}
           {complaint.relatedTransaction && (
             <View style={styles.expandSection}>
-              <Text style={styles.expandSectionTitle}>Related Transaction</Text>
+              <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.relatedTransaction')}</Text>
               <View style={styles.txRefRow}>
                 <Receipt size={13} color={COLORS.amberLight} />
                 <Text style={styles.txRefText}>
@@ -183,14 +207,14 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 
           {/* Status Stepper */}
           <View style={styles.expandSection}>
-            <Text style={styles.expandSectionTitle}>Resolution Progress</Text>
+            <Text style={styles.expandSectionTitle}>{t('admin.complaints.section.resolutionProgress')}</Text>
             <StatusStepper currentStatus={status} />
           </View>
 
           {/* Admin Note */}
           {complaint.resolutionNote ? (
             <View style={styles.expandSection}>
-              <Text style={styles.expandSectionTitle}>Admin Response</Text>
+              <Text style={styles.expandSectionTitle}>{t('member.alertsHub.adminResponse')}</Text>
               <View style={styles.adminNoteBox}>
                 <Text style={styles.adminNoteText}>{complaint.resolutionNote}</Text>
               </View>
@@ -206,7 +230,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
                 activeOpacity={0.8}
               >
                 <Pencil size={13} color={COLORS.amberLight} />
-                <Text style={styles.editBtnText}>Edit Complaint</Text>
+                <Text style={styles.editBtnText}>{t('member.alertsHub.editComplaint')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -220,7 +244,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
                 ) : (
                   <>
                     <Trash2 size={13} color={COLORS.red} />
-                    <Text style={styles.deleteBtnText}>Delete</Text>
+                    <Text style={styles.deleteBtnText}>{t('common.delete')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -234,44 +258,45 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], loading = false, onEdit, onDelete }) => {
+  const { t } = useTranslation();
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      
+
       {/* Header */}
       <View style={[GLASS.card, styles.heroCard]}>
         <View style={styles.iconBadge}>
           <Bell size={28} color={COLORS.red} />
         </View>
-        <Text style={styles.title}>Alerts & Support</Text>
-        <Text style={styles.subtitle}>System Incidents, Complaints & Ticket Resolution</Text>
+        <Text style={styles.title}>{t('member.alertsHub.title')}</Text>
+        <Text style={styles.subtitle}>{t('member.alertsHub.subtitle')}</Text>
       </View>
 
       {/* Maintenance status — shown only while a job is open at this household */}
       {faultAlerts.map(a => <FaultAlertCard key={a.id} alert={a} />)}
 
       {/* Action Button */}
-      <TouchableOpacity 
-        style={styles.actionBtn} 
+      <TouchableOpacity
+        style={styles.actionBtn}
         activeOpacity={0.8}
         onPress={() => onNavigate('submit')}
       >
         <PlusCircle size={18} color="#FFFFFF" />
-        <Text style={styles.actionBtnText}>Submit a Complaint</Text>
+        <Text style={styles.actionBtnText}>{t('member.alertsHub.submitButton')}</Text>
       </TouchableOpacity>
 
       {/* Complaints List */}
-      <Text style={styles.sectionTitle}>My Complaints</Text>
+      <Text style={styles.sectionTitle}>{t('member.alertsHub.myComplaints')}</Text>
 
       {loading && complaints.length === 0 ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color={COLORS.amberLight} />
-          <Text style={styles.loadingText}>Loading your complaints...</Text>
+          <Text style={styles.loadingText}>{t('member.alertsHub.loadingText')}</Text>
         </View>
       ) : complaints.length === 0 ? (
         <View style={[GLASS.card, styles.emptyCard]}>
           <CheckCircle size={28} color={COLORS.tealLight} />
-          <Text style={styles.emptyTitle}>No Complaints</Text>
-          <Text style={styles.emptyText}>You haven't submitted any complaints yet.</Text>
+          <Text style={styles.emptyTitle}>{t('member.alertsHub.emptyTitle')}</Text>
+          <Text style={styles.emptyText}>{t('member.alertsHub.emptyText')}</Text>
         </View>
       ) : (
         <View style={styles.list}>

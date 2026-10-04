@@ -1,11 +1,13 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ArrowDown, ArrowUp, Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ArrowDown, ArrowUp, Check, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { SELF_LABEL } from '../data/transactions';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../../context/AuthContext';
+import { fetchTransactionById, fetchTransactionByRequestId } from '../services/transactionService';
 import { kwh, stamp } from '../utils/format';
 import {
   Card,
@@ -19,38 +21,81 @@ import {
 } from '../components/ui';
 
 export default function TransactionDetailsScreen() {
+  const { t } = useTranslation();
   const { params, navigate } = useNavigation();
-  const { getTransaction, showToast } = useTrade();
+  const { showToast } = useTrade();
+  const { user } = useAuth();
+  const [txn, setTxn] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reload, setReload] = useState(0);
+  const detailKey = JSON.stringify([user?.id, params.txnId, params.requestId, params.source]);
+  const [loadedKey, setLoadedKey] = useState(null);
 
-  const txn = getTransaction(params.txnId);
+  useEffect(() => {
+    let active = true;
+    setTxn(null);
+    setError('');
+    setLoading(true);
+    const load = params.requestId
+      ? fetchTransactionByRequestId(params.requestId, user?.id)
+      : fetchTransactionById(params.txnId, user?.id);
+    load
+      .then((data) => { if (active) setTxn(data); })
+      .catch((reason) => { if (active) setError(reason?.message || t('trade.details.loadFailed')); })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+          setLoadedKey(detailKey);
+        }
+      });
+    return () => { active = false; };
+  }, [params.txnId, params.requestId, params.source, user?.id, reload, detailKey, t]);
+
+  if (loading || loadedKey !== detailKey) {
+    return <View style={styles.missing}><ActivityIndicator color={colors.tealLight} /></View>;
+  }
+
+  if (error) {
+    return (
+      <View style={styles.missing}>
+        <EmptyState title={t('trade.details.loadErrorTitle')} body={error} />
+        <PrimaryButton label={t('trade.tryAgain')} variant="ghost" onPress={() => setReload((value) => value + 1)} />
+      </View>
+    );
+  }
 
   if (!txn) {
     return (
       <View style={styles.missing}>
-        <EmptyState title="Transaction unavailable" body="This record is no longer in your ledger." />
+        <EmptyState title={t('trade.details.unavailableTitle')} body={t('trade.details.unavailableBody')} />
       </View>
     );
   }
 
   const sent = txn.dir === 'sent';
-  const showSummary = sent && txn.before != null;
+  const reversed = txn.status === 'REVERSED';
   const fromHistory = params.source === 'history';
+  const fromRequests = params.source === 'requests';
+  const returnScreen = fromHistory ? 'history' : fromRequests ? 'requests' : 'incoming';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <IconBadge size={66} borderColor={colors.tealBorder} style={styles.heroIcon}>
-          <Check size={32} color={colors.tealLight} strokeWidth={2.4} />
+          {reversed
+            ? <X size={32} color={colors.danger} strokeWidth={2.4} />
+            : <Check size={32} color={colors.tealLight} strokeWidth={2.4} />}
         </IconBadge>
-        <Text style={styles.heroTitle}>Transaction Complete</Text>
+        <Text style={styles.heroTitle}>{reversed ? t('trade.details.reversedTitle') : t('trade.details.completeTitle')}</Text>
         <Text style={styles.heroAmount}>
           {kwh(txn.kwh)}
           <Text style={styles.heroUnit}>{' kWh'}</Text>
         </Text>
-        <Text style={styles.heroCaption}>{sent ? 'Energy Shared' : 'Energy Received'}</Text>
+        <Text style={styles.heroCaption}>{sent ? t('trade.details.energyShared') : t('trade.details.energyReceived')}</Text>
       </View>
 
-      <SectionLabel>Transaction details</SectionLabel>
+      <SectionLabel>{t('trade.details.sectionLabel')}</SectionLabel>
 
       <Card padding={18} style={styles.card}>
         <View style={styles.partyRow}>
@@ -58,8 +103,8 @@ export default function TransactionDetailsScreen() {
             <ArrowUp size={17} color={colors.tealLight} strokeWidth={2} />
           </IconBadge>
           <View style={styles.partyBody}>
-            <Text style={styles.partyLabel}>From</Text>
-            <Text style={styles.partyName}>{sent ? SELF_LABEL : txn.party}</Text>
+            <Text style={styles.partyLabel}>{t('trade.details.from')}</Text>
+            <Text style={styles.partyName}>{sent ? t('trade.details.you') : (txn.sender || t('trade.household.fallback'))}</Text>
           </View>
         </View>
 
@@ -68,61 +113,39 @@ export default function TransactionDetailsScreen() {
             <ArrowDown size={17} color={colors.amberLight} strokeWidth={2} />
           </IconBadge>
           <View style={styles.partyBody}>
-            <Text style={styles.partyLabel}>To</Text>
-            <Text style={styles.partyName}>{sent ? txn.party : SELF_LABEL}</Text>
+            <Text style={styles.partyLabel}>{t('trade.details.to')}</Text>
+            <Text style={styles.partyName}>{sent ? (txn.receiver || t('trade.household.fallback')) : t('trade.details.you')}</Text>
           </View>
         </View>
 
         <Divider />
 
-        <DetailRow label="Date & time" value={stamp(new Date(txn.ts))} />
+        <DetailRow label={t('trade.details.dateTime')} value={stamp(new Date(txn.ts))} />
 
-        <DetailRow label="Status">
+        <DetailRow label={t('trade.details.status')}>
           <Pill
-            label="COMPLETED"
-            color={colors.tealLight}
-            background={colors.tealTintSoft}
-            dotColor={colors.teal}
-            style={styles.statusPill}
+            label={reversed ? t('trade.transaction.reversed') : t('trade.transaction.completed')}
+            color={reversed ? colors.danger : colors.tealLight}
+            background={reversed ? colors.dangerTint : colors.tealTintSoft}
+            dotColor={reversed ? colors.danger : colors.teal}
+            style={[styles.statusPill, { borderColor: reversed ? 'rgba(239,68,68,0.35)' : 'rgba(20,184,166,0.35)' }]}
           />
         </DetailRow>
 
-        <DetailRow label="Transaction ID" value={txn.ref} />
+        <DetailRow label={t('trade.details.transactionId')} value={txn.ref} />
       </Card>
 
-      {showSummary ? (
-        <>
-          <SectionLabel style={styles.summaryLabel}>Energy summary</SectionLabel>
-          <Card padding={18} style={styles.summaryCard}>
-            <DetailRow label="Available before" value={kwh(txn.before) + ' kWh'} valueSize={14} />
-            <DetailRow
-              label="Energy shared"
-              value={'−' + kwh(txn.kwh) + ' kWh'}
-              valueColor={colors.amberLight}
-              valueSize={14}
-            />
-            <Divider />
-            <DetailRow
-              label="Remaining surplus"
-              value={kwh(txn.after) + ' kWh'}
-              valueColor={colors.tealLight}
-              valueSize={18}
-            />
-          </Card>
-        </>
-      ) : null}
-
       <PrimaryButton
-        label={fromHistory ? 'Back to History' : 'Done'}
-        onPress={() => navigate('history')}
+        label={fromHistory ? t('trade.details.backToHistory') : fromRequests ? t('trade.details.backToMyRequests') : t('common.done')}
+        onPress={() => navigate(returnScreen)}
         style={styles.done}
       />
 
       <Pressable
-        onPress={() => showToast('Complaint form opens in the complaints module')}
+        onPress={() => showToast(t('trade.details.complaintToast'))}
         style={({ pressed }) => [styles.report, pressed && { opacity: 0.7 }]}
       >
-        <Text style={styles.reportLabel}>Report an issue with this transaction</Text>
+        <Text style={styles.reportLabel}>{t('trade.details.reportIssue')}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -157,10 +180,7 @@ const styles = StyleSheet.create({
     color: colors.textFaint,
   },
   partyName: { fontSize: 15, fontWeight: weight.heavy, color: colors.text },
-  statusPill: { paddingVertical: 4, borderColor: 'rgba(20,184,166,0.35)' },
-
-  summaryLabel: { marginTop: 2 },
-  summaryCard: { gap: 12 },
+  statusPill: { paddingVertical: 4 },
   done: { marginTop: 2 },
   report: { alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 10 },
   reportLabel: { fontSize: 12, fontWeight: weight.medium, color: colors.textFaint },

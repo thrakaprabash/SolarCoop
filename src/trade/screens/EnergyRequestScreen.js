@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ArrowUpRight, Home, Minus, Plus } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { useTrade } from '../context/TradeContext';
@@ -11,7 +12,8 @@ import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } 
 const STEP = 0.5;
 
 export default function EnergyRequestScreen() {
-  const { getHousehold, submitRequest, showToast } = useTrade();
+  const { t } = useTranslation();
+  const { getHousehold, refreshProviders, submitRequest, showToast } = useTrade();
   const { params } = useNavigation();
   const provider = getHousehold(params.providerId);
 
@@ -19,40 +21,55 @@ export default function EnergyRequestScreen() {
   const [confirmation, setConfirmation] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const submitInFlight = useRef(false);
+  const submitted = useRef(false);
 
-  const value = parseFloat(amount);
+  useEffect(() => {
+    refreshProviders();
+  }, [refreshProviders]);
+
+  const cleanAmount = amount.trim();
+  const value = Number(cleanAmount.replace(',', '.'));
   const error = useMemo(() => {
-    if (amount.trim() === '' || isNaN(value) || value <= 0) return 'Enter an amount greater than 0.';
+    if (!/^\d+(?:[.,]\d+)?$/.test(cleanAmount) || !Number.isFinite(value) || value <= 0)
+      return t('trade.request.errorAmount');
     if (provider && value > provider.kwh)
-      return 'Only ' + kwh(provider.kwh) + ' kWh available from ' + provider.name + '.';
+      return t('trade.request.errorTooMuch', { amount: kwh(provider.kwh), name: provider.name });
     return '';
-  }, [amount, value, provider]);
+  }, [cleanAmount, value, provider, t]);
 
   const step = (delta) => {
     const max = provider ? provider.kwh : 10;
     const current = isNaN(value) ? 0 : value;
     setAmount(Math.min(max, Math.max(STEP, current + delta)).toFixed(1));
+    submitted.current = false;
     setConfirmation('');
+    setSubmitError('');
   };
 
   const onSubmit = async () => {
-    if (error || !provider) return;
+    if (error || !provider || submitInFlight.current || submitted.current) return;
+    submitInFlight.current = true;
     setSubmitting(true);
     setSubmitError('');
-    const { error: requestError } = await submitRequest(provider.id, value);
-    setSubmitting(false);
-    if (requestError) {
-      setSubmitError(requestError.message || 'Could not send request.');
-      return;
+    try {
+      const { error: requestError } = await submitRequest(provider.id, value);
+      if (requestError) throw requestError;
+      submitted.current = true;
+      setConfirmation(t('trade.request.confirmationSent', { amount: kwh(value), name: provider.name }));
+      showToast(t('trade.request.toastSent', { name: provider.name }));
+    } catch (requestError) {
+      setSubmitError(requestError?.message || t('trade.request.sendFailed'));
+    } finally {
+      submitInFlight.current = false;
+      setSubmitting(false);
     }
-    setConfirmation('Request for ' + kwh(value) + ' kWh sent to ' + provider.name);
-    showToast('Request sent to ' + provider.name);
   };
 
   if (!provider) {
     return (
       <View style={styles.screen}>
-        <Text style={styles.missing}>No provider selected.</Text>
+        <Text style={styles.missing}>{t('trade.request.noProviderSelected')}</Text>
       </View>
     );
   }
@@ -63,11 +80,11 @@ export default function EnergyRequestScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <ScreenTitle title="Energy Request" />
+      <ScreenTitle title={t('trade.nav.energyRequest')} />
 
       <Card padding={18} style={styles.providerCard}>
         <View style={styles.block}>
-          <Text style={styles.blockLabel}>Provider</Text>
+          <Text style={styles.blockLabel}>{t('trade.request.provider')}</Text>
           <View style={styles.providerRow}>
             <IconBadge size={38}>
               <Home size={18} color={colors.tealLight} strokeWidth={2} />
@@ -82,9 +99,9 @@ export default function EnergyRequestScreen() {
         <Divider />
 
         <View style={styles.figures}>
-          <Metric label="Available Energy" value={kwh(provider.kwh)} unit="kWh" />
+          <Metric label={t('trade.request.availableEnergy')} value={kwh(provider.kwh)} unit="kWh" />
           <View style={styles.rateBlock}>
-            <Text style={styles.rateLabel}>Rate</Text>
+            <Text style={styles.rateLabel}>{t('trade.household.rate')}</Text>
             <Text style={styles.rateValue}>
               {'$' + fmtRate(provider.rate)}
               <Text style={styles.rateUnit}> / kWh</Text>
@@ -95,7 +112,7 @@ export default function EnergyRequestScreen() {
 
       <Card style={styles.formCard}>
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Amount Required (kWh):</Text>
+          <Text style={styles.fieldLabel}>{t('trade.request.amountRequired')}</Text>
           <View style={styles.stepperRow}>
             <Stepper icon={Minus} onPress={() => step(-STEP)} />
             <View style={styles.input}>
@@ -103,7 +120,9 @@ export default function EnergyRequestScreen() {
                 value={amount}
                 onChangeText={(text) => {
                   setAmount(text);
+                  submitted.current = false;
                   setConfirmation('');
+                  setSubmitError('');
                 }}
                 keyboardType="decimal-pad"
                 style={styles.inputText}
@@ -116,7 +135,7 @@ export default function EnergyRequestScreen() {
         </View>
 
         <View style={styles.costRow}>
-          <Text style={styles.costLabel}>Estimated cost</Text>
+          <Text style={styles.costLabel}>{t('trade.request.estimatedCost')}</Text>
           <Text style={styles.costValue}>{error ? '—' : money(value * provider.rate)}</Text>
         </View>
 
@@ -124,10 +143,10 @@ export default function EnergyRequestScreen() {
         <Notice message={confirmation} tone="success" />
 
         <PrimaryButton
-          label="Submit Request"
+          label={t('trade.request.submitRequest')}
           icon={ArrowUpRight}
           onPress={onSubmit}
-          disabled={!!error || submitting}
+          disabled={!!error || submitting || !!confirmation}
           background={error || confirmation ? colors.tealTintStrong : colors.teal}
           style={styles.submit}
         />

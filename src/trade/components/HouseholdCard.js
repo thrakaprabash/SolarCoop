@@ -1,12 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ArrowUpRight, MapPin } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, Metric, Pill, PrimaryButton, ProgressBar } from './ui';
 import { kwh, rate as fmtRate } from '../utils/format';
 
 export default function HouseholdCard({ household, requested, onRequest, accentColor = colors.teal }) {
+  const { t } = useTranslation();
   const { name, house, dist, soc, online } = household;
   const buttonBg = !online ? 'rgba(255,255,255,0.12)' : requested ? colors.tealTintStrong : accentColor;
 
@@ -21,7 +23,7 @@ export default function HouseholdCard({ household, requested, onRequest, accentC
           </View>
         </View>
         <Pill
-          label={online ? 'Live' : 'Offline'}
+          label={online ? t('trade.household.live') : t('trade.household.offline')}
           dotColor={online ? colors.teal : colors.textFaint}
           background={online ? colors.tealTintSoft : colors.surfaceAlt}
           color={online ? colors.tealLight : colors.textFaint}
@@ -29,9 +31,9 @@ export default function HouseholdCard({ household, requested, onRequest, accentC
       </View>
 
       <View style={styles.figures}>
-        <Metric label="Available" value={kwh(household.kwh)} unit="kWh" size="sm" />
+        <Metric label={t('trade.household.available')} value={kwh(household.kwh)} unit="kWh" size="sm" />
         <View style={styles.rateBlock}>
-          <Text style={styles.rateLabel}>Rate</Text>
+          <Text style={styles.rateLabel}>{t('trade.household.rate')}</Text>
           <Text style={styles.rateValue}>
             {'$' + fmtRate(household.rate)}
             <Text style={styles.rateUnit}> / kWh</Text>
@@ -41,14 +43,14 @@ export default function HouseholdCard({ household, requested, onRequest, accentC
 
       <View style={styles.socBlock}>
         <View style={styles.socRow}>
-          <Text style={styles.socLabel}>Battery State (SoC)</Text>
+          <Text style={styles.socLabel}>{t('trade.household.batteryState')}</Text>
           <Text style={styles.socValue}>{soc + '%'}</Text>
         </View>
         <ProgressBar value={soc} />
       </View>
 
       <PrimaryButton
-        label={requested ? 'Requested' : 'Request Energy'}
+        label={requested ? t('trade.household.requested') : t('trade.nav.requestEnergy')}
         icon={ArrowUpRight}
         onPress={onRequest}
         disabled={!online}

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { STATUS_STYLE } from '../data/requests';
+import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { kwh } from '../utils/format';
 import { IconBadge, Pill } from './ui';
 
 export default function IncomingRequestRow({ request, onPress, last }) {
+  const { t } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
   return (
@@ -20,14 +22,14 @@ export default function IncomingRequestRow({ request, onPress, last }) {
       </IconBadge>
 
       <View style={styles.body}>
-        <Text style={styles.name}>{request.name}</Text>
-        <Text style={styles.detail}>{'Requested ' + kwh(request.kwh) + ' kWh'}</Text>
-        <Text style={styles.when}>{request.when}</Text>
+        <Text style={styles.name}>{request.name || t('trade.communityMember')}</Text>
+        <Text style={styles.detail}>{t('trade.request.requested', { amount: kwh(request.kwh) })}</Text>
+        <Text style={styles.when}>{request.when || t('trade.dateUnavailable')}</Text>
       </View>
 
       <View style={styles.trailing}>
         <Pill
-          label={request.status.toUpperCase()}
+          label={t(STATUS_LABEL_KEY[request.status] || STATUS_LABEL_KEY.Pending).toUpperCase()}
           color={tone.color}
           background={tone.pillBg}
           dotColor={tone.color}

@@ -1,29 +1,31 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BatteryCharging } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { Card, Divider, IconBadge, Metric } from './ui';
 import { kwh, rate as fmtRate } from '../utils/format';
 
 export default function PoolSummaryCard({ pool }) {
+  const { t } = useTranslation();
   return (
     <Card padding={18}>
       <View style={styles.headRow}>
         <IconBadge size={50}>
           <BatteryCharging size={26} color={colors.tealLight} strokeWidth={2} />
         </IconBadge>
-        <Metric label="Total Pool Available" value={kwh(pool.total)} unit="kWh" />
+        <Metric label={t('trade.pool.totalAvailable')} value={kwh(pool.total)} unit="kWh" />
       </View>
 
       <View style={styles.statsRow}>
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Households Online</Text>
-          <Text style={styles.statValue}>{pool.onlineCount + ' of ' + pool.totalCount}</Text>
+          <Text style={styles.statLabel}>{t('trade.pool.householdsOnline')}</Text>
+          <Text style={styles.statValue}>{t('trade.pool.onlineOfTotal', { online: pool.onlineCount, total: pool.totalCount })}</Text>
         </View>
         <Divider vertical />
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Avg Co-op Rate</Text>
+          <Text style={styles.statLabel}>{t('trade.pool.avgRate')}</Text>
           <Text style={[styles.statValue, { color: colors.amber }]}>
             {'$' + fmtRate(pool.avgRate) + ' / kWh'}
           </Text>

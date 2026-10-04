@@ -9,10 +9,9 @@ export const sum = (list) => list.reduce((a, b) => a + b, 0);
 export const distanceInMeters = (dist) =>
   dist.indexOf('km') > -1 ? parseFloat(dist) * 1000 : parseFloat(dist);
 
-export const greeting = (name, now = new Date()) => {
+export const dayPart = (now = new Date()) => {
   const hr = now.getHours();
-  const part = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
-  return 'Good ' + part + ', ' + name;
+  return hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
 };
 
 export const today = () =>

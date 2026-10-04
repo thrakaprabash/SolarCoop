@@ -1,109 +1,107 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { INITIAL_REQUESTS } from '../data/requests';
-import { INCOMING_REQUESTS } from '../data/incoming';
-import { TRANSACTIONS, TXN_SEQ_START } from '../data/transactions';
-import { ENERGY, IMPACT } from '../data/energy';
-import { sum, today, txnRef } from '../utils/format';
+import { sum } from '../utils/format';
+import { approveRequest, fetchIncomingRequests, fetchMyRequests, rejectRequest } from '../services/requestService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
-const INITIAL_SURPLUS = +(ENERGY.todayProduction - ENERGY.todayConsumption).toFixed(1);
-
 const TradeContext = createContext(null);
+const EMPTY_REQUESTS = [];
 
 export function TradeProvider({ children }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const activeUserId = useRef(user?.id ?? null);
+  const providersFetchId = useRef(0);
+  const requestsFetchId = useRef(0);
+  const incomingFetchId = useRef(0);
+  activeUserId.current = user?.id ?? null;
 
-  const [households, setHouseholds] = useState([]);
+  const [providerState, setProviderState] = useState({ userId: null, items: [], surplus: 0 });
+  const providersBelongToUser = providerState.userId === (user?.id ?? null);
+  const households = providersBelongToUser ? providerState.items : [];
+  const surplus = providersBelongToUser ? providerState.surplus : 0;
   const [providersLoading, setProvidersLoading] = useState(true);
   const [providersError, setProvidersError] = useState(null);
+  const visibleProvidersLoading = providersBelongToUser ? providersLoading : true;
+  const visibleProvidersError = providersBelongToUser ? providersError : null;
 
-  /**
-   * Loads available-energy providers: active solar owners with a positive
-   * current surplus. Two queries (profiles, then their energy_records)
-   * because Postgres RLS + PostgREST embeds get fragile with computed
-   * columns across two tables — a plain JS join keeps this easy to reason
-   * about, matching the "no overengineering" prototype boundary (SOL-149).
-   *
-   * `energy_records` is shared with the dashboard/chart backend and its
-   * `recorded_at` is a timestamp (not a plain date), so there can be more
-   * than one row per user per day — we take each owner's most recent row
-   * as their current reading. `surplus_kwh` is already stored on that
-   * table, so we read it directly rather than recomputing it.
-   */
+  /** Read the same tradeable balance that the approval operation validates. */
   const refreshProviders = useCallback(async () => {
+    const userId = user?.id;
+    const fetchId = ++providersFetchId.current;
+    if (!userId) {
+      setProviderState({ userId: null, items: [], surplus: 0 });
+      setProvidersLoading(false);
+      setProvidersError(null);
+      return;
+    }
+
+    setProviderState((previous) => previous.userId === userId
+      ? previous
+      : { userId, items: [], surplus: 0 });
     setProvidersLoading(true);
     setProvidersError(null);
     try {
-      const { data: owners, error: ownersError } = await supabase
-        .from('profiles')
-        .select('id, name, household_id, rate_per_kwh, battery_soc, distance_label')
-        .eq('role', 'owner')
-        .eq('status', 'active');
+      const { data, error } = await supabase.rpc('trade_available_providers');
+      if (error) throw error;
 
-      if (ownersError) throw ownersError;
-      if (!owners?.length) {
-        setHouseholds([]);
-        return;
+      const providers = (data || []).map((provider) => {
+        const available = Number(provider.available_kwh || 0);
+        return {
+          id: provider.id,
+          name: provider.name,
+          house: provider.household_id || 'House',
+          dist: provider.distance_label || '—',
+          kwh: Math.max(0, available),
+          rate: Number(provider.rate_per_kwh ?? 0.22),
+          soc: provider.battery_soc ?? 0,
+          online: available > 0,
+        };
+      });
+
+      if (activeUserId.current === userId && providersFetchId.current === fetchId) {
+        setProviderState({
+          userId,
+          surplus: providers.find((provider) => provider.id === userId)?.kwh ?? 0,
+          items: providers.filter((provider) => provider.online && provider.id !== userId),
+        });
       }
-
-      const ownerIds = owners.map((o) => o.id);
-
-      const { data: records, error: recordsError } = await supabase
-        .from('energy_records')
-        .select('user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at')
-        .in('user_id', ownerIds)
-        .order('recorded_at', { ascending: false });
-
-      if (recordsError) throw recordsError;
-
-      const recordByUser = new Map();
-      for (const record of records || []) {
-        if (!recordByUser.has(record.user_id)) recordByUser.set(record.user_id, record);
-      }
-
-      const providers = owners
-        .map((owner) => {
-          const record = recordByUser.get(owner.id);
-          if (!record) return null;
-          const surplus =
-            record.surplus_kwh != null
-              ? Number(record.surplus_kwh)
-              : Math.max(record.production_kwh - record.consumption_kwh, 0);
-          if (surplus <= 0) return null;
-          return {
-            id: owner.id,
-            name: owner.name,
-            house: owner.household_id || 'House',
-            dist: owner.distance_label || '—',
-            kwh: +surplus.toFixed(1),
-            rate: owner.rate_per_kwh ?? 0.22,
-            soc: owner.battery_soc ?? 0,
-            online: true,
-          };
-        })
-        .filter(Boolean);
-
-      setHouseholds(providers);
     } catch (error) {
       console.error('[TradeContext] refreshProviders failed:', error?.message || error);
-      setProvidersError(error?.message || 'Failed to load available energy.');
+      if (activeUserId.current === userId && providersFetchId.current === fetchId) {
+        setProvidersError(error?.message || t('trade.errors.loadAvailableEnergyFailed'));
+      }
     } finally {
-      setProvidersLoading(false);
+      if (activeUserId.current === userId && providersFetchId.current === fetchId) {
+        setProvidersLoading(false);
+      }
     }
-  }, []);
+  }, [user?.id, t]);
 
   useEffect(() => {
     refreshProviders();
   }, [refreshProviders]);
 
-  const [requests, setRequests] = useState(INITIAL_REQUESTS);
-  const [requestedIds, setRequestedIds] = useState({});
-  const [incoming, setIncoming] = useState(INCOMING_REQUESTS);
-  const [transactions, setTransactions] = useState(TRANSACTIONS);
-  const [surplus, setSurplus] = useState(INITIAL_SURPLUS);
-  const [txnSeq, setTxnSeq] = useState(TXN_SEQ_START);
+  const [requestState, setRequestState] = useState({ userId: null, items: EMPTY_REQUESTS });
+  const requestsBelongToUser = requestState.userId === (user?.id ?? null);
+  const requests = requestsBelongToUser ? requestState.items : EMPTY_REQUESTS;
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestsRefreshing, setRequestsRefreshing] = useState(false);
+  const [requestsError, setRequestsError] = useState(null);
+  const visibleRequestsLoading = requestsBelongToUser ? requestsLoading : true;
+  const visibleRequestsRefreshing = requestsBelongToUser ? requestsRefreshing : false;
+  const visibleRequestsError = requestsBelongToUser ? requestsError : null;
+  const [incomingState, setIncomingState] = useState({ userId: null, items: [] });
+  const incomingBelongsToUser = incomingState.userId === (user?.id ?? null);
+  const incoming = incomingBelongsToUser ? incomingState.items : [];
+  const [incomingLoading, setIncomingLoading] = useState(true);
+  const [incomingRefreshing, setIncomingRefreshing] = useState(false);
+  const [incomingError, setIncomingError] = useState(null);
+  const visibleIncomingLoading = incomingBelongsToUser ? incomingLoading : true;
+  const visibleIncomingRefreshing = incomingBelongsToUser ? incomingRefreshing : false;
+  const visibleIncomingError = incomingBelongsToUser ? incomingError : null;
   const [toast, setToast] = useState('');
 
   const showToast = useCallback((message, ms = 2400) => {
@@ -112,20 +110,103 @@ export function TradeProvider({ children }) {
     showToast._t = setTimeout(() => setToast(''), ms);
   }, []);
 
+  const refreshRequests = useCallback(async ({ refresh = false } = {}) => {
+    const userId = user?.id;
+    const fetchId = ++requestsFetchId.current;
+    if (!userId) {
+      setRequestState({ userId: null, items: EMPTY_REQUESTS });
+      setRequestsError(null);
+      setRequestsLoading(false);
+      setRequestsRefreshing(false);
+      return { data: [], error: null };
+    }
+
+    setRequestState((previous) => previous.userId === userId
+      ? previous
+      : { userId, items: EMPTY_REQUESTS });
+    if (refresh) setRequestsRefreshing(true);
+    else setRequestsLoading(true);
+    setRequestsError(null);
+
+    try {
+      const data = await fetchMyRequests(userId);
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestState({ userId, items: data });
+      }
+      return { data, error: null };
+    } catch (error) {
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestsError(error?.message || t('trade.errors.loadMyRequestsFailed'));
+      }
+      return { data: null, error };
+    } finally {
+      if (activeUserId.current === userId && requestsFetchId.current === fetchId) {
+        setRequestsLoading(false);
+        setRequestsRefreshing(false);
+      }
+    }
+  }, [user?.id, t]);
+
+  useEffect(() => {
+    setRequestState({ userId: user?.id ?? null, items: EMPTY_REQUESTS });
+    setRequestsError(null);
+    refreshRequests();
+  }, [refreshRequests]);
+
+  const refreshIncoming = useCallback(async ({ refresh = false } = {}) => {
+    const userId = user?.id;
+    const fetchId = ++incomingFetchId.current;
+    if (!userId) {
+      setIncomingState({ userId: null, items: [] });
+      setIncomingError(null);
+      setIncomingLoading(false);
+      setIncomingRefreshing(false);
+      return { data: [], error: null };
+    }
+
+    setIncomingState((previous) => previous.userId === userId
+      ? previous
+      : { userId, items: [] });
+    if (refresh) setIncomingRefreshing(true);
+    else setIncomingLoading(true);
+    setIncomingError(null);
+
+    try {
+      const data = await fetchIncomingRequests(userId);
+      if (activeUserId.current === userId && incomingFetchId.current === fetchId) {
+        setIncomingState({ userId, items: data });
+      }
+      return { data, error: null };
+    } catch (error) {
+      if (activeUserId.current === userId && incomingFetchId.current === fetchId) {
+        setIncomingError(error?.message || t('trade.errors.loadIncomingFailed'));
+      }
+      return { data: null, error };
+    } finally {
+      if (activeUserId.current === userId && incomingFetchId.current === fetchId) {
+        setIncomingLoading(false);
+        setIncomingRefreshing(false);
+      }
+    }
+  }, [user?.id, t]);
+
+  useEffect(() => {
+    setIncomingState({ userId: user?.id ?? null, items: [] });
+    setIncomingError(null);
+    refreshIncoming();
+  }, [refreshIncoming]);
+
   /**
-   * Persists a new energy request to Supabase (SOL-105). The requester's own
-   * "My Requests" list (SOL-106) is still local/mock this sprint, so on
-   * success we also push an optimistic entry there for continuity — Sprint 3
-   * replaces that list with a real fetch and this optimistic push becomes
-   * redundant (safe to remove then).
+   * Persists a new energy request to Supabase (SOL-105), then reloads the
+   * requester's list so My Requests shows its authoritative status.
    */
   const submitRequest = useCallback(
     async (providerId, amountKwh) => {
       if (!user?.id) {
-        return { data: null, error: new Error('You must be signed in to request energy.') };
+        return { data: null, error: new Error(t('trade.errors.signInRequired')) };
       }
-      if (!(amountKwh > 0)) {
-        return { data: null, error: new Error('Enter a valid amount greater than zero.') };
+      if (!Number.isFinite(amountKwh) || !(amountKwh > 0)) {
+        return { data: null, error: new Error(t('trade.errors.invalidAmount')) };
       }
 
       const { data, error } = await supabase
@@ -141,69 +222,51 @@ export function TradeProvider({ children }) {
 
       if (error) return { data: null, error };
 
-      const provider = households.find((h) => h.id === providerId);
-      const entry = {
-        id: data.id,
-        name: provider?.name || 'Household',
-        kwh: amountKwh,
-        rate: provider?.rate,
-        date: today(),
-        status: 'Pending',
-      };
-      setRequests((prev) => [entry, ...prev]);
-      setRequestedIds((prev) => ({ ...prev, [providerId]: true }));
+      await refreshRequests({ refresh: true });
 
       return { data, error: null };
     },
-    [user, households],
+    [user?.id, refreshRequests, t],
   );
 
-  /**
-   * Approves an incoming request: writes a ledger entry, debits the surplus and
-   * marks the request Completed. Surplus is re-checked here, not only on render,
-   * so a stale screen cannot overdraw. Returns the transaction, or null.
-   */
-  const approveIncoming = useCallback(
-    (request) => {
-      if (!request || request.status !== 'Pending') return null;
-      if (request.kwh > surplus) {
-        showToast('Surplus changed — request can no longer be approved');
-        return null;
-      }
+  const approveIncoming = useCallback(async (request) => {
+    if (!request || request.status !== 'Pending') {
+      return { data: null, error: new Error(t('trade.errors.requestNoLongerPending')) };
+    }
 
-      const now = new Date();
-      const after = +(surplus - request.kwh).toFixed(1);
-      const entry = {
-        id: 'x' + Date.now(),
-        ref: txnRef(now, txnSeq),
-        dir: 'sent',
-        party: request.name,
-        kwh: request.kwh,
-        ts: now.toISOString(),
-        before: surplus,
-        after,
-      };
+    try {
+      const transactionId = await approveRequest(request.id);
+      await Promise.all([
+        refreshIncoming({ refresh: true }),
+        refreshRequests({ refresh: true }),
+        refreshProviders(),
+      ]);
+      return { data: { id: transactionId }, error: null };
+    } catch (error) {
+      await Promise.all([refreshIncoming({ refresh: true }), refreshProviders()]);
+      return { data: null, error };
+    }
+  }, [refreshIncoming, refreshRequests, refreshProviders, t]);
 
-      setTransactions((prev) => [entry, ...prev]);
-      setSurplus(after);
-      setTxnSeq((n) => n + 1);
-      setIncoming((prev) => prev.map((i) => (i.id === request.id ? { ...i, status: 'Completed' } : i)));
-      return entry;
-    },
-    [surplus, txnSeq, showToast]
-  );
+  const rejectIncoming = useCallback(async (request) => {
+    if (!request || request.status !== 'Pending') {
+      return { data: null, error: new Error(t('trade.errors.requestNoLongerPending')) };
+    }
 
-  const rejectIncoming = useCallback((request) => {
-    if (!request || request.status !== 'Pending') return false;
-    setIncoming((prev) => prev.map((i) => (i.id === request.id ? { ...i, status: 'Rejected' } : i)));
-    return true;
-  }, []);
+    try {
+      await rejectRequest(request.id);
+      await refreshIncoming({ refresh: true });
+      return { data: true, error: null };
+    } catch (error) {
+      await refreshIncoming({ refresh: true });
+      return { data: null, error };
+    }
+  }, [refreshIncoming, t]);
 
   const getHousehold = useCallback((id) => households.find((h) => h.id === id) || null, [households]);
 
   const getIncoming = useCallback((id) => incoming.find((i) => i.id === id) || null, [incoming]);
 
-  const getTransaction = useCallback((id) => transactions.find((t) => t.id === id) || null, [transactions]);
 
   const pool = useMemo(() => {
     const online = households.filter((h) => h.online);
@@ -216,6 +279,15 @@ export function TradeProvider({ children }) {
     };
   }, [households]);
 
+  const requestedIds = useMemo(
+    () => Object.fromEntries(
+      requests
+        .filter((request) => request.status === 'Pending' || request.status === 'Approved')
+        .map((request) => [request.providerId, true])
+    ),
+    [requests]
+  );
+
   const pendingCount = useMemo(() => requests.filter((r) => r.status === 'Pending').length, [requests]);
 
   const incomingPendingCount = useMemo(
@@ -226,19 +298,24 @@ export function TradeProvider({ children }) {
   const value = useMemo(
     () => ({
       households,
-      providersLoading,
-      providersError,
+      providersLoading: visibleProvidersLoading,
+      providersError: visibleProvidersError,
       refreshProviders,
       requests,
+      requestsLoading: visibleRequestsLoading,
+      requestsRefreshing: visibleRequestsRefreshing,
+      requestsError: visibleRequestsError,
+      refreshRequests,
       requestedIds,
       pendingCount,
       pool,
       incoming,
+      incomingLoading: visibleIncomingLoading,
+      incomingRefreshing: visibleIncomingRefreshing,
+      incomingError: visibleIncomingError,
+      refreshIncoming,
       incomingPendingCount,
-      transactions,
       surplus,
-      energy: ENERGY,
-      impact: IMPACT,
       toast,
       showToast,
       submitRequest,
@@ -246,20 +323,26 @@ export function TradeProvider({ children }) {
       rejectIncoming,
       getHousehold,
       getIncoming,
-      getTransaction,
     }),
     [
       households,
-      providersLoading,
-      providersError,
+      visibleProvidersLoading,
+      visibleProvidersError,
       refreshProviders,
       requests,
+      visibleRequestsLoading,
+      visibleRequestsRefreshing,
+      visibleRequestsError,
+      refreshRequests,
       requestedIds,
       pendingCount,
       pool,
       incoming,
+      visibleIncomingLoading,
+      visibleIncomingRefreshing,
+      visibleIncomingError,
+      refreshIncoming,
       incomingPendingCount,
-      transactions,
       surplus,
       toast,
       showToast,
@@ -268,7 +351,6 @@ export function TradeProvider({ children }) {
       rejectIncoming,
       getHousehold,
       getIncoming,
-      getTransaction,
     ]
   );
 

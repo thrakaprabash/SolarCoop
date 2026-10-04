@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
 
@@ -9,16 +10,25 @@ export default function ConfirmModal({
   visible,
   title,
   body,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   tone = 'teal',
+  busy = false,
   onConfirm,
   onCancel,
 }) {
+  const { t } = useTranslation();
   const teal = tone === 'teal';
+  const resolvedConfirmLabel = confirmLabel || t('common.confirm');
+  const resolvedCancelLabel = cancelLabel || t('common.cancel');
 
   return (
-    <Modal visible={!!visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={!!visible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => { if (!busy) onCancel?.(); }}
+    >
       <View style={styles.scrim}>
         <View style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
@@ -26,22 +36,23 @@ export default function ConfirmModal({
 
           <View style={styles.actions}>
             <Pressable
-              onPress={onCancel}
-              style={({ pressed }) => [styles.button, styles.cancel, pressed && { opacity: 0.85 }]}
+              onPress={busy ? undefined : onCancel}
+              style={({ pressed }) => [styles.button, styles.cancel, busy && styles.busy, pressed && { opacity: 0.85 }]}
             >
-              <Text style={styles.cancelLabel}>{cancelLabel}</Text>
+              <Text style={styles.cancelLabel}>{resolvedCancelLabel}</Text>
             </Pressable>
 
             <Pressable
-              onPress={onConfirm}
+              onPress={busy ? undefined : onConfirm}
               style={({ pressed }) => [
                 styles.button,
                 { backgroundColor: teal ? colors.teal : colors.danger },
+                busy && styles.busy,
                 pressed && { opacity: 0.85 },
               ]}
             >
-              {teal ? <Check size={15} color={colors.text} strokeWidth={2.4} /> : null}
-              <Text style={styles.confirmLabel}>{confirmLabel}</Text>
+              {busy ? <ActivityIndicator size="small" color={colors.text} /> : teal ? <Check size={15} color={colors.text} strokeWidth={2.4} /> : null}
+              <Text style={styles.confirmLabel}>{busy ? t('common.working') : resolvedConfirmLabel}</Text>
             </Pressable>
           </View>
         </View>
@@ -79,6 +90,7 @@ const styles = StyleSheet.create({
     padding: 13,
     borderRadius: radius.lg,
   },
+  busy: { opacity: 0.6 },
   cancel: { backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border },
   cancelLabel: { color: colors.textStrong, fontSize: 13, fontWeight: weight.bold },
   confirmLabel: { color: colors.text, fontSize: 13, fontWeight: weight.bold },

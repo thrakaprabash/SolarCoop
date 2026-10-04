@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ArrowUpRight, Sun, TrendingDown, TrendingUp, Zap } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, IconBadge, PrimaryButton } from './ui';
@@ -8,6 +9,7 @@ import { Card, IconBadge, PrimaryButton } from './ui';
 const ICONS = { zap: Zap, sun: Sun, down: TrendingDown, up: TrendingUp };
 
 export default function InsightCard({ insight, onCta }) {
+  const { t } = useTranslation();
   const Icon = ICONS[insight.icon] || Zap;
 
   return (
@@ -17,18 +19,20 @@ export default function InsightCard({ insight, onCta }) {
           <Icon size={20} color={insight.color} strokeWidth={2} />
         </IconBadge>
         <View>
-          <Text style={[styles.title, { color: insight.color }]}>{insight.title}</Text>
-          <Text style={styles.tag}>{insight.tag}</Text>
+          <Text style={[styles.title, { color: insight.color }]}>{t(insight.titleKey)}</Text>
+          <Text style={styles.tag}>{t(insight.tagKey)}</Text>
         </View>
       </View>
 
-      <Text style={styles.body}>{insight.body}</Text>
+      <Text style={styles.body}>{t(insight.bodyKey, insight.bodyParams)}</Text>
 
       <View style={styles.footer}>
-        <Text style={styles.detail}>{insight.detail}</Text>
-        {insight.cta ? (
+        <Text style={styles.detail}>
+          {insight.detailKey ? t(insight.detailKey, insight.detailParams) : insight.detail}
+        </Text>
+        {insight.ctaKey ? (
           <PrimaryButton
-            label={insight.cta}
+            label={t(insight.ctaKey)}
             icon={ArrowUpRight}
             onPress={onCta}
             style={styles.cta}

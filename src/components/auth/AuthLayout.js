@@ -25,10 +25,12 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sun } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { PALETTE } from '../../theme/colors';
 
 export const AuthLayout = ({ title, subtitle, children, footer }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { colors, spacing, radius } = theme;
 
@@ -103,7 +105,7 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
                 <Sun size={20} color="#FFFFFF" strokeWidth={2.2} />
               </LinearGradient>
               <Text style={[styles.brandName, { color: colors.text }]}>
-                SolarCoop
+                {t('common.appName')}
               </Text>
             </View>
 
