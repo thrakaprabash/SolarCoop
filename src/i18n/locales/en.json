@@ -107,34 +107,10 @@
     },
     "members": {
       "title": "Member Monitoring",
-      "addMember": "Add Member",
       "searchPlaceholder": "Search by name or household…",
       "shown": "Shown",
       "noMatch": "No members match your search.",
-      "errorTitle": "Could not load members",
-      "addModal": {
-        "title": "Add Member",
-        "subtext": "Creates a real account with no password yet — the member signs in for the first time using a temporary password you'll share with them.",
-        "fieldName": "NAME *",
-        "fieldEmail": "EMAIL *",
-        "fieldHousehold": "HOUSEHOLD *",
-        "fieldMobile": "MOBILE NUMBER (Optional)",
-        "fieldCapacity": "SOLAR CAPACITY, KW (Optional)",
-        "placeholderName": "e.g. Amal Fernando",
-        "placeholderEmail": "e.g. amal@email.com",
-        "placeholderHousehold": "e.g. House #13",
-        "placeholderMobile": "e.g. 0771234567",
-        "placeholderCapacity": "e.g. 4.5",
-        "create": "Create Member",
-        "errorRequired": "Name, email, and household are required.",
-        "errorInvalidEmail": "Enter a valid email address.",
-        "errorGeneric": "Could not create this member. Please try again.",
-        "successTitle": "Member Invited",
-        "successSubtext": "{{name}} has an account, but no login yet — share this one-time temporary password so they can sign in and set their own. It won't be shown again.",
-        "credentialEmail": "EMAIL",
-        "credentialPassword": "TEMPORARY PASSWORD",
-        "done": "Done"
-      }
+      "errorTitle": "Could not load members"
     },
     "memberDetail": {
       "backToMembers": "Back to Members",
