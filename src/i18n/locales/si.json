@@ -107,34 +107,10 @@
     },
     "members": {
       "title": "සාමාජික අධීක්ෂණය",
-      "addMember": "සාමාජිකයෙකු එක් කරන්න",
       "searchPlaceholder": "නම හෝ ගෘහය අනුව සොයන්න…",
       "shown": "පෙන්වා ඇත",
       "noMatch": "ඔබේ සෙවුමට ගැළපෙන සාමාජිකයින් නැත.",
-      "errorTitle": "සාමාජිකයින් පූරණය කළ නොහැකි විය",
-      "addModal": {
-        "title": "සාමාජිකයෙකු එක් කරන්න",
-        "subtext": "තවම මුරපදයක් නොමැති සැබෑ ගිණුමක් සාදයි — සාමාජිකයා ඔබ ඔවුන් සමඟ බෙදාගන්නා තාවකාලික මුරපදය භාවිතයෙන් මුල් වරට පිවිසේ.",
-        "fieldName": "නම *",
-        "fieldEmail": "විද්‍යුත් තැපෑල *",
-        "fieldHousehold": "ගෘහය *",
-        "fieldMobile": "ජංගම දුරකථන අංකය (විකල්ප)",
-        "fieldCapacity": "සූර්ය ධාරිතාව, kW (විකල්ප)",
-        "placeholderName": "උදා: Amal Fernando",
-        "placeholderEmail": "උදා: amal@email.com",
-        "placeholderHousehold": "උදා: House #13",
-        "placeholderMobile": "උදා: 0771234567",
-        "placeholderCapacity": "උදා: 4.5",
-        "create": "සාමාජිකයා සාදන්න",
-        "errorRequired": "නම, විද්‍යුත් තැපෑල සහ ගෘහය අවශ්‍යයි.",
-        "errorInvalidEmail": "වලංගු විද්‍යුත් තැපැල් ලිපිනයක් ඇතුළත් කරන්න.",
-        "errorGeneric": "මෙම සාමාජිකයා සෑදිය නොහැකි විය. නැවත උත්සාහ කරන්න.",
-        "successTitle": "සාමාජිකයා ආරාධනා කරන ලදී",
-        "successSubtext": "{{name}} ට ගිණුමක් ඇත, නමුත් තවම පිවිසීමක් නැත — ඔවුන්ට පිවිස තමන්ගේම මුරපදයක් සැකසීමට මෙම එක්වරක් භාවිතා කළ හැකි තාවකාලික මුරපදය බෙදාගන්න. එය නැවත පෙන්වන්නේ නැත.",
-        "credentialEmail": "විද්‍යුත් තැපෑල",
-        "credentialPassword": "තාවකාලික මුරපදය",
-        "done": "නිමයි"
-      }
+      "errorTitle": "සාමාජිකයින් පූරණය කළ නොහැකි විය"
     },
     "memberDetail": {
       "backToMembers": "සාමාජිකයින් වෙත ආපසු",
