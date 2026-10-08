@@ -463,6 +463,11 @@ export const HomeDashboard = () => {
           <View style={styles.titleRow}>
             <Animated.View style={[styles.livePulseDot, { opacity: pulseAnim }]} />
             <Text style={styles.title}>{t('member.dashboard.title')}</Text>
+            {metrics.isSimulated && (
+              <Text style={{ color: COLORS.amberLight, fontSize: 10, marginLeft: 8 }}>
+                {t('member.dashboard.simulated')}
+              </Text>
+            )}
           </View>
           <Text style={styles.lastUpdate}>{t('member.dashboard.subtitle')}</Text>
         </View>

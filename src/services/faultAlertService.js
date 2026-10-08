@@ -4,9 +4,9 @@
  * Household-side view of technician job tickets (SOL-199).
  *
  * Reads the same public.jobs rows the Technician Portal works from, but only
- * the plain-language columns. Error codes, fault locations and checklists are
- * deliberately NOT selected — a household member should see "maintenance is
- * scheduled", not "Error F05: DC Arc Fault". RLS (`household_read_own_jobs`)
+ * plain-language messages. The error code is used only to choose localized
+ * telemetry copy; raw codes, locations and checklists are not displayed.
+ * RLS (`household_read_own_jobs`)
  * limits the rows to the member's own jobs.
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -14,7 +14,7 @@
 import { supabase } from '../lib/supabase';
 
 const CONSUMER_JOB_COLUMNS =
-  'id, status, consumer_message, technician_name, accepted_at, completed_at, created_at, updated_at';
+  'id, status, consumer_message, technician_name, accepted_at, completed_at, created_at, updated_at, source, error_code';
 
 // A finished job stays on the card this long, so the household sees
 // "maintenance complete" rather than the card silently vanishing (SOL-201).
@@ -25,6 +25,8 @@ function buildFaultAlert(row) {
     id:        row.id,
     status:    row.status, // 'pending' | 'active' | 'completed'
     message:   row.consumer_message,
+    messageKey: row.source === 'telemetry' && /^E0[1-8]$/.test(row.error_code || '')
+      ? `faultAlert.telemetry.${row.error_code}` : null,
     // SOL-200 — set when a technician accepts the job; null while pending.
     technicianName: row.technician_name,
     acceptedAt:     row.accepted_at,

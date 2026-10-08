@@ -456,6 +456,7 @@
     },
     "dashboard": {
       "title": "Current Power",
+      "simulated": "Simulated",
       "subtitle": "Live • Smart Energy Microgrid",
       "cell": {
         "solar": "Solar",
@@ -713,6 +714,16 @@
     }
   },
   "faultAlert": {
+    "telemetry": {
+          "E01": "Your solar system has paused. A technician is on the way — no action needed.",
+          "E02": "Your panels are producing a little less than usual. We have scheduled a check.",
+          "E03": "Your system is protecting itself from a grid issue. A technician will check it.",
+          "E04": "For safety, your system has been switched off. Please do not touch the panels; a technician is coming.",
+          "E05": "Your inverter is running warm and has slowed down a bit. We will take a look.",
+          "E06": "Part of your solar array is not connected. A technician will reconnect it.",
+          "E07": "We have lost contact with your meter. A technician will check the connection.",
+          "E08": "Your system detected an electrical issue and shut down safely. Help is on the way."
+    },
     "title": "Routine Maintenance Scheduled",
     "defaultMessage": "Your system is safe. A technician will check on it soon — there is nothing you need to do.",
     "assignedTech": "Assigned Tech: {{name}}",
@@ -755,6 +766,7 @@
       "loading": "Loading job tickets…"
     },
     "job": {
+      "autoDetected": "Auto-detected",
       "household": "Household",
       "distance": "Distance",
       "distanceValue": "{{km}} km ({{area}})",

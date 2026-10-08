@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import {
   fetchMetrics,
@@ -173,6 +174,7 @@ const initialMetrics = {
 
 // Map Supabase snake_case columns to the camelCase shape the UI expects.
 const mapMetricsRow = (row) => ({
+  isSimulated:          Boolean(row.is_simulated),
   instantProduction:    Number(row.instant_production),
   dailyProduction:      Number(row.daily_production),
   instantConsumption:   Number(row.instant_consumption),
@@ -456,6 +458,26 @@ export const EnergyProvider = ({ children }) => {
     pollRef.current = setInterval(refreshMetrics, 30_000);
     return () => clearInterval(pollRef.current);
   }, [user?.id, loadAllData, refreshMetrics]);
+
+  // Realtime gives demos immediate feedback; the existing poll remains a fallback.
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    const channel = supabase.channel(`energy-metrics:${user.id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'energy_metrics', filter: `user_id=eq.${user.id}`,
+      }, ({ new: row }) => {
+        if (!active) return;
+        if (row?.user_id === user.id) {
+          setMetrics(mapMetricsRow(row));
+          setLastFetchedAt(row.updated_at || new Date().toISOString());
+          setTelemetryStatus('live');
+        } else {
+          refreshMetrics();
+        }
+      }).subscribe();
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [user?.id, refreshMetrics]);
 
   // ── Simulation preset (offline / dev only) ────────────────────────────────
   useEffect(() => {

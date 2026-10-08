@@ -55,6 +55,7 @@ export const ALERT_TYPES = {
   complaint_aging:       { label: 'Complaint Aging',             category: 'Complaints',   severity: 'Medium' },
   stale_data:            { label: 'Stale Energy Data',           category: 'System',       severity: 'Medium' },
   system_error:          { label: 'System Error',                category: 'System',       severity: 'High'   },
+  device_fault:          { label: 'Device Fault',                category: 'System',       severity: 'High'   },
   admin_notice:          { label: 'Admin Notice',                category: 'Notice',       severity: 'Medium' },
 };
 

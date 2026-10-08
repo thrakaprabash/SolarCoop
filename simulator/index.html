@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>SolarCoop · Energy Simulator</title>
+  <link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead"><div class="brand"><span class="sun-icon">☀</span><div><strong>SolarCoop</strong><span>ENERGY & FAULT SIMULATOR</span></div></div><div class="badges"><span class="badge simulated">SIMULATED DATA</span><span id="connection" class="badge">Connecting…</span></div></header>
+  <main>
+    <section id="gate" class="gate" aria-live="polite"><h1>Connecting to your community</h1><p>Loading simulator configuration…</p></section>
+    <div id="workspace" hidden>
+      <div class="page-heading"><div><p class="eyebrow">VIRTUAL ENERGY LAB</p><h1>Your community, in motion.</h1><p>Control the sunlight. Follow the energy. Test the recovery.</p></div><div class="clock-face"><strong id="time-display">12:00</strong><span id="clock-mode">DEMO · ASIA/COLOMBO</span></div></div>
+      <p id="error" class="error" role="alert" hidden></p>
+      <p id="viewer" class="notice" hidden>Another tab controls this simulation. You are viewing live results.</p>
+      <p id="preview-notice" class="notice" hidden>OFFLINE PREVIEW · Local virtual households. No database writes or technician dispatch.</p>
+      <section class="controls surface" aria-label="Simulation controls">
+        <button id="play" class="primary" data-control>▶ Play</button>
+        <label>Clock<select id="mode" data-control><option value="demo">Demo</option><option value="live">Live</option></select></label>
+        <label>Speed<select id="speed" data-control><option>1</option><option>10</option><option>60</option><option>360</option></select></label>
+        <label class="time-control">Time of day<input id="time" type="range" min="0" max="1439" value="720" data-control></label>
+        <label>Weather<select id="weather" data-control><option value="sunny">☀ Sunny</option><option value="partly">◐ Partly cloudy</option><option value="cloudy">☁ Cloudy</option><option value="rain">☂ Rain</option><option value="storm">ϟ Storm</option></select></label>
+        <label class="check"><input id="random" type="checkbox" data-control> Random faults</label>
+        <label>Chance / tick (%)<input id="probability" type="number" min="0" max="10" step="0.1" value="0.2" data-control></label>
+      </section>
+      <section id="kpis" class="kpis" aria-label="Community energy"></section>
+      <section class="flow-panel surface"><div><p class="eyebrow">COMMUNITY BALANCE</p><h2>Energy finds its way.</h2><p id="flow-caption">Owners supply the pool. Consumers draw from it.</p></div><svg viewBox="0 0 620 105" role="img" aria-label="Energy flow from owners to community pool and consumers">
+        <path class="flow-track" d="M85 44 H280 M340 44 H535 M310 62 V95"/><path id="flow-line" class="flow-line" d="M85 44 H280 M340 44 H535"/>
+        <circle cx="55" cy="44" r="25"/><circle cx="310" cy="44" r="31"/><circle cx="565" cy="44" r="25"/>
+        <text x="55" y="50">☀</text><text x="310" y="50">POOL</text><text x="565" y="50">⌂</text>
+        <text class="flow-label" x="150" y="82">OWNERS</text><text class="flow-label" x="468" y="82">CONSUMERS</text><text class="flow-label" x="310" y="104">GRID ⇄</text>
+      </svg></section>
+      <div class="section-heading"><div><h2>Virtual households</h2><p id="household-count">One inverter. One energy story.</p></div><button id="bootstrap" data-control>+ Create virtual inverters</button></div>
+      <section id="households" class="households" aria-label="Household devices"></section>
+      <div class="bottom-grid"><section class="surface events"><div class="section-heading"><h2>Event log</h2><span class="badge">LIVE FEED</span></div><ol id="events"></ol></section>
+        <section class="surface scenarios"><p class="eyebrow">SET THE SCENE</p><h2>A whole day in a few clicks.</h2><p>Presets change time, weather and household load.</p><div class="preset-grid"><button data-preset="sunny" data-control>☀ Sunny noon</button><button data-preset="evening" data-control>⌂ Evening peak</button><button data-preset="cloudy" data-control>☁ Cloudy day</button><button data-preset="storm" data-control>ϟ Storm</button></div><button id="script" data-control>Run fault scenario · 12:30 / E01</button><hr><div class="maintenance"><label>History<select id="days"><option value="7">7 days</option><option value="30">30 days</option></select></label><button id="backfill" data-control>Backfill</button><button id="reset" class="danger" data-control>Reset data</button><button id="reset-all" class="danger" data-control>Reset all</button></div><p class="footnote">Reset data restores original dashboard rows and closes simulator faults. Reset all also removes virtual devices and simulator job history.</p></section>
+      </div>
+      <footer>SolarCoop virtual energy lab <span>Readings use real Colombo dates · Keep this tab open to run</span></footer>
+    </div>
+  </main>
+  <dialog id="edit-dialog"><form id="edit-form"><h2>Edit virtual inverter</h2><input name="device_id" type="hidden"><div class="form-grid"><label>Capacity (kW)<input name="capacity_kw" type="number" min="0" max="100" step="0.1" required></label><label>Panels<input name="panel_count" type="number" min="0" max="200" required></label><label>Strings<input name="string_count" type="number" min="1" max="20" required></label><label>Load profile<select name="load_profile"><option>small</option><option>family</option><option>large</option><option>business</option></select></label><label>Battery (kWh)<input name="battery_kwh" type="number" min="0" max="200" step="0.1" required></label><label>Battery level (%)<input name="battery_level" type="number" min="0" max="100" required></label></div><div class="dialog-actions"><button type="button" id="cancel-edit">Cancel</button><button type="submit" class="primary">Save device</button></div></form></dialog>
+  <script type="module" src="src/main.js"></script>
+</body></html>

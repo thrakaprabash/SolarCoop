@@ -48,6 +48,10 @@ export default function JobCard({ job, featured = false, onPress }) {
       <Text style={styles.metaMuted}>
         {t('technician.job.distance')}: {distance}
       </Text>
+      {job.errorCode && <Text style={styles.meta}>{job.errorCode}</Text>}
+      {job.source === 'telemetry' && (
+        <Text style={styles.metaMuted}>{t('technician.job.autoDetected')}</Text>
+      )}
 
       {featured ? (
         <View style={styles.footer}>

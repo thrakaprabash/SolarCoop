@@ -135,6 +135,9 @@ export default function JobTicketDetailScreen() {
 
       {/* ── System telemetry ── */}
       <DossierCard icon={Cpu} title={t('technician.detail.telemetry')}>
+        {job.source === 'telemetry' && (
+          <Text style={styles.infoValue}>{t('technician.job.autoDetected')}</Text>
+        )}
         <InfoLine label={t('technician.detail.inverter')} value={job.device} />
         {job.faultLocation ? (
           <InfoLine label={t('technician.detail.location')} value={job.faultLocation} />
