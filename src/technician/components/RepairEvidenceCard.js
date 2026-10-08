@@ -3,10 +3,12 @@ import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View }
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ImagePlus } from 'lucide-react-native';
-import { TECH } from '../theme';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { getRepairPhotoUrl } from '../services/repairPhotoService';
 
 export default function RepairEvidenceCard({ photos, onUpload, onBusyChange, disabled = false, readOnly = false }) {
+  const { TECH } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -93,10 +95,10 @@ export default function RepairEvidenceCard({ photos, onUpload, onBusyChange, dis
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = TECH => StyleSheet.create({
   card: { backgroundColor: TECH.card, borderWidth: 1, borderColor: TECH.border, borderRadius: 14, padding: 14, gap: 10 },
-  title: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
-  hint: { fontSize: 11.5, lineHeight: 17, color: TECH.textSecondary },
+  title: { fontSize: 12, fontWeight: '600', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
+  hint: { fontSize: 13, lineHeight: 20, color: TECH.textSecondary },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   action: { flex: 1, minWidth: 120, minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderWidth: 1, borderStyle: 'dashed', borderColor: TECH.orangeBorder, borderRadius: 10, backgroundColor: TECH.orangeSoft, padding: 10 },

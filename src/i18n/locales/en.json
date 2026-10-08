@@ -506,7 +506,13 @@
         "sitePower": "Site Power & Flow Diagram",
         "coopActivity": "Co-op Community Activity",
         "quickActions": "Quick Actions (Share & Borrow)"
-      }
+      },
+      "waitingTitle": "Waiting for energy readings",
+      "waitingBody": "Your virtual inverter is ready after database setup. Start the simulator to receive generation, consumption and surplus readings.",
+      "staleReading": "Readings are older than one minute. Check that the simulator is running.",
+      "feedUnavailable": "Energy readings could not be refreshed. Last received values are shown.",
+      "faultUnavailable": "System faults could not be refreshed.",
+      "gridEstimate": "Estimated grid import"
     },
     "widgetCustomizer": {
       "title": "Customize Dashboard",
@@ -679,7 +685,10 @@
       "gridFrequency": "Grid Frequency",
       "gridFrequencySub": "Synchronized",
       "telemetryPing": "Telemetry Ping",
-      "telemetryPingSub": "Ultra Low"
+      "telemetryPingSub": "Ultra Low",
+      "stale": "Stale",
+      "faultDetected": "Fault detected",
+      "noReportedFault": "No reported fault"
     },
     "alertsHub": {
       "title": "Alerts & Support",
@@ -715,14 +724,14 @@
   },
   "faultAlert": {
     "telemetry": {
-          "E01": "Your solar system has paused. A technician is on the way — no action needed.",
-          "E02": "Your panels are producing a little less than usual. We have scheduled a check.",
-          "E03": "Your system is protecting itself from a grid issue. A technician will check it.",
-          "E04": "For safety, your system has been switched off. Please do not touch the panels; a technician is coming.",
-          "E05": "Your inverter is running warm and has slowed down a bit. We will take a look.",
-          "E06": "Part of your solar array is not connected. A technician will reconnect it.",
-          "E07": "We have lost contact with your meter. A technician will check the connection.",
-          "E08": "Your system detected an electrical issue and shut down safely. Help is on the way."
+      "E01": "Your solar system has paused. A technician is on the way — no action needed.",
+      "E02": "Your panels are producing a little less than usual. We have scheduled a check.",
+      "E03": "Your system is protecting itself from a grid issue. A technician will check it.",
+      "E04": "For safety, your system has been switched off. Please do not touch the panels; a technician is coming.",
+      "E05": "Your inverter is running warm and has slowed down a bit. We will take a look.",
+      "E06": "Part of your solar array is not connected. A technician will reconnect it.",
+      "E07": "We have lost contact with your meter. A technician will check the connection.",
+      "E08": "Your system detected an electrical issue and shut down safely. Help is on the way."
     },
     "title": "Routine Maintenance Scheduled",
     "defaultMessage": "Your system is safe. A technician will check on it soon — there is nothing you need to do.",
@@ -733,6 +742,24 @@
     "completedBy": "Serviced by {{name}}"
   },
   "technician": {
+    "alerts": {
+      "title": "Incident alerts",
+      "foreground": "Sounds while this workspace is open",
+      "sound": "Fault alert sound",
+      "soundOn": "Sound on",
+      "soundOff": "Muted",
+      "test": "Test sound",
+      "soundError": "Sound could not play. Check your device volume and try Test sound.",
+      "browserHelp": "In a browser, tap Test sound once to allow audio.",
+      "newFault": "New system fault",
+      "dismiss": "Dismiss notification",
+      "review": "Review incident",
+      "workspaceTitle": "Operations overview",
+      "workspaceSubtitle": "Prioritize incidents, coordinate repairs and track your work.",
+      "pending": "Awaiting response",
+      "active": "In progress",
+      "urgent": "Urgent incidents"
+    },
     "header": {
       "appName": "SolarCoop Tech",
       "subtitle": "Technician Portal",
@@ -743,7 +770,8 @@
     "nav": {
       "dashboard": "Dashboard",
       "diagnostics": "Diagnostics",
-      "profile": "Profile"
+      "profile": "Profile",
+      "health": "Health"
     },
     "tabs": {
       "pending": "Pending",
@@ -815,7 +843,11 @@
       "saveErrorTitle": "Could not save checklist",
       "saveErrorBody": "Please try again.",
       "noneTitle": "All systems healthy",
-      "noneBody": "No open fault alerts right now."
+      "noneBody": "No open fault alerts right now.",
+      "showDetails": "Show details",
+      "hideDetails": "Hide details",
+      "expandFor": "Show diagnostics for {{ticket}}",
+      "collapseFor": "Hide diagnostics for {{ticket}}"
     },
     "closure": {
       "activeJob": "Active Job: {{title}}",
@@ -845,6 +877,79 @@
       "notesSaved": "Notes saved",
       "notesErrorTitle": "Could not save repair notes",
       "photoRequired": "Add at least one repair photo before closing the ticket."
+    },
+    "design": {
+      "fieldService": "Field service",
+      "live": "Live",
+      "syncing": "Syncing",
+      "offline": "Offline",
+      "settings": "Workspace settings",
+      "closeSettings": "Close settings",
+      "appearance": "Appearance",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "jobBoard": "Job board",
+      "boardCaption": "Live repair requests from your cooperative.",
+      "pending": "Waiting",
+      "active": "In progress",
+      "urgent": "Urgent",
+      "inverterAlert": "Inverter alert",
+      "serviceRequest": "Service request"
+    },
+    "health": {
+      "title": "System health",
+      "subtitle": "A live view of your cooperative’s solar systems.",
+      "source": "Read-only monitoring · Simulator-fed inverters",
+      "total": "Systems",
+      "healthy": "Healthy",
+      "attention": "Needs attention",
+      "all": "All systems",
+      "search": "Search owner or inverter",
+      "output": "Output",
+      "daily": "Today",
+      "battery": "Battery",
+      "panels_one": "{{count}} panel",
+      "panels_other": "{{count}} panels",
+      "lastSeen": "Reading {{seconds}}s ago",
+      "lastKnown": "Last known",
+      "noReading": "No reading received",
+      "refreshError": "Could not refresh. Showing the last received readings.",
+      "loadError": "System health is unavailable. Please retry.",
+      "empty": "No active solar-owner systems are registered yet.",
+      "noMatches": "No systems match this view.",
+      "status": {
+        "healthy": "Healthy",
+        "fault": "Fault",
+        "offline": "Offline",
+        "degraded": "Degraded",
+        "stale": "Stale reading",
+        "unknown": "No reading"
+      },
+      "back": "Back to System Health"
+    },
+    "feed": {
+      "title": "Data feed",
+      "fresh": "{{count}} / {{total}} fresh",
+      "production": "Production",
+      "consumption": "Consumption",
+      "balance": "Net balance",
+      "pool": "Pool today",
+      "faults": "Open faults",
+      "repairs": "Repair jobs",
+      "devices": "devices",
+      "open": "open",
+      "community": "COMMUNITY BALANCE",
+      "owners": "Owners",
+      "consumers": "Consumers",
+      "coop": "Pool",
+      "grid": "Grid",
+      "surplus": "{{value}} kW surplus after household demand.",
+      "shortfall": "{{value}} kW shortfall after household demand.",
+      "balanced": "Production and household demand are balanced.",
+      "unknown": "Balance needs fresh readings from all households.",
+      "diagram": "Energy balance overview: solar owners, community pool, consumers and grid.",
+      "partial": "Partial totals · Fresh households only"
     }
   },
   "trade": {

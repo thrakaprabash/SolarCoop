@@ -14,7 +14,7 @@
 import { supabase } from '../lib/supabase';
 
 const CONSUMER_JOB_COLUMNS =
-  'id, status, consumer_message, technician_name, accepted_at, completed_at, created_at, updated_at, source, error_code';
+  'id, status, consumer_message, technician_name, accepted_at, completed_at, created_at, updated_at, source, error_code, resolution_source:closure_record->>source';
 
 // A finished job stays on the card this long, so the household sees
 // "maintenance complete" rather than the card silently vanishing (SOL-201).
@@ -57,7 +57,11 @@ export async function fetchMyFaultAlerts(userId) {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data ?? []).map(buildFaultAlert);
+  // Simulator Clear resolves the demo incident; it is not a technician repair.
+  // Keep real repair confirmations, but remove manually cleared fault cards.
+  return (data ?? [])
+    .filter(row => !(row.status === 'completed' && row.resolution_source === 'simulator'))
+    .map(buildFaultAlert);
 }
 
 /**

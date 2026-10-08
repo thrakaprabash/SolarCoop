@@ -22,9 +22,10 @@ import {
 export const LiveTelemetryWidget = () => {
   const { t } = useTranslation();
   const {
-    telemetryStatus = 'live', 
+    telemetryStatus = 'offline',
     lastFetchedAt, 
-    telemetryHealth = { inverterStatus: 'Optimal', gridFrequency: '50.0 Hz', pingMs: 38, efficiency: 99.2 },
+    telemetryHealth = {},
+    faultAlerts = [],
     refreshMetricsNow,
   } = useEnergy();
 
@@ -51,7 +52,7 @@ export const LiveTelemetryWidget = () => {
   useEffect(() => {
     const updateRelative = () => {
       if (!lastFetchedAt) {
-        setRelativeTime(t('member.telemetry.justNow'));
+        setRelativeTime('—');
         return;
       }
       const diffSec = Math.max(0, Math.floor((Date.now() - new Date(lastFetchedAt).getTime()) / 1000));
@@ -97,12 +98,14 @@ export const LiveTelemetryWidget = () => {
   const getStatusColor = () => {
     if (telemetryStatus === 'live') return COLORS.tealLight;
     if (telemetryStatus === 'polling') return COLORS.amberLight;
+    if (telemetryStatus === 'stale') return COLORS.amberLight;
     return COLORS.red;
   };
 
   const getStatusLabel = () => {
     if (telemetryStatus === 'live') return t('member.telemetry.status.realtime');
     if (telemetryStatus === 'polling') return t('member.telemetry.status.polling');
+    if (telemetryStatus === 'stale') return t('member.telemetry.stale');
     return t('member.telemetry.status.offline');
   };
 
@@ -156,8 +159,8 @@ export const LiveTelemetryWidget = () => {
             <Activity size={12} color={COLORS.tealLight} />
             <Text style={styles.metricLabel}>{t('member.telemetry.inverterHealth')}</Text>
           </View>
-          <Text style={styles.metricValue}>{telemetryHealth.efficiency || 99.2}%</Text>
-          <Text style={[styles.metricSub, { color: COLORS.tealLight }]}>{t('member.telemetry.inverterHealthSub')}</Text>
+          <Text style={styles.metricValue}>{faultAlerts.some(alert => alert.status !== 'completed')
+            ? t('member.telemetry.faultDetected') : t('member.telemetry.noReportedFault')}</Text>
         </View>
 
         <View style={styles.divider} />
@@ -167,8 +170,8 @@ export const LiveTelemetryWidget = () => {
             <Cpu size={12} color={COLORS.amberLight} />
             <Text style={styles.metricLabel}>{t('member.telemetry.gridFrequency')}</Text>
           </View>
-          <Text style={styles.metricValue}>{telemetryHealth.gridFrequency || '50.0 Hz'}</Text>
-          <Text style={styles.metricSub}>{t('member.telemetry.gridFrequencySub')}</Text>
+          <Text style={styles.metricValue}>{telemetryHealth.gridFrequency ?? '—'}</Text>
+          <Text style={styles.metricSub}>Hz</Text>
         </View>
 
         <View style={styles.divider} />
@@ -178,7 +181,7 @@ export const LiveTelemetryWidget = () => {
             <Wifi size={12} color={COLORS.tealLight} />
             <Text style={styles.metricLabel}>{t('member.telemetry.telemetryPing')}</Text>
           </View>
-          <Text style={styles.metricValue}>{telemetryHealth.pingMs || 38} ms</Text>
+          <Text style={styles.metricValue}>{telemetryHealth.pingMs == null ? '—' : `${telemetryHealth.pingMs} ms`}</Text>
           <Text style={styles.metricSub}>{t('member.telemetry.telemetryPingSub')}</Text>
         </View>
       </View>

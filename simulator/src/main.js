@@ -6,7 +6,7 @@ import { formatTime } from './engine/clock.js';
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const preview=params.get('preview')==='1';
-const key=params.get('key');
+const key=params.get('key') || '';
 const store=createStore({snapshot:null,readings:{},leader:false,connected:false,busy:false,error:null,preview});
 store.subscribe(render);
 let loop;
@@ -83,17 +83,20 @@ function bind() {
   };
 }
 try {
-  if(!preview&&!key) throw new Error('Add ?key=… to the URL. Use ?preview=1 for an offline preview.');
   let api;
+  let drive=true;
   if(preview) api=(await import('./preview.js')).previewApi();
   else {
     let config;
-    try {config=await import('../config.js');} catch {throw new Error('Copy simulator/config.example.js to simulator/config.js and fill in your Supabase URL and public anon key.');}
-    api=createApi(config.SUPABASE_URL,config.SUPABASE_ANON_KEY,key,crypto.randomUUID());
+    try {config=await import('../runtime-config.js');}
+    catch {try {config=await import('../config.js');} catch {throw new Error('Start npm start to load the app database settings automatically.');}}
+    drive=!config.HEADLESS;
+    api=config.LOCAL_API ? (await import('./local-api.js')).createLocalApi()
+      : createApi(config.SUPABASE_URL,config.SUPABASE_ANON_KEY,key,crypto.randomUUID());
   }
   const snapshot=await api.call('snapshot');
-  store.set({snapshot,connected:true});
-  bind();loop=createLoop(api,store);loop.start();
+  store.set({snapshot,connected:true,leader:!drive});
+  bind();loop=createLoop(api,store,{drive});loop.start();
   window.addEventListener('pagehide',()=>loop.stop());
   window.addEventListener('pageshow',e=>{if(e.persisted)loop.start();});
 } catch(e) {

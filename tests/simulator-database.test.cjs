@@ -21,7 +21,7 @@ async function database() {
     create table public.complaints(id uuid primary key,user_id uuid,type text,description text);
     create table public.transactions(id uuid primary key default gen_random_uuid(),sender_id uuid,receiver_id uuid,energy_amount numeric,status text,created_at timestamptz default now());
     create table public.energy_requests(id bigint generated always as identity primary key);
-    create table public.energy_records(id bigint generated always as identity primary key,user_id uuid references public.profiles(id),production_kwh numeric,consumption_kwh numeric,surplus_kwh numeric,recorded_at timestamptz default now());
+    create table public.energy_records(id bigint generated always as identity primary key,user_id uuid references public.profiles(id),production_kwh numeric,consumption_kwh numeric,surplus_kwh numeric generated always as (greatest(0,production_kwh-consumption_kwh)) stored,recorded_at timestamptz default now());
     create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
     create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,metadata jsonb,unique(bucket_id,name));
     alter table storage.objects enable row level security;
@@ -29,11 +29,12 @@ async function database() {
     insert into auth.users values('${OWNER}'),('${TECH}'),('${CONSUMER}');
     insert into public.profiles values('${OWNER}','Owner','0700000000','owner',4),('${TECH}','Technician','','technician',null),('${CONSUMER}','Consumer','','consumer',0);
   `);
-  for (const name of ['001_energy_tables','0002_alerts_and_admin_rls','0003_alert_source','0005_alert_scan_support','0006_technician_jobs','0008_job_repair_photos','0009_job_repair_drafts','0010_job_closure_record','0011_simulator']) {
+  for (const name of ['001_energy_tables','0002_alerts_and_admin_rls','0003_alert_source','0005_alert_scan_support','0006_technician_jobs','0008_job_repair_photos','0009_job_repair_drafts','0010_job_closure_record','0011_simulator','0012_simulator_auto_devices','0013_simulator_generated_surplus']) {
     try { await db.exec(fs.readFileSync(`supabase/migrations/${name}.sql`, 'utf8').replace(/^\uFEFF/, '')); }
     catch (error) { await db.close(); throw new Error(`${name}: ${error.message} (position ${error.position})`); }
   }
   await db.exec(fs.readFileSync('supabase/migrations/0011_simulator.sql','utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/0012_simulator_auto_devices.sql','utf8'));
   await db.query('select public.sim_set_key($1)',[KEY]);
   await db.exec('grant usage on schema public,auth,storage to anon,authenticated; grant select,update on public.jobs to authenticated; grant select,insert on storage.objects to authenticated');
   return db;
@@ -86,7 +87,8 @@ test('simulator database: secure RPCs, leases, writes, faults, recovery, backfil
       await db.query("insert into public.transactions(sender_id,receiver_id,energy_amount,status) values($1,$2,2,'COMPLETED')",[OWNER,CONSUMER]);
       await role(db); await push(db,[reading(owner)]);
       await db.exec('reset role');
-      assert.equal(Number((await db.query('select surplus_kwh from public.energy_records order by id desc limit 1')).rows[0].surplus_kwh),13);
+      assert.equal(Number((await db.query('select trade_private.available_kwh($1) surplus_kwh',[OWNER])).rows[0].surplus_kwh),13);
+      assert.equal(Number((await db.query('select surplus_kwh from public.energy_records where user_id=$1 order by recorded_at desc,id desc limit 1',[OWNER])).rows[0].surplus_kwh),15);
       await role(db);
     });
     await t.test('fault inserts one telemetry job, alert and offline device atomically',async()=>{
@@ -141,7 +143,7 @@ test('simulator database: secure RPCs, leases, writes, faults, recovery, backfil
       await db.query('select public.sim_backfill($1,$2,$3)',[KEY,TAB,7]);
       await db.exec('reset role');
       assert.equal((await db.query("select * from public.energy_records where recorded_at<date_trunc('day',now() at time zone 'Asia/Colombo') at time zone 'Asia/Colombo' and is_simulated")).rows.length,14);
-      await db.query('insert into public.energy_records(user_id,production_kwh,consumption_kwh,surplus_kwh) values($1,1,1,0)',[CONSUMER]);
+      await db.query('insert into public.energy_records(user_id,production_kwh,consumption_kwh) values($1,1,1)',[CONSUMER]);
       await db.query("insert into public.jobs(title,household_user_id) values('Real complaint',$1)",[CONSUMER]);
       await role(db);
       await db.query('select public.sim_inject_fault($1,$2,$3,$4,$5)',[KEY,TAB,owner.id,'E01','{}']);
@@ -168,4 +170,34 @@ test('simulator database: secure RPCs, leases, writes, faults, recovery, backfil
       assert.equal((await snapshot(db)).config.weather,'rain');
     });
   } finally { await db.close(); }
+});
+
+
+test('new members receive virtual hardware and role changes clean up old faults', async () => {
+  const db=await database();
+  const id='44444444-4444-4444-8444-444444444444';
+  try {
+    await db.query('insert into auth.users values($1)',[id]);
+    await db.query("insert into public.profiles(id,name,role) values($1,'New owner','owner')",[id]);
+    let device=(await db.query('select * from public.sim_devices where household_user_id=$1',[id])).rows[0];
+    assert.equal(Number(device.capacity_kw),4); assert.equal(device.panel_count,10);
+    await db.query('update public.sim_devices set capacity_kw=6 where id=$1',[device.id]);
+    await db.query("update public.profiles set name='Renamed owner' where id=$1",[id]);
+    assert.equal(Number((await db.query('select capacity_kw from public.sim_devices where id=$1',[device.id])).rows[0].capacity_kw),6);
+    await role(db);
+    await db.query('select public.sim_claim_lease($1,$2)',[KEY,TAB]);
+    const fault=(await db.query('select public.sim_inject_fault($1,$2,$3,$4,$5) data',[KEY,TAB,device.id,'E01','{}'])).rows[0].data;
+    await db.exec('reset role');
+    await db.query("update public.profiles set role='consumer' where id=$1",[id]);
+    device=(await db.query('select * from public.sim_devices where household_user_id=$1',[id])).rows[0];
+    assert.equal(Number(device.capacity_kw),0);assert.equal(device.panel_count,0);
+    assert.equal(device.active_fault_id,null);assert.equal(device.status,'online');
+    assert.equal((await db.query('select status from public.jobs where id=$1',[fault.job_id])).rows[0].status,'completed');
+    assert.equal((await db.query('select status from public.device_faults where id=$1',[fault.id])).rows[0].status,'resolved_manual');
+    await db.query("update public.profiles set role='owner',solar_capacity_kw=8 where id=$1",[id]);
+    assert.equal(Number((await db.query('select capacity_kw from public.sim_devices where household_user_id=$1',[id])).rows[0].capacity_kw),8);
+    await db.query("update public.profiles set role='technician' where id=$1",[id]);
+    assert.equal((await db.query('select * from public.sim_devices where household_user_id=$1',[id])).rows.length,0);
+    assert.equal((await db.query('select * from public.sim_devices where household_user_id=$1',[TECH])).rows.length,0);
+  } finally {await db.close();}
 });

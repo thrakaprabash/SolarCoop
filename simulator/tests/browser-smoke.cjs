@@ -31,8 +31,26 @@ const { chromium } = require('playwright');
     await page.locator('#reset').click();
     await page.waitForFunction(()=>document.querySelector('#play').textContent.includes('Play'));
     assert.deepEqual(errors,[]);
+    // Normal local controls connect without a URL key and never drive a second engine.
+    const localFixture=(await import('../src/preview.js')).previewApi();
+    await localFixture.call('update_config',{p_patch:{running:true}});
+    let duplicateTicks=0;
+    await page.route('**/api/sim/**',async route=>{
+      const name=route.request().url().split('/').pop();
+      const params=JSON.parse(route.request().postData());
+      assert.equal('p_key' in params,false);
+      if(name==='push_tick') duplicateTicks++;
+      const data=await localFixture.call(name,params);
+      await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data ?? null)});
+    });
     await page.goto('http://localhost:5050/');
-    await page.waitForFunction(()=>document.querySelector('#gate p').textContent.includes('Add ?key='));
-    console.log('Browser smoke passed: play, fault shutdown/clear/recovery, editing, evening preset, reset, mobile layout and key gate.');
+    await page.waitForFunction(()=>!document.querySelector('#play').disabled);
+    assert.equal(await page.locator('.house-card').count(),6);
+    assert((await page.locator('#play').textContent()).includes('Pause'));
+    await page.locator('#weather').selectOption('cloudy');
+    await page.waitForFunction(()=>!document.querySelector('#play').disabled);
+    assert.equal((await localFixture.call('snapshot')).config.weather,'cloudy');
+    assert.equal(duplicateTicks,0);assert.deepEqual(errors,[]);
+    console.log('Browser smoke passed: preview controls, faults, recovery, mobile layout and key-free local controls without duplicate ticks.');
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

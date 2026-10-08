@@ -25,6 +25,7 @@ import {
 } from 'lucide-react-native';
 import { LiveTelemetryWidget } from './LiveTelemetryWidget';
 import { WidgetCustomizerModal } from './WidgetCustomizerModal';
+import { FaultAlertCard } from '../alerts/FaultAlertCard';
 
 // ─── Sub-component: SVG Arc Progress Ring (Issue #2) ───
 const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children }) => {
@@ -70,9 +71,13 @@ export const HomeDashboard = () => {
   const { t } = useTranslation();
   const {
     metrics,
+    hasMetrics,
+    faultAlerts,
+    faultError,
+    error,
+    telemetryStatus,
     setActiveTab, 
-    executeShareEnergy, 
-    executeBorrowEnergy, 
+    setMainBottomTab,
     loading,
     widgetLayout,
     updateWidgetLayout,
@@ -80,7 +85,6 @@ export const HomeDashboard = () => {
   } = useEnergy();
 
   const [powerEnergyToggle, setPowerEnergyToggle] = useState('power');
-  const [actionSuccess, setActionSuccess] = useState(null); // null | 'share' | 'borrow'
   const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
 
   // ── Issue #1: Pulsing live indicator animation ──
@@ -102,18 +106,9 @@ export const HomeDashboard = () => {
   const netOutput = metrics.instantProduction - metrics.instantConsumption;
   const isSurplus = netOutput > 0;
 
-  // ── Issue #3: Quick action handlers with inline success feedback ──
-  const handleShare = () => {
-    executeShareEnergy(2.5, 'House #04');
-    setActionSuccess('share');
-    setTimeout(() => setActionSuccess(null), 3000);
-  };
-
-  const handleBorrow = () => {
-    executeBorrowEnergy(1.5);
-    setActionSuccess('borrow');
-    setTimeout(() => setActionSuccess(null), 3000);
-  };
+  // Sharing and borrowing use the existing request/approval workflow.
+  const handleShare = () => setMainBottomTab('trade');
+  const handleBorrow = () => setMainBottomTab('trade');
 
   // ── Issue #4: Toggle-aware metric values ──
   const sitePowerValue = powerEnergyToggle === 'power'
@@ -124,13 +119,12 @@ export const HomeDashboard = () => {
     ? metrics.instantProduction.toFixed(2)
     : metrics.dailyProduction.toFixed(1);
   const coopLegendVal = powerEnergyToggle === 'power'
-    ? (metrics.instantConsumption * 0.5).toFixed(2)
-    : (metrics.dailyConsumption * 0.5).toFixed(1);
+    ? Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)
+    : Math.max(0, metrics.dailyConsumption - metrics.dailyProduction).toFixed(1);
 
   // ── Issue #2: Environmental gauge progress percentages ──
   const co2DailyTarget = 50; // daily kg CO₂ goal
   const co2Progress = Math.min(100, (metrics.co2SavedKg / co2DailyTarget) * 100);
-  const sunshineProgress = 98;
   const gridFreeProgress = metrics.gridIndependence;
 
   // ── Individual Section Renderers (SOL-185, SOL-187) ──
@@ -154,7 +148,7 @@ export const HomeDashboard = () => {
           </Text>
           <View style={styles.cellTrend}>
             <TrendingUp size={10} color={COLORS.tealLight} />
-            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{t('member.dashboard.cell.solarTrend')}</Text>
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{metrics.dailyProduction} kWh</Text>
           </View>
         </TouchableOpacity>
 
@@ -171,11 +165,11 @@ export const HomeDashboard = () => {
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
           <Text style={styles.cellValue}>
-            0.00 <Text style={styles.cellUnit}>kW</Text>
+            {Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
             <Activity size={10} color={COLORS.textMuted} />
-            <Text style={styles.cellTrendText}>{t('member.dashboard.cell.offline')}</Text>
+            <Text style={styles.cellTrendText}>{t('member.dashboard.gridEstimate')}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -220,7 +214,7 @@ export const HomeDashboard = () => {
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
           <Text style={styles.cellValue}>
-            {(metrics.instantConsumption * 0.1).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
+            {metrics.batteryPowerFlow.toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
             <TrendingUp size={10} color={COLORS.tealLight} />
@@ -247,24 +241,16 @@ export const HomeDashboard = () => {
           </ProgressRing>
           <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.co2Saved')}</Text>
           <Text style={styles.benefitUnit}>kg</Text>
-          <View style={styles.benefitDelta}>
-            <TrendingUp size={8} color={COLORS.tealLight} />
-            <Text style={styles.benefitDeltaText}>{t('member.dashboard.environmental.co2Delta')}</Text>
-          </View>
         </View>
 
         {/* Sunshine % */}
         <View style={styles.benefitCol}>
-          <ProgressRing progress={sunshineProgress} size={64} strokeWidth={4} color={COLORS.amber}>
+          <ProgressRing progress={0} size={64} strokeWidth={4} color={COLORS.amber}>
             <Sun size={11} color={COLORS.amber} style={{ position: 'absolute', top: 8 }} />
-            <Text style={styles.gaugeNum}>98</Text>
+            <Text style={styles.gaugeNum}>—</Text>
           </ProgressRing>
           <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.sunshine')}</Text>
           <Text style={styles.benefitUnit}>%</Text>
-          <View style={styles.benefitDelta}>
-            <TrendingUp size={8} color={COLORS.amberLight} />
-            <Text style={[styles.benefitDeltaText, { color: COLORS.amberLight }]}>{t('member.dashboard.environmental.sunshineDelta')}</Text>
-          </View>
         </View>
 
         {/* Grid Independence */}
@@ -275,10 +261,6 @@ export const HomeDashboard = () => {
           </ProgressRing>
           <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.gridFree')}</Text>
           <Text style={styles.benefitUnit}>%</Text>
-          <View style={styles.benefitDelta}>
-            <TrendingUp size={8} color={COLORS.tealLight} />
-            <Text style={styles.benefitDeltaText}>{t('member.dashboard.environmental.gridFreeDelta')}</Text>
-          </View>
         </View>
       </View>
     </View>
@@ -321,7 +303,7 @@ export const HomeDashboard = () => {
           </View>
           <View style={styles.dotLegend}>
             <View style={[styles.dot, { backgroundColor: COLORS.tealLight }]} />
-            <Text style={styles.dotText}>{t('member.dashboard.sitePower.legendCoop', { value: coopLegendVal })}</Text>
+            <Text style={styles.dotText}>{t('member.dashboard.gridEstimate')}: {coopLegendVal} {powerEnergyToggle === 'power' ? 'kW' : 'kWh'}</Text>
           </View>
         </View>
       </View>
@@ -391,18 +373,6 @@ export const HomeDashboard = () => {
 
   const renderQuickActions = () => (
     <View key="quickActions" style={styles.quickActionsContainer}>
-      {/* Inline Success Toast (Issue #3) */}
-      {actionSuccess && (
-        <View style={styles.successToast}>
-          <CheckCircle2 size={16} color={COLORS.tealLight} />
-          <Text style={styles.successToastText}>
-            {actionSuccess === 'share'
-              ? t('member.dashboard.quickActions.shareSuccess', { amount: 2.5, target: 'House #04' })
-              : t('member.dashboard.quickActions.borrowSuccess', { amount: 1.5 })}
-          </Text>
-        </View>
-      )}
-
       {/* Quick Actions — Visual Hierarchy (Issue #3) */}
       <View style={styles.actionsRow}>
         <TouchableOpacity 
@@ -487,7 +457,19 @@ export const HomeDashboard = () => {
       </View>
 
       {/* ═══ Configurable & Reorderable Dashboard Widgets (SOL-185, SOL-187) ═══ */}
-      {(widgetLayout || [])
+      {faultAlerts?.map(alert => <FaultAlertCard key={alert.id} alert={alert} />)}
+      {faultError && <Text style={{ color: COLORS.red }}>{t('member.dashboard.faultUnavailable')}</Text>}
+      {error && <Text style={{ color: COLORS.red }}>{t('member.dashboard.feedUnavailable')}</Text>}
+      {!hasMetrics && !loading && (
+        <View style={[GLASS.card, styles.sectionCard]}>
+          <Text style={styles.sectionTitle}>{t('member.dashboard.waitingTitle')}</Text>
+          <Text style={styles.lastUpdate}>{t('member.dashboard.waitingBody')}</Text>
+        </View>
+      )}
+      {hasMetrics && telemetryStatus === 'stale' && (
+        <Text style={{ color: COLORS.amberLight }}>{t('member.dashboard.staleReading')}</Text>
+      )}
+      {(hasMetrics ? widgetLayout || [] : [])
         .filter(w => w.visible)
         .map(w => renderWidget(w.id))}
 

@@ -1,7 +1,7 @@
 import { tick } from './engine/tick.js';
 import { seededRandom } from './engine/random.js';
 import { randomFault } from './engine/faults.js';
-export function createLoop(api, store) {
+export function createLoop(api, store, { drive = true } = {}) {
   let queue = Promise.resolve(), timer, stopped=false, errors=0, index=0, state={}, pending=null, last=Date.now(), wasLeader=false;
   const random = seededRandom(42);
   const enqueue = task => {
@@ -25,6 +25,13 @@ export function createLoop(api, store) {
     pending=null;
   }
   async function cycle() {
+    if (!drive) {
+      await refresh();
+      const error=store.get().snapshot.runner?.error;
+      store.set({leader:true,connected:true,error:error?.includes('surplus_kwh')
+        ? 'Database update required: run 0013_simulator_generated_surplus.sql in Supabase SQL Editor.' : error || null}); errors=0;
+      return;
+    }
     const leader = await api.call('claim_lease');
     if (leader !== wasLeader) { state = {}; pending = null; store.set({readings:{}}); }
     wasLeader = leader;
@@ -55,12 +62,14 @@ export function createLoop(api, store) {
     start() { stopped=false; scheduled(); }, stop() { stopped=true; clearTimeout(timer); },
     mutate(name, params={}) { return enqueue(async()=>{
       if(!await api.call('claim_lease')) throw new Error('Another tab controls the simulator.');
+      const pausing=name==='update_config' && params.p_patch?.running===false;
       // Finish a lost-response retry before any later control change.
-      if(pending) await push();
+      // Pause must remain usable even if the previous database tick failed.
+      if(pending && !pausing) await push();
       await api.call(name,params);
       if(name==='reset') {state={};pending=null;index=0;store.set({readings:{}});}
       await refresh(); last=Date.now();
-      if(name!=='reset') await push(true,0);
+      if(drive && name!=='reset' && !pausing) await push(true,0);
     }); },
   };
 }

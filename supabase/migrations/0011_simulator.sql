@@ -307,7 +307,7 @@ begin
     on conflict(user_id) do update set instant_production=excluded.instant_production,instant_consumption=excluded.instant_consumption,daily_production=dp,daily_consumption=dc,battery_level=excluded.battery_level,battery_capacity=d.battery_kwh,battery_power_flow=flow,surplus_available=excluded.surplus_available,coop_pool_shared_today=pool,coop_members_online=online,coop_total_capacity=capacity,coop_tokens_earned=excluded.coop_tokens_earned,monetary_saved=excluded.monetary_saved,co2_saved_kg=excluded.co2_saved_kg,grid_independence=excluded.grid_independence,is_simulated=true,updated_at=now();
     update public.sim_devices set battery_level=level where id=d.id;
     if coalesce((r->>'write_record')::boolean,false) then
-      insert into public.energy_records(user_id,production_kwh,consumption_kwh,surplus_kwh,recorded_at,is_simulated) values(d.household_user_id,dp,dc,greatest(0,dp-dc-traded),now(),true);
+      insert into public.energy_records(user_id,production_kwh,consumption_kwh,recorded_at,is_simulated) values(d.household_user_id,dp,dc,now(),true);
       slot := (r->>'slot')::int+1;
       if slot is null or slot not between 1 and 12 then raise exception 'Invalid chart slot'; end if;
       insert into simulator_private.original_rows select 'chart_data',c.id::text,to_jsonb(c) from public.chart_data c where user_id=d.household_user_id and range='day' and not is_simulated on conflict do nothing;
@@ -339,7 +339,7 @@ begin
       prod:=d.capacity_kw*(4+0.5*sin(i));
       cons:=case d.load_profile when 'small' then 12.1 when 'large' then 30 when 'business' then 37.6 else 20.2 end*d.load_factor;
       delete from public.energy_records where user_id=d.household_user_id and is_simulated and (recorded_at at time zone 'Asia/Colombo')::date=day;
-      insert into public.energy_records(user_id,production_kwh,consumption_kwh,surplus_kwh,recorded_at,is_simulated) values(d.household_user_id,prod,cons,greatest(0,prod-cons),(day+time '23:59:00') at time zone 'Asia/Colombo',true);
+      insert into public.energy_records(user_id,production_kwh,consumption_kwh,recorded_at,is_simulated) values(d.household_user_id,prod,cons,(day+time '23:59:00') at time zone 'Asia/Colombo',true);
     end loop;
     perform simulator_private.refresh_history(d.household_user_id);
   end loop;
