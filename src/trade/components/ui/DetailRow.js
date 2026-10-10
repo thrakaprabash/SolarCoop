@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { colors, weight } from '../../theme';
 
@@ -19,6 +19,7 @@ export default function DetailRow({ label, value, valueColor, valueSize = 12, ch
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  label: { fontSize: 11, fontWeight: weight.medium, color: colors.textMuted },
-  value: { fontWeight: weight.heavy },
+  label: { flex: 1, minWidth: 0, fontSize: 11, fontWeight: weight.medium, color: colors.textMuted },
+  value: { flex: 2, minWidth: 0, flexShrink: 1, fontWeight: weight.heavy, textAlign: 'right',
+    ...(Platform.OS === 'web' ? { overflowWrap: 'anywhere' } : {}) },
 });
