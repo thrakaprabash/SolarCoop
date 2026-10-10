@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowDown, ArrowUp, Check, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useAuth } from '../../context/AuthContext';
 import { fetchTransactionById, fetchTransactionByRequestId } from '../services/transactionService';
-import { kwh, stamp } from '../utils/format';
+import { tradeKwh as kwh, stamp } from '../utils/format';
+import { reportingHelp } from '../utils/reportingHelp';
 import {
   Card,
   DetailRow,
@@ -21,9 +21,8 @@ import {
 } from '../components/ui';
 
 export default function TransactionDetailsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { params, navigate } = useNavigation();
-  const { showToast } = useTrade();
   const { user } = useAuth();
   const [txn, setTxn] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -120,7 +119,7 @@ export default function TransactionDetailsScreen() {
 
         <Divider />
 
-        <DetailRow label={t('trade.details.dateTime')} value={stamp(new Date(txn.ts))} />
+        <DetailRow label={t('trade.details.dateTime')} value={stamp(new Date(txn.ts), i18n.resolvedLanguage || i18n.language)} />
 
         <DetailRow label={t('trade.details.status')}>
           <Pill
@@ -141,12 +140,9 @@ export default function TransactionDetailsScreen() {
         style={styles.done}
       />
 
-      <Pressable
-        onPress={() => showToast(t('trade.details.complaintToast'))}
-        style={({ pressed }) => [styles.report, pressed && { opacity: 0.7 }]}
-      >
-        <Text style={styles.reportLabel}>{t('trade.details.reportIssue')}</Text>
-      </Pressable>
+      <View style={styles.report}>
+        <Text style={styles.reportLabel}>{reportingHelp(i18n.resolvedLanguage || i18n.language)}</Text>
+      </View>
     </ScrollView>
   );
 }
