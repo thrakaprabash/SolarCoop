@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck } from 'lucide-react-native';
-import { TECH } from '../theme';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { useTechnician } from '../context/TechnicianContext';
 import CriticalAlertCard from '../components/CriticalAlertCard';
 
@@ -17,9 +17,12 @@ const notify = (title, message) => {
  * works through on site.
  */
 export default function DiagnosticsScreen() {
+  const { TECH } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const { t } = useTranslation();
+  const [expandedJobId, setExpandedJobId] = useState(null);
   const {
-    openAlerts, technicianId, toggleChecklistItem, openJob, jobsLoading, loadJobs,
+    openAlerts, technicianId, toggleChecklistItem, openJob, jobsLoading, loadJobs, pendingWrites,
   } = useTechnician();
 
   const handleToggle = async (jobId, index) => {
@@ -52,7 +55,9 @@ export default function DiagnosticsScreen() {
           <CriticalAlertCard
             key={job.id}
             job={job}
-            canEditChecklist={job.status === 'active' && job.technicianId === technicianId}
+            expanded={expandedJobId === job.id}
+            onToggleExpanded={() => setExpandedJobId(current => current === job.id ? null : job.id)}
+            canEditChecklist={job.status === 'active' && job.technicianId === technicianId && !(pendingWrites[job.id] > 0)}
             onToggleItem={(i) => handleToggle(job.id, i)}
             onViewJob={() => openJob(job.id)}
           />
@@ -62,12 +67,12 @@ export default function DiagnosticsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = TECH => StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32, gap: 14 },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 14 },
   sectionLabel: {
-    fontSize: 10.5,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '600',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: TECH.textSecondary,
@@ -81,6 +86,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: TECH.card,
   },
-  emptyTitle: { fontSize: 14, fontWeight: '800', color: TECH.text },
+  emptyTitle: { fontSize: 14, fontWeight: '600', color: TECH.text },
   emptyText: { fontSize: 12, color: TECH.textMuted },
 });

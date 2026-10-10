@@ -73,12 +73,12 @@ begin
   )
   select m[1], p.name, 'Athurugiriya', 'Battery Replacement', 'Battery Bank', 'low',
          'completed', 'Shereen', 'Replaced degraded battery module.', 'manual',
-         '2026-02-13', '2026-02-13', '2026-02-14'
+         '2026-02-13'::timestamptz, '2026-02-13'::timestamptz, '2026-02-14'::timestamptz
   from public.profiles p where p.id = m[1]
   union all
   select m[1], p.name, 'Athurugiriya', 'DC Fuse Fixed', 'DC Combiner', 'low',
          'completed', 'Tharaka', 'Replaced blown DC fuse on string 1.', 'manual',
-         '2025-10-11', '2025-10-11', '2025-10-12'
+         '2025-10-11'::timestamptz, '2025-10-11'::timestamptz, '2025-10-12'::timestamptz
   from public.profiles p where p.id = m[1];
 end;
 $$;

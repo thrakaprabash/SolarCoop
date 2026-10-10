@@ -1,101 +1,48 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronRight, MapPin, Radio, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { TECH, urgencyColor } from '../theme';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 
-/**
- * One job ticket in a dashboard list.
- *
- *   featured — the technician's active ticket: shows the live system status
- *              line and a "View Job" button, per the Figma dashboard frame.
- *   default  — a compact queue card (pending / completed); the whole card is
- *              the tap target.
- */
 export default function JobCard({ job, featured = false, onPress }) {
   const { t } = useTranslation();
+  const { TECH, urgencyColor } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const accent = job.status === 'completed' ? TECH.green : urgencyColor(job.urgency);
-
-  const distance = job.distanceKm != null
+  const location = job.distanceKm != null
     ? t('technician.job.distanceValue', { km: Number(job.distanceKm).toFixed(1), area: job.siteArea ?? '—' })
-    : job.siteArea ?? '—';
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      style={({ pressed }) => [
-        styles.card,
-        featured && styles.cardFeatured,
-        { borderLeftColor: accent },
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={styles.titleRow}>
-        <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
-        <View style={styles.urgency}>
-          <View style={[styles.dot, { backgroundColor: accent }]} />
-          <Text style={[styles.urgencyText, { color: accent }]}>
-            {job.status === 'completed'
-              ? t('technician.tabs.completed')
-              : t(`technician.urgency.${job.urgency}`, { defaultValue: job.urgency })}
-          </Text>
-        </View>
+    : job.siteArea;
+  return <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button"
+    style={({ pressed }) => [styles.card, featured && { borderColor: TECH.orangeBorder }, pressed && { backgroundColor: TECH.cardRaised }]}>
+    <View style={styles.top}>
+      <Text style={styles.ticket}>{job.ticketCode || job.errorCode}</Text>
+      <View style={[styles.priority, { backgroundColor: `${accent}16` }]}>
+        <View style={[styles.dot, { backgroundColor: accent }]} />
+        <Text style={[styles.priorityText, { color: accent }]}>{job.status === 'completed' ? t('technician.tabs.completed') : t(`technician.urgency.${job.urgency}`, { defaultValue: job.urgency })}</Text>
       </View>
-
-      <Text style={styles.meta}>
-        {t('technician.job.household')}: <Text style={styles.metaStrong}>{job.clientName ?? '—'}</Text>
-      </Text>
-      <Text style={styles.metaMuted}>
-        {t('technician.job.distance')}: {distance}
-      </Text>
-
-      {featured ? (
-        <View style={styles.footer}>
-          <View style={styles.statusLine}>
-            <View style={[styles.dot, { backgroundColor: TECH.red }]} />
-            <Text style={styles.statusText} numberOfLines={1}>
-              {job.errorCode
-                ? t('technician.job.statusInactive', { code: job.errorCode })
-                : t('technician.job.statusDegraded')}
-            </Text>
-          </View>
-          <Pressable style={styles.viewBtn} onPress={onPress} disabled={!onPress}>
-            <Text style={styles.viewBtnText}>{t('technician.job.viewJob')}</Text>
-          </Pressable>
-        </View>
-      ) : null}
-    </Pressable>
-  );
+    </View>
+    <Text style={styles.title}>{job.title}</Text>
+    <View style={styles.meta}><UserRound size={14} color={TECH.textMuted}/><Text style={styles.metaText}>{job.clientName || '—'}</Text></View>
+    {location ? <View style={styles.meta}><MapPin size={14} color={TECH.textMuted}/><Text style={styles.metaText}>{location}</Text></View> : null}
+    <View style={styles.footer}>
+      <View style={styles.origin}>{job.source === 'telemetry' ? <Radio size={13} color={TECH.textMuted}/> : null}<Text style={styles.originText}>{job.errorCode ? `${job.errorCode} · ` : ''}{job.source === 'telemetry' ? t('technician.design.inverterAlert') : t('technician.design.serviceRequest')}</Text></View>
+      <View style={styles.action}><Text style={styles.actionText}>{t('technician.job.viewJob')}</Text><ChevronRight size={16} color={TECH.orange}/></View>
+    </View>
+  </Pressable>;
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: TECH.card,
-    borderWidth: 1,
-    borderColor: TECH.border,
-    borderLeftWidth: 3,
-    borderRadius: 12,
-    padding: 14,
-    gap: 4,
-  },
-  cardFeatured: { backgroundColor: TECH.cardRaised, paddingVertical: 16 },
-  pressed: { opacity: 0.85 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 4 },
-  title: { flex: 1, fontSize: 14, fontWeight: '800', color: TECH.text },
-  urgency: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  urgencyText: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
-  meta: { fontSize: 12, color: TECH.textSecondary },
-  metaStrong: { color: TECH.text, fontWeight: '600' },
-  metaMuted: { fontSize: 11.5, color: TECH.textMuted },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 8 },
-  statusLine: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statusText: { flex: 1, fontSize: 11.5, fontWeight: '600', color: TECH.red },
-  viewBtn: {
-    backgroundColor: TECH.orange,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  viewBtnText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.4 },
+const createStyles = TECH => StyleSheet.create({
+  card: { backgroundColor: TECH.card, borderWidth: 1, borderColor: TECH.border, borderRadius: 16, padding: 17, gap: 9 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  ticket: { flexShrink: 1, fontSize: 11, color: TECH.textMuted, fontWeight: '600', letterSpacing: 0.5 },
+  priority: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 5 },
+  dot: { width: 5, height: 5, borderRadius: 3 },
+  priorityText: { fontSize: 11, fontWeight: '600' },
+  title: { fontSize: 17, lineHeight: 23, color: TECH.text, fontWeight: '600', letterSpacing: -0.2 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  metaText: { flex: 1, fontSize: 13, lineHeight: 19, color: TECH.textSecondary },
+  footer: { borderTopWidth: 1, borderColor: TECH.border, paddingTop: 12, marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  origin: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  originText: { flexShrink: 1, fontSize: 11, lineHeight: 16, color: TECH.textMuted },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  actionText: { fontSize: 12, fontWeight: '600', color: TECH.orange },
 });

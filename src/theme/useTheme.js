@@ -9,10 +9,13 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+import { useContext } from 'react';
 import { useColorScheme } from 'react-native';
+import { ThemeOverrideContext } from './ThemeOverrideContext';
 import { getTheme } from './colors';
 
 export const useTheme = () => {
   const scheme = useColorScheme();
-  return getTheme(scheme);
+  const override = useContext(ThemeOverrideContext);
+  return override ?? getTheme(scheme);
 };

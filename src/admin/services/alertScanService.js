@@ -23,14 +23,15 @@
  * which is treated as "already there", not as an error.
  *
  * Alerts are inserted with source = 'system', so the admin app shows them as
- * read-only apart from resolve / reopen / delete.
+ * read-only apart from resolve / reopen. Recovery closes handled conditions.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
 import { supabase } from '../../lib/supabase';
 import { toUIStatus } from './adminMemberService';
 import { toDBSeverity } from './adminAlertService';
-import { runChecks, shouldRaise } from './alertRules';
+import { runChecks, shouldRaise, recoveredAlertIds } from './alertRules';
+import { fetchPages } from './pagination';
 
 const num = (value) => Number(value ?? 0);
 
@@ -38,31 +39,30 @@ const num = (value) => Number(value ?? 0);
 
 /** Alerts already raised by a scan, keyed by dedupe_key. Failure aborts the scan. */
 async function fetchExistingAlerts() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('alerts')
-    .select('dedupe_key, status, created_at')
+    .select('id, dedupe_key, status, created_at, resolved_at, auto_resolved')
     .not('dedupe_key', 'is', null)
+    .eq('source', 'system')
     .order('created_at', { ascending: false })
-    .limit(1000);
-
-  if (error) throw error;
+    .order('id', { ascending: false }));
 
   const byKey = new Map();
   for (const row of data ?? []) {
     const list = byKey.get(row.dedupe_key) ?? [];
-    list.push({ status: row.status, at: new Date(row.created_at) });
+    list.push({ id: row.id, status: row.status, at: new Date(row.created_at),
+      resolvedAt: row.resolved_at ? new Date(row.resolved_at) : null, autoResolved: row.auto_resolved });
     byKey.set(row.dedupe_key, list);
   }
   return byKey;
 }
 
 async function fetchMembers() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('profiles')
     .select('id, name, household_id, status, created_at')
-    .neq('role', 'admin');
-
-  if (error) throw error;
+    .neq('role', 'admin')
+    .order('id'));
 
   return (data ?? []).map((p) => ({
     id: p.id,
@@ -73,15 +73,13 @@ async function fetchMembers() {
   }));
 }
 
-/** Newest-first readings per member. Capped at PostgREST's 1000-row page. */
+/** Read every page so high-frequency simulation cannot hide older households. */
 async function fetchReadings() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('energy_records')
-    .select('user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at')
+    .select('id, user_id, production_kwh, consumption_kwh, surplus_kwh, recorded_at, is_simulated')
     .order('recorded_at', { ascending: false })
-    .limit(1000);
-
-  if (error) throw error;
+    .order('id', { ascending: false }));
 
   const byUser = new Map();
   for (const r of data ?? []) {
@@ -95,6 +93,7 @@ async function fetchReadings() {
       consumption,
       surplus: r.surplus_kwh != null ? num(r.surplus_kwh) : production - consumption,
       at,
+      isSimulated: r.is_simulated === true,
     };
 
     const list = byUser.get(r.user_id) ?? [];
@@ -105,13 +104,11 @@ async function fetchReadings() {
 }
 
 async function fetchTransactions() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('transactions')
     .select('id, sender_id, receiver_id, energy_amount, reference_code, status, created_at')
     .order('created_at', { ascending: false })
-    .limit(100);
-
-  if (error) throw error;
+    .order('id', { ascending: false }));
 
   return (data ?? []).map((t) => ({
     id: t.id,
@@ -125,28 +122,27 @@ async function fetchTransactions() {
 }
 
 async function fetchPendingRequests() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('energy_requests')
-    .select('id, requester_id, amount_requested_kwh, created_at')
-    .eq('status', 'PENDING');
-
-  if (error) throw error;
+    .select('id, requester_id, provider_id, amount_requested_kwh, created_at')
+    .eq('status', 'PENDING')
+    .order('id'));
 
   return (data ?? []).map((r) => ({
     id: String(r.id),
     requesterId: r.requester_id,
+    providerId: r.provider_id,
     amount: num(r.amount_requested_kwh),
     at: new Date(r.created_at),
   }));
 }
 
 async function fetchOpenComplaints() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('complaints')
     .select('id, user_id, type, status, submitted_at')
-    .in('status', ['open', 'under_review']);
-
-  if (error) throw error;
+    .in('status', ['open', 'under_review'])
+    .order('id'));
 
   return (data ?? []).map((c) => ({
     id: c.id,
@@ -202,6 +198,17 @@ export async function scanForSystemAlerts() {
 
   const toRaise = candidates.filter((c) => shouldRaise(c, existing, now));
 
+  let resolved = 0;
+  const recovered = recoveredAlertIds(existing, candidates, failedChecks);
+  for (let offset = 0; offset < recovered.length; offset += 100) {
+    const { data, error } = await supabase.from('alerts')
+      .update({ status: 'resolved', auto_resolved: true })
+      .in('id', recovered.slice(offset, offset + 100))
+      .eq('status', 'active').eq('source', 'system').select('id');
+    if (error) failedChecks.push({ check: 'recovery', reason: error.message });
+    else resolved += data?.length ?? 0;
+  }
+
   let raised = 0;
   const saveErrors = [];
 
@@ -228,5 +235,5 @@ export async function scanForSystemAlerts() {
     });
   }
 
-  return { raised, evaluated: candidates.length, failedChecks };
+  return { raised, resolved, evaluated: candidates.length, failedChecks };
 }

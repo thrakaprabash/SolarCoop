@@ -5,10 +5,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, CircleCheck, Cpu, History, MapPin, TriangleAlert, User, Wrench } from 'lucide-react-native';
-import { TECH, urgencyColor } from '../theme';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
 import { buildDirectionsUrl } from '../utils/maps';
+
+import RepairEvidenceCard from '../components/RepairEvidenceCard';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}
@@ -20,6 +22,8 @@ ${message}`);
 const isoDate = (iso) => (iso ? String(iso).slice(0, 10) : '—');
 
 function DossierCard({ icon: Icon, title, children }) {
+  const { TECH, urgencyColor } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -32,6 +36,8 @@ function DossierCard({ icon: Icon, title, children }) {
 }
 
 function InfoLine({ label, value }) {
+  const { TECH, urgencyColor } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   return (
     <Text style={styles.infoLine}>
       {label ? `${label}: ` : ''}<Text style={styles.infoValue}>{value || '—'}</Text>
@@ -44,8 +50,10 @@ function InfoLine({ label, value }) {
  * the equipment is reporting, and what has been done at this site before.
  */
 export default function JobTicketDetailScreen() {
+  const { TECH, urgencyColor } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const { t } = useTranslation();
-  const { selectedJob: job, closeJob, acceptJob, technicianId, openClosure } = useTechnician();
+  const { selectedJob: job, closeJob, acceptJob, technicianId, openClosure, techBottomTab } = useTechnician();
   const [accepting, setAccepting] = useState(false);
 
   const [history, setHistory]               = useState([]);
@@ -101,7 +109,7 @@ export default function JobTicketDetailScreen() {
     <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <Pressable style={styles.back} onPress={closeJob} hitSlop={10}>
         <ArrowLeft size={13} color={TECH.orange} />
-        <Text style={styles.backText}>{t('technician.detail.back')}</Text>
+        <Text style={styles.backText}>{t(techBottomTab === 'health' ? 'technician.health.back' : 'technician.detail.back')}</Text>
       </Pressable>
 
       <View style={styles.titleBlock}>
@@ -133,6 +141,9 @@ export default function JobTicketDetailScreen() {
 
       {/* ── System telemetry ── */}
       <DossierCard icon={Cpu} title={t('technician.detail.telemetry')}>
+        {job.source === 'telemetry' && (
+          <Text style={styles.infoValue}>{t('technician.job.autoDetected')}</Text>
+        )}
         <InfoLine label={t('technician.detail.inverter')} value={job.device} />
         {job.faultLocation ? (
           <InfoLine label={t('technician.detail.location')} value={job.faultLocation} />
@@ -177,11 +188,25 @@ export default function JobTicketDetailScreen() {
         )}
       </DossierCard>
 
+      {job.status === 'completed' && (
+        <>
+          <DossierCard icon={CircleCheck} title={t('technician.detail.closureRecord')}>
+            <Text style={styles.infoValue}>{job.closureRecord?.notes ?? job.resolutionNotes ?? '—'}</Text>
+            {(job.closureRecord?.checklist ?? job.checklist).map((item, i) => (
+              <Text key={i} style={styles.infoLine}>{item.done ? '✓' : '○'} {item.label}</Text>
+            ))}
+          </DossierCard>
+          {(job.closureRecord?.photos ?? job.repairPhotos).length > 0 && job.technicianId === technicianId && (
+            <RepairEvidenceCard photos={job.closureRecord?.photos ?? job.repairPhotos} readOnly />
+          )}
+        </>
+      )}
+
       {/* ── Workflow action ── */}
       {job.status === 'pending' ? (
         <Pressable onPress={handleAccept} disabled={accepting} style={({ pressed }) => pressed && styles.pressed}>
           <LinearGradient
-            colors={[TECH.orange, TECH.orangeDark]}
+            colors={[TECH.action, TECH.orangeDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={[styles.acceptBtn, accepting && styles.btnDisabled]}
@@ -204,7 +229,7 @@ export default function JobTicketDetailScreen() {
           {job.technicianId === technicianId ? (
             <Pressable onPress={openClosure} style={({ pressed }) => pressed && styles.pressed}>
               <LinearGradient
-                colors={[TECH.orange, TECH.orangeDark]}
+                colors={[TECH.action, TECH.orangeDark]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.acceptBtn}
@@ -228,16 +253,16 @@ ${job.resolutionNotes}` : ''}
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = TECH => StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 14 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
-  backText: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6, color: TECH.orange, textTransform: 'uppercase' },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 14 },
+  back: { minHeight: 44, alignItems: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
+  backText: { fontSize: 12, fontWeight: '600', letterSpacing: 0.6, color: TECH.orange, textTransform: 'uppercase' },
   titleBlock: { gap: 4, marginTop: 4 },
   titleTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ticketLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.6, color: TECH.textSecondary, textTransform: 'uppercase' },
+  ticketLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.6, color: TECH.textSecondary, textTransform: 'uppercase' },
   urgencyDot: { width: 8, height: 8, borderRadius: 4 },
-  title: { fontSize: 18, fontWeight: '800', color: TECH.text, letterSpacing: -0.3 },
+  title: { fontSize: 18, fontWeight: '600', color: TECH.text, letterSpacing: -0.3 },
   card: {
     backgroundColor: TECH.card,
     borderWidth: 1,
@@ -247,20 +272,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  cardTitle: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
-  infoLine: { fontSize: 12.5, color: TECH.textSecondary, lineHeight: 19 },
+  cardTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
+  infoLine: { fontSize: 14, color: TECH.textSecondary, lineHeight: 19 },
   infoValue: { color: TECH.text },
-  mapsBtn: {
+  mapsBtn: { minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: TECH.orange,
+    backgroundColor: TECH.action,
     borderRadius: 8,
     paddingVertical: 10,
     marginTop: 8,
   },
-  mapsBtnText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, color: '#FFFFFF', textTransform: 'uppercase' },
+  mapsBtnText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5, color: '#FFFFFF', textTransform: 'uppercase' },
   btnDisabled: { opacity: 0.4 },
   pressed: { opacity: 0.85 },
   faultBox: {
@@ -277,11 +302,11 @@ const styles = StyleSheet.create({
   acceptBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 26,
+    borderRadius: 12,
     minHeight: 50,
     marginTop: 6,
   },
-  acceptText: { fontSize: 12.5, fontWeight: '800', letterSpacing: 0.6, color: '#FFFFFF', textTransform: 'uppercase' },
+  acceptText: { fontSize: 14, fontWeight: '600', letterSpacing: 0.6, color: '#FFFFFF', textTransform: 'uppercase' },
   stateBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -293,12 +318,12 @@ const styles = StyleSheet.create({
   },
   stateText: { flex: 1, fontSize: 12, lineHeight: 18, color: TECH.text },
   historyLoading: { alignSelf: 'flex-start', marginVertical: 6 },
-  muted: { fontSize: 11.5, color: TECH.textMuted },
+  muted: { fontSize: 13, color: TECH.textMuted },
   timeline: { gap: 0 },
   timelineRow: { flexDirection: 'row', gap: 10 },
   timelineRail: { width: 10, alignItems: 'center' },
   timelineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: TECH.blue, marginTop: 5 },
   timelineLine: { flex: 1, width: 1, backgroundColor: TECH.borderStrong, marginVertical: 3 },
   timelineBody: { flex: 1, paddingBottom: 12 },
-  timelineTitle: { fontSize: 12.5, fontWeight: '700', color: TECH.text },
+  timelineTitle: { fontSize: 14, fontWeight: '700', color: TECH.text },
 });

@@ -5,7 +5,7 @@
  *
  * Uses the singleton client from src/lib/supabase.js - no new dependencies.
  * Every exported function throws on error so that callers (EnergyContext) can
- * catch and fall back to mock data gracefully.
+ * show an unavailable state while retaining any last received readings.
  * ---------------------------------------------------------------------------
  */
 

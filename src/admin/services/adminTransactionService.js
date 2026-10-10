@@ -20,8 +20,9 @@
  */
 
 import { supabase } from '../../lib/supabase';
+import { fetchPages } from './pagination';
 
-const TX_COLUMNS = 'id, sender_id, receiver_id, energy_amount, status, reference_code, created_at';
+const TX_COLUMNS = 'id, sender_id, receiver_id, energy_amount, status, reference_code, created_at, reversed_at, reversed_by, reversal_reason';
 
 // ─── Status Vocabulary Mapper ─────────────────────────────────────────────────
 const DB_TO_UI_STATUS = {
@@ -60,6 +61,10 @@ function buildTransaction(row, profilesById) {
     status: toUITxStatus(row.status),
     referenceCode: row.reference_code,
     timestamp: row.created_at,
+    reversedAt: row.reversed_at,
+    reversedBy: row.reversed_by,
+    reversedByName: profilesById[row.reversed_by]?.name ?? null,
+    reversalReason: row.reversal_reason,
   };
 }
 
@@ -68,16 +73,13 @@ function buildTransaction(row, profilesById) {
  * transaction rows, as a lookup map keyed by id.
  */
 async function resolveProfiles(profileIds) {
-  if (profileIds.length === 0) return {};
-
-  const { data: profiles, error } = await supabase
-    .from('profiles')
-    .select('id, name')
-    .in('id', profileIds);
-
-  if (error) throw error;
-
-  return Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+  const ids = [...new Set(profileIds.filter(Boolean))];
+  const profiles = [];
+  for (let offset = 0; offset < ids.length; offset += 100) {
+    profiles.push(...await fetchPages(() => supabase.from('profiles').select('id, name')
+      .in('id', ids.slice(offset, offset + 100)).order('id')));
+  }
+  return Object.fromEntries(profiles.map(p => [p.id, p]));
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -94,15 +96,13 @@ async function resolveProfiles(profileIds) {
  * @returns {Promise<object[]>} Array of normalised transaction objects
  */
 export async function fetchAllTransactions() {
-  const { data: transactions, error: txErr } = await supabase
+  const transactions = await fetchPages(() => supabase
     .from('transactions')
     .select(TX_COLUMNS)
-    .order('created_at', { ascending: false });
-
-  if (txErr) throw txErr;
+    .order('created_at', { ascending: false }).order('id', { ascending: false }));
   if (!transactions || transactions.length === 0) return [];
 
-  const profileIds = [...new Set(transactions.flatMap((t) => [t.sender_id, t.receiver_id]))];
+  const profileIds = [...new Set(transactions.flatMap((t) => [t.sender_id, t.receiver_id, t.reversed_by]))];
   const profilesById = await resolveProfiles(profileIds);
 
   return transactions.map((row) => buildTransaction(row, profilesById));
@@ -127,7 +127,7 @@ export async function fetchTransactionsForMember(memberId, limit = 5) {
   if (txErr) throw txErr;
   if (!transactions || transactions.length === 0) return [];
 
-  const profileIds = [...new Set(transactions.flatMap((t) => [t.sender_id, t.receiver_id]))];
+  const profileIds = [...new Set(transactions.flatMap((t) => [t.sender_id, t.receiver_id, t.reversed_by]))];
   const profilesById = await resolveProfiles(profileIds);
 
   return transactions.map((row) => buildTransaction(row, profilesById));
@@ -139,19 +139,17 @@ export async function fetchTransactionsForMember(memberId, limit = 5) {
  * COMPLETED/REVERSED, and there is no "un-reverse").
  *
  * @param {string} transactionId - transactions.id (uuid)
+ * @param {string} reason - 10–500 character explanation, enforced server-side
  * @returns {Promise<object>} The updated transaction, normalised for the UI
  * @throws {Error} On Supabase write failure
  */
-export async function reverseTransaction(transactionId) {
+export async function reverseTransaction(transactionId, reason) {
   const { data, error } = await supabase
-    .from('transactions')
-    .update({ status: toDBTxStatus('Reversed') })
-    .eq('id', transactionId)
-    .select(TX_COLUMNS)
+    .rpc('admin_reverse_transaction', { p_transaction_id: transactionId, p_reason: reason })
     .single();
 
   if (error) throw error;
 
-  const profilesById = await resolveProfiles([data.sender_id, data.receiver_id]);
+  const profilesById = await resolveProfiles([data.sender_id, data.receiver_id, data.reversed_by]);
   return buildTransaction(data, profilesById);
 }

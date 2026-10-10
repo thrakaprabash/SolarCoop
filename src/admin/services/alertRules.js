@@ -10,7 +10,8 @@
  *
  * How energy data is read (same convention the Member Monitoring cards use):
  * one row in `energy_records` is one reading; a member's NEWEST row is their
- * current reading and the rows before it are their own baseline. A reading is
+ * current reading. Daily comparisons use the final reading per Colombo day;
+ * simulated comparisons exclude the partially accumulated current day. A reading is
  * only judged "current" if it's recent (THRESHOLDS.staleHours) — otherwise an
  * old seed dataset would raise alerts claiming things about "now".
  *
@@ -68,6 +69,19 @@ export const THRESHOLDS = {
 const HOUR_MS = 3600 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
+export const colomboDay = (at) => new Date(at.getTime() + 5.5 * HOUR_MS).toISOString().slice(0, 10);
+
+// Simulator rows are cumulative daily totals. Retain the final reading of each
+// Colombo day, rather than adding snapshots or treating ticks as baseline days.
+export function dailyReadings(readings) {
+  const days = new Map();
+  for (const reading of readings) {
+    const day = colomboDay(reading.at);
+    if (!days.has(day) || reading.at > days.get(day).at) days.set(day, reading);
+  }
+  return [...days.values()].sort((a, b) => b.at - a.at);
+}
+
 const avg = (xs) => xs.reduce((sum, x) => sum + x, 0) / xs.length;
 
 const median = (xs) => {
@@ -111,7 +125,13 @@ export function memberEnergyChecks({ members, readingsByUser }, now, t = THRESHO
     const readings = readingsByUser.get(m.id);
     if (!readings || readings.length === 0) continue;
 
-    const [latest, ...history] = readings;
+    // Do not compare a partially accumulated simulator day with full days.
+    // Explicit inverter faults still arrive immediately through device_fault alerts.
+    const comparable = readings[0].isSimulated
+      ? dailyReadings(readings).filter(r => colomboDay(r.at) < colomboDay(now))
+      : dailyReadings(readings);
+    const [latest, ...history] = comparable;
+    if (!latest) continue;
     if (hoursBetween(now, latest.at) > t.staleHours) continue; // not a current reading
 
     const prior = history.slice(0, t.baselineReadings);
@@ -186,8 +206,9 @@ export function communityEnergyChecks({ members, readingsByUser }, now, t = THRE
   const byDate = new Map(); // 'YYYY-MM-DD' → { production, consumption, members }
   let newestReading = null;
   for (const m of active) {
-    for (const r of readingsByUser.get(m.id) ?? []) {
-      const day = r.at.toISOString().slice(0, 10);
+    for (const r of dailyReadings(readingsByUser.get(m.id) ?? [])) {
+      const day = colomboDay(r.at);
+      if (r.isSimulated && day >= colomboDay(now)) continue;
       const entry = byDate.get(day) ?? { production: 0, consumption: 0, members: new Set() };
       entry.production += r.production;
       entry.consumption += r.consumption;
@@ -301,10 +322,10 @@ export function pendingRequestChecks({ members, pendingRequests }, now, t = THRE
     .map((r) => candidate({
       type: 'request_pending',
       severity: 'Low',
-      userId: r.requesterId,
+      userId: r.providerId ?? r.requesterId,
       subject: r.id,
       once: true,
-      message: `${nameOf(r.requesterId)}'s request for ${round1(r.amount)} kWh has been pending for ${humanAge(hoursBetween(now, r.at))} with no match.`,
+      message: `${nameOf(r.requesterId)}'s request for ${round1(r.amount)} kWh has been awaiting the provider's decision for ${humanAge(hoursBetween(now, r.at))}.`,
     }));
 }
 
@@ -399,6 +420,26 @@ export function shouldRaise(cand, existing, now, t = THRESHOLDS) {
   if (cand.once) return false;
 
   return !previous.some(
-    (p) => p.status === 'active' || hoursBetween(now, p.at) < t.cooldownHours
+    (p) => p.status === 'active' || (!p.autoResolved && hoursBetween(now, p.resolvedAt ?? p.at) < t.cooldownHours)
   );
+}
+
+const RECOVERY_CHECKS = {
+  zero_production: 'member_energy', low_production: 'member_energy', consumption_spike: 'member_energy',
+  community_surplus_low: 'community_energy', community_deficit: 'community_energy',
+  stale_data: 'data_freshness', member_silent: 'data_freshness',
+  request_pending: 'pending_requests', signup_pending: 'pending_signups', complaint_aging: 'complaint_aging',
+};
+
+export function recoveredAlertIds(existing, candidates, failedChecks) {
+  const present = new Set(candidates.map(c => c.dedupeKey));
+  const failed = new Set(failedChecks.map(c => c.check));
+  const ids = [];
+  for (const [key, rows] of existing) {
+    const check = RECOVERY_CHECKS[key.split(':')[0]];
+    // One-off transaction alerts must be reviewed, not aged out by a scan.
+    if (!check || failed.has(check) || present.has(key)) continue;
+    for (const row of rows) if (row.status === 'active') ids.push(row.id);
+  }
+  return ids;
 }

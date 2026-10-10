@@ -27,7 +27,9 @@ export function FaultAlertCard({ alert }) {
       <Text style={styles.message}>
         {complete
           ? t('faultAlert.completeMessage')
-          : alert.message || t('faultAlert.defaultMessage')}
+          : alert.messageKey
+            ? t(alert.messageKey, { defaultValue: alert.message || t('faultAlert.defaultMessage') })
+            : alert.message || t('faultAlert.defaultMessage')}
       </Text>
 
       {/* SOL-200 — who is coming, once a technician has accepted the job */}

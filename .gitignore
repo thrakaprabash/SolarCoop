@@ -43,3 +43,19 @@ yarn-error.*
 community_energy_sharing_mobile_plan_project_to_done.md
 sprint_3_4_admin_plan.md
 alert_system_plan.md
+# Local simulator project configuration
+/simulator/config.js
+/simulator/.demo-key
+/simulator/.demo-setup.sql
+/database/supabase/.temp/
+/database/supabase/.branches/
+/database/backups/
+/supabase/.temp/
+/database/demo-credentials.local.json
+/docs/DEMO_ACCOUNTS.local.md
+
+# Generated repository analysis and local validation exports
+/graphify-out/
+/.admin-web-check/
+/.simulator-web-check/
+/.technician-web-check/

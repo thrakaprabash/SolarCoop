@@ -1,16 +1,19 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Stethoscope, User, Wrench } from 'lucide-react-native';
-import { TECH } from '../theme';
+import { Activity, Stethoscope, User, Wrench } from 'lucide-react-native';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 
 const TABS = [
   { key: 'dashboard',   labelKey: 'technician.nav.dashboard',   icon: Wrench },
   { key: 'diagnostics', labelKey: 'technician.nav.diagnostics', icon: Stethoscope },
+  { key: 'health',      labelKey: 'technician.nav.health',      icon: Activity },
   { key: 'profile',     labelKey: 'technician.nav.profile',     icon: User },
 ];
 
 export default function TechBottomTabBar({ activeKey, onSelect, badges = {} }) {
+  const { TECH } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const { t } = useTranslation();
 
   return (
@@ -21,9 +24,10 @@ export default function TechBottomTabBar({ activeKey, onSelect, badges = {} }) {
         const Icon = tab.icon;
         const badge = badges[tab.key];
         return (
-          <Pressable key={tab.key} style={styles.tab} onPress={() => onSelect(tab.key)}>
-            <View>
-              <Icon size={20} color={color} strokeWidth={2} />
+          <Pressable key={tab.key} style={({pressed})=>[styles.tab,pressed&&styles.pressed]} onPress={() => onSelect(tab.key)} accessibilityRole="tab" accessibilityState={{selected:active}}>
+            {active ? <View style={styles.activeIndicator} pointerEvents="none"/> : null}
+            <View style={styles.icon}>
+              <Icon size={20} color={color} strokeWidth={active ? 2.3 : 1.8} />
               {badge > 0 ? (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
@@ -40,18 +44,21 @@ export default function TechBottomTabBar({ activeKey, onSelect, badges = {} }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = TECH => StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingTop: 10,
-    paddingBottom: 22,
+    paddingTop: 4,
+    paddingBottom: 4,
     borderTopWidth: 1,
     borderTopColor: TECH.border,
-    backgroundColor: '#1A1511',
+    backgroundColor: TECH.card,
   },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  tab: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
+  activeIndicator: { position: 'absolute', top: 0, width: 18, height: 2, borderRadius: 1, backgroundColor: TECH.orange },
+  pressed: { opacity: 0.65 },
   badge: {
     position: 'absolute',
     top: -5,
@@ -65,5 +72,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800' },
-  label: { fontSize: 10 },
+  label: { fontSize: 11 },
 });

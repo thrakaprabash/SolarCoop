@@ -7,7 +7,7 @@ import { Sun, Zap, Users } from 'lucide-react-native';
 
 export const Header = () => {
   const { t } = useTranslation();
-  const { metrics, simulationPreset, setSimulationPreset, viewScope, setViewScope } = useEnergy();
+  const { metrics, hasMetrics, viewScope, setViewScope } = useEnergy();
 
   return (
     <View style={styles.headerContainer}>
@@ -24,10 +24,10 @@ export const Header = () => {
         </View>
 
         {/* Live Status */}
-        <View style={[styles.liveStatusPill, { backgroundColor: metrics.instantProduction > metrics.instantConsumption ? 'rgba(20, 184, 166, 0.2)' : 'rgba(239, 68, 68, 0.2)' }]}>
+        <View style={[styles.liveStatusPill, { backgroundColor: !hasMetrics ? 'rgba(148,163,184,0.15)' : metrics.instantProduction > metrics.instantConsumption ? 'rgba(20, 184, 166, 0.2)' : 'rgba(239, 68, 68, 0.2)' }]}>
           <View style={[styles.liveDot, { backgroundColor: metrics.instantProduction > metrics.instantConsumption ? '#14B8A6' : '#EF4444' }]} />
-          <Text style={[styles.liveStatusText, { color: metrics.instantProduction > metrics.instantConsumption ? '#2DD4BF' : '#EF4444' }]}>
-            {metrics.instantProduction > metrics.instantConsumption ? t('member.header.surplus') : t('member.header.deficit')}
+          <Text style={[styles.liveStatusText, { color: !hasMetrics ? COLORS.textMuted : metrics.instantProduction > metrics.instantConsumption ? '#2DD4BF' : '#EF4444' }]}>
+            {!hasMetrics ? t('member.dashboard.waitingTitle') : metrics.instantProduction > metrics.instantConsumption ? t('member.header.surplus') : t('member.header.deficit')}
           </Text>
         </View>
       </View>
@@ -49,22 +49,7 @@ export const Header = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.simRow}>
-          {[
-            { id: 'sunny', label: '☀️' },
-            { id: 'cloudy', label: '⛅' },
-            { id: 'evening', label: '🌙' },
-            { id: 'deficit', label: '⚠️' },
-          ].map(item => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.simDot, simulationPreset === item.id && styles.simDotActive]}
-              onPress={() => setSimulationPreset(item.id)}
-            >
-              <Text style={styles.simEmoji}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+
       </View>
     </View>
   );

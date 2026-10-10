@@ -8,19 +8,24 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React, { useEffect } from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import { TechnicianProvider, useTechnician } from './context/TechnicianContext';
-import { TECH } from './theme';
+import { TechnicianThemeProvider, useTechnicianTheme } from './TechnicianTheme';
 import TechHeader from './components/TechHeader';
+import TechnicianAlertCenter from './components/TechnicianAlertCenter';
 import TechBottomTabBar from './components/TechBottomTabBar';
 import TechnicianDashboardScreen from './screens/TechnicianDashboardScreen';
 import JobTicketDetailScreen from './screens/JobTicketDetailScreen';
 import DiagnosticsScreen from './screens/DiagnosticsScreen';
+import SystemHealthScreen from './screens/SystemHealthScreen';
 import JobClosureScreen from './screens/JobClosureScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 function TechnicianShell() {
+  const { TECH, mode } = useTechnicianTheme();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const {
     techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob, closureOpen, urgentAlertCount,
   } = useTechnician();
@@ -36,21 +41,10 @@ function TechnicianShell() {
     setTechBottomTab(key);
   };
 
-  // A job ticket takes over the whole screen, as in the Figma dossier frame.
-  if (selectedJob) {
-    return (
-      <View style={styles.root}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-        <View style={styles.safeArea}>
-          {closureOpen && selectedJob.status === 'active' ? <JobClosureScreen /> : <JobTicketDetailScreen />}
-        </View>
-      </View>
-    );
-  }
-
   const renderScreen = () => {
     switch (techBottomTab) {
       case 'diagnostics': return <DiagnosticsScreen />;
+      case 'health': return <SystemHealthScreen />;
       case 'profile':   return <ProfileScreen />;
       case 'dashboard':
       default:          return <TechnicianDashboardScreen />;
@@ -58,34 +52,36 @@ function TechnicianShell() {
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <View style={styles.safeArea}>
-        {techBottomTab !== 'profile' && <TechHeader />}
-        <View style={styles.screen}>{renderScreen()}</View>
-        <TechBottomTabBar
+    <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={[styles.root, { backgroundColor: TECH.bg }]}>
+      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} />
+      <View style={styles.workspace}>
+        <TechHeader onSettings={() => setSettingsOpen(true)} />
+        <TechnicianAlertCenter settingsOpen={settingsOpen} onCloseSettings={() => setSettingsOpen(false)} />
+        <View style={styles.screen}>{selectedJob
+          ? closureOpen && selectedJob.status === 'active' ? <JobClosureScreen /> : <JobTicketDetailScreen />
+          : renderScreen()}</View>
+        {!selectedJob && <TechBottomTabBar
           activeKey={techBottomTab}
           onSelect={handleTabSelect}
           badges={{ diagnostics: urgentAlertCount }}
-        />
+        />}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 export default function TechnicianPortal({ onExit }) {
   return (
     <TechnicianProvider onExit={onExit}>
-      <TechnicianShell />
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <TechnicianThemeProvider><TechnicianShell /></TechnicianThemeProvider>
+      </SafeAreaProvider>
     </TechnicianProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: TECH.bg },
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
-  },
+  root: { flex: 1 },
+  workspace: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center' },
   screen: { flex: 1 },
 });

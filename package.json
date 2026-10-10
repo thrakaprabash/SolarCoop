@@ -9,7 +9,11 @@
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "expo": "~57.0.12",
+    "expo-audio": "~57.0.5",
     "expo-blur": "~57.0.2",
+    "expo-crypto": "~57.0.3",
+    "expo-file-system": "~57.0.7",
+    "expo-image-picker": "~57.0.20",
     "expo-linear-gradient": "~57.0.1",
     "expo-localization": "~57.0.2",
     "expo-status-bar": "~57.0.1",
@@ -26,10 +30,28 @@
     "react-native-web": "^0.21.2"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "node scripts/start-dev.cjs",
+    "start:app": "expo start",
+    "android": "node scripts/start-dev.cjs --android",
+    "ios": "node scripts/start-dev.cjs --ios",
+    "web": "node scripts/start-dev.cjs --web",
+    "test": "node --test tests/*.test.cjs",
+    "sim": "node simulator/server.cjs",
+    "test:sim": "node --test simulator/tests/*.test.mjs tests/simulator-database.test.cjs",
+    "db:login": "node scripts/database.cjs login",
+    "db:doctor": "node scripts/database.cjs doctor",
+    "db:repair-simulator": "node scripts/database.cjs repair-simulator",
+    "db:link": "node scripts/database.cjs link",
+    "db:baseline": "node scripts/database.cjs baseline",
+    "db:status": "node scripts/database.cjs status",
+    "db:plan": "node scripts/database.cjs plan",
+    "db:push": "node scripts/database.cjs push",
+    "db:new": "supabase --workdir database migration new",
+    "db:seed-demo": "node scripts/seed-demo-households.cjs"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "supabase": "2.120.0"
+  }
 }

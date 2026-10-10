@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  TextInput,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
@@ -51,6 +52,7 @@ const TX_ICONS = {
 function TxRow({ tx, onReverse, t }) {
   const [expanded, setExpanded] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
+  const [reason, setReason] = useState('');
   const color  = TX_COLORS[tx.status];
   const bg     = TX_BG[tx.status];
   const StatusIcon = TX_ICONS[tx.status];
@@ -58,7 +60,7 @@ function TxRow({ tx, onReverse, t }) {
   const performReverse = async () => {
     setIsReversing(true);
     try {
-      await onReverse(tx.id);
+      await onReverse(tx.id, reason.trim());
     } catch (err) {
       const errMsg = err?.message || t('admin.transactions.reverseFailedDefault');
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -73,6 +75,7 @@ function TxRow({ tx, onReverse, t }) {
 
   const handleReverse = () => {
     if (isReversing) return;
+    if (reason.trim().length < 10 || reason.trim().length > 500) return;
     const confirmText = t('admin.transactions.reverseConfirm', { amount: tx.amount, sender: tx.sender, receiver: tx.receiver });
 
     if (Platform.OS === 'web') {
@@ -151,11 +154,35 @@ function TxRow({ tx, onReverse, t }) {
             <Text style={[styles.expandValue, { color }]}>{t(STATUS_LABEL_KEY[tx.status] ?? tx.status)}</Text>
           </View>
 
+          {tx.status === 'Reversed' && (
+            <View>
+              <Text style={styles.expandLabel}>{t('admin.transactions.reversalReason')}</Text>
+              <Text style={styles.expandValue}>{tx.reversalReason || t('admin.transactions.historicalReversal')}</Text>
+              {tx.reversedAt && <Text style={styles.txTime}>
+                {t('admin.transactions.reversalAudit', {
+                  date: new Date(tx.reversedAt).toLocaleString('en-GB', { timeZone: 'Asia/Colombo' }),
+                  admin: tx.reversedByName || tx.reversedBy,
+                })}
+              </Text>}
+            </View>
+          )}
+
+          {tx.status === 'Completed' && (
+            <View>
+              <Text style={styles.expandLabel}>{t('admin.transactions.reversalReasonHint')}</Text>
+              <TextInput accessibilityLabel={t('admin.transactions.reversalReason')} value={reason} onChangeText={setReason}
+                placeholder={t('admin.transactions.reversalReasonPlaceholder')}
+                placeholderTextColor={COLORS.textMuted} multiline maxLength={500} editable={!isReversing}
+                style={{ color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.textMuted,
+                  borderRadius: 8, padding: 12, marginTop: 8, minHeight: 72, textAlignVertical: 'top' }} />
+            </View>
+          )}
+
           {tx.status === 'Completed' && (
             <TouchableOpacity
-              style={[styles.reverseBtn, isReversing && styles.reverseBtnDisabled]}
+              style={[styles.reverseBtn, (isReversing || reason.trim().length < 10) && styles.reverseBtnDisabled]}
               onPress={handleReverse}
-              disabled={isReversing}
+              disabled={isReversing || reason.trim().length < 10}
               activeOpacity={0.8}
             >
               {isReversing

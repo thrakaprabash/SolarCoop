@@ -3,7 +3,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Supabase query layer for technician job tickets (Epic 9 / SOL-191).
  *
- * Schema: supabase/migrations/0006_technician_jobs.sql
+ * Schema: migrations 0006 and 0008–0010 (jobs, photos, draft saves and closure).
  *   jobs: id, ticket_code, household_user_id, client_name, client_phone,
  *         site_address, site_area, distance_km, title, device, error_code,
  *         error_message, fault_location, urgency (urgent|medium|low),
@@ -25,7 +25,7 @@ export const JOB_COLUMNS =
   'id, ticket_code, household_user_id, client_name, client_phone, site_address, site_area, ' +
   'distance_km, title, device, error_code, error_message, fault_location, urgency, ' +
   'diagnostic_checklist, consumer_message, status, technician_id, technician_name, ' +
-  'resolution_notes, source, created_at, accepted_at, completed_at, updated_at';
+  'resolution_notes, repair_photos, closure_record, source, created_at, accepted_at, completed_at, updated_at';
 
 // ─── Job Shape Builder ────────────────────────────────────────────────────────
 
@@ -57,6 +57,8 @@ export function buildJob(row) {
     technicianId:    row.technician_id,
     technicianName:  row.technician_name,
     resolutionNotes: row.resolution_notes,
+    repairPhotos:    Array.isArray(row.repair_photos) ? row.repair_photos : [],
+    closureRecord:   row.closure_record ?? null,
     source:          row.source,
     createdAt:       row.created_at,
     acceptedAt:      row.accepted_at,
@@ -126,63 +128,26 @@ export async function acceptJob(jobId, { id: technicianId, name: technicianName 
   return buildJob(data);
 }
 
-/**
- * Save the diagnostic checklist (SOL-198). The whole array is written, which
- * is fine: only the assigned technician can update the job (RLS), so there's
- * no one else editing it concurrently.
- *
- * @param {string} jobId
- * @param {{label: string, done: boolean}[]} checklist
- * @returns {Promise<object>} the updated job
- */
-export async function updateChecklist(jobId, checklist) {
-  const { data, error } = await supabase
-    .from('jobs')
-    .update({ diagnostic_checklist: checklist.map(({ label, done }) => ({ label, done })) })
-    .eq('id', jobId)
-    .select(JOB_COLUMNS)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new Error('Only the technician assigned to this job can update its checklist.');
-    }
-    throw error;
-  }
+/** Toggle one saved step under a server row lock (SOL-203). */
+export async function toggleChecklistItem(jobId, index) {
+  const { data, error } = await supabase.rpc('toggle_job_checklist_item', { p_job_id: jobId, p_index: index }).single();
+  if (error) throw error;
   return buildJob(data);
 }
 
-/**
- * Close a job: Active → Completed (SOL-201). Only the assigned technician's
- * active job matches; the household's alert card reads the same row, so it
- * flips to "maintenance complete" as soon as this lands.
- *
- * @param {string} jobId
- * @param {object} closure
- * @param {string} closure.resolutionNotes
- * @param {{label: string, done: boolean}[]} closure.checklist
- * @returns {Promise<object>} the updated job
- */
-export async function completeJob(jobId, { resolutionNotes, checklist }) {
-  const { data, error } = await supabase
-    .from('jobs')
-    .update({
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      resolution_notes: resolutionNotes.trim(),
-      diagnostic_checklist: checklist.map(({ label, done }) => ({ label, done })),
-    })
-    .eq('id', jobId)
-    .eq('status', 'active')
-    .select(JOB_COLUMNS)
-    .single();
+/** Save a draft independently of closing the ticket. */
+export async function saveResolutionNotes(jobId, notes) {
+  const { data, error } = await supabase.rpc('save_job_resolution_notes', { p_job_id: jobId, p_notes: notes }).single();
+  if (error) throw error;
+  return buildJob(data);
+}
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new Error('This job is no longer active, or it is assigned to another technician.');
-    }
-    throw error;
-  }
+/** Close using the server's current repair details, under one row lock (SOL-204). */
+export async function completeJob(jobId, { resolutionNotes }) {
+  const { data, error } = await supabase.rpc('complete_job_ticket', {
+    p_job_id: jobId, p_notes: resolutionNotes,
+  }).single();
+  if (error) throw error;
   return buildJob(data);
 }
 

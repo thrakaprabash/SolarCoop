@@ -1,26 +1,39 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { fetchChartData } from '../../services/energyService';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
-import Svg, { Rect, Path, Line, Text as SvgText, Circle } from 'react-native-svg';
-import { Sun, ShieldAlert, Cpu, Gauge, Compass, Thermometer, Sparkles } from 'lucide-react-native';
-
-const STATUS_LABEL_KEY = {
-  optimal: 'member.production.status.optimal',
-  partialShade: 'member.production.status.partialShade',
-};
+import Svg, { Rect, Line, Text as SvgText } from 'react-native-svg';
+import { Sun, Cpu, Compass, Thermometer } from 'lucide-react-native';
 
 // SOL-97: Production View Component
 export const ProductionView = () => {
   const { t } = useTranslation();
-  const { metrics } = useEnergy();
-
-  const arraysData = [
-    { name: t('member.production.array.roofNorth'), capacity: '4.8 kW', current: `${(metrics.instantProduction * 0.52).toFixed(1)} kW`, eff: '98%', status: 'optimal' },
-    { name: t('member.production.array.roofSouth'), capacity: '4.0 kW', current: `${(metrics.instantProduction * 0.41).toFixed(1)} kW`, eff: '96%', status: 'optimal' },
-    { name: t('member.production.array.carport'), capacity: '1.2 kW', current: `${(metrics.instantProduction * 0.07).toFixed(1)} kW`, eff: '85%', status: 'partialShade' },
-  ];
+  const { metrics, hasMetrics } = useEnergy();
+  const { user } = useAuth();
+  const [curve, setCurve] = useState(null);
+  useEffect(() => {
+    let active = true, request = 0;
+    setCurve(null);
+    if (!user?.id) return;
+    const reload = async () => {
+      const ticket = ++request;
+      try {
+        const row = await fetchChartData(user.id, 'day');
+        if (active && ticket === request) setCurve(row ? { userId: user.id, row } : null);
+      } catch { if (active && ticket === request) setCurve(null); }
+    };
+    reload();
+    const timer = setInterval(reload, 30_000);
+    return () => { active = false; clearInterval(timer); };
+  }, [user?.id]);
+  const readings = curve?.userId === user?.id ? curve.row : null;
+  const values = (readings?.production || []).map(Number);
+  const peak = values.length ? Math.max(...values) : null;
+  const bars = values.map((value, i) => ({ time: readings.hours?.[i] || '', h: peak > 0 ? value / peak * 90 : 0 }));
+  if (!hasMetrics) return <View style={styles.sectionCard}><Text style={styles.sectionTitle}>{t('member.dashboard.waitingTitle')}</Text><Text style={styles.arraySub}>{t('member.dashboard.waitingBody')}</Text></View>;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -52,25 +65,17 @@ export const ProductionView = () => {
             <Line x1="0" y1="70" x2="300" y2="70" stroke={COLORS.textMuted} strokeDasharray="3 3" />
 
             {/* Hourly Bars */}
-            {[
-              { time: '06:00', h: 10 },
-              { time: '08:00', h: 35 },
-              { time: '10:00', h: 75 },
-              { time: '12:00', h: 98 },
-              { time: '14:00', h: 90 },
-              { time: '16:00', h: 55 },
-              { time: '18:00', h: 15 },
-            ].map((bar, i) => (
+            {bars.map((bar, i) => (
               <React.Fragment key={i}>
                 <Rect
-                  x={15 + i * 40}
+                  x={5 + i * (290 / bars.length)}
                   y={100 - bar.h}
-                  width="20"
+                  width={Math.max(2, 290 / bars.length - 4)}
                   height={bar.h}
                   rx="4"
                   fill={i === 3 ? COLORS.amber : COLORS.amberGlow}
                 />
-                <SvgText x={25 + i * 40} y="115" fill={COLORS.textSecondary} fontSize="9" textAnchor="middle">{bar.time}</SvgText>
+                <SvgText x={5 + (i + 0.5) * (290 / bars.length)} y="115" fill={COLORS.textSecondary} fontSize="9" textAnchor="middle">{bar.time}</SvgText>
               </React.Fragment>
             ))}
           </Svg>
@@ -84,12 +89,12 @@ export const ProductionView = () => {
           <View style={styles.gaugeDivider} />
           <View style={styles.gaugeStat}>
             <Text style={styles.gaugeStatSub}>{t('member.production.peakToday')}</Text>
-            <Text style={[styles.gaugeStatVal, { color: COLORS.amberLight }]}>8.8 kW</Text>
+            <Text style={[styles.gaugeStatVal, { color: COLORS.amberLight }]}>{peak === null ? '—' : peak.toFixed(2) + ' kW'}</Text>
           </View>
           <View style={styles.gaugeDivider} />
           <View style={styles.gaugeStat}>
             <Text style={styles.gaugeStatSub}>{t('member.production.capacityUsed')}</Text>
-            <Text style={[styles.gaugeStatVal, { color: COLORS.teal }]}>84%</Text>
+            <Text style={[styles.gaugeStatVal, { color: COLORS.teal }]}>—</Text>
           </View>
         </View>
       </View>
@@ -98,44 +103,23 @@ export const ProductionView = () => {
       <View style={styles.telemetryRow}>
         <View style={styles.telemetryCard}>
           <Compass size={18} color={COLORS.tealLight} />
-          <Text style={styles.telemetryVal}>980 W/m²</Text>
+          <Text style={styles.telemetryVal}>—</Text>
           <Text style={styles.telemetryLabel}>{t('member.production.solarIrradiance')}</Text>
         </View>
 
         <View style={styles.telemetryCard}>
           <Thermometer size={18} color={COLORS.amber} />
-          <Text style={styles.telemetryVal}>34 °C</Text>
+          <Text style={styles.telemetryVal}>—</Text>
           <Text style={styles.telemetryLabel}>{t('member.production.panelTemp')}</Text>
         </View>
 
         <View style={styles.telemetryCard}>
           <Cpu size={18} color={COLORS.teal} />
-          <Text style={styles.telemetryVal}>97.8%</Text>
+          <Text style={styles.telemetryVal}>—</Text>
           <Text style={styles.telemetryLabel}>{t('member.production.inverterEfficiency')}</Text>
         </View>
       </View>
 
-      {/* Solar Panel Group Breakdown List */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>{t('member.production.arrayBreakdown')}</Text>
-
-        <View style={styles.arraysList}>
-          {arraysData.map((arr, index) => (
-            <View key={index} style={styles.arrayRow}>
-              <View style={styles.arrayInfo}>
-                <Text style={styles.arrayName}>{arr.name}</Text>
-                <Text style={styles.arraySub}>{t('member.production.array.ratedCapEfficiency', { capacity: arr.capacity, eff: arr.eff })}</Text>
-              </View>
-              <View style={styles.arrayOutputCol}>
-                <Text style={styles.arrayOutput}>{arr.current}</Text>
-                <View style={[styles.statusTag, { backgroundColor: arr.status === 'optimal' ? COLORS.tealGlow : COLORS.amberGlow }]}>
-                  <Text style={[styles.statusTagText, { color: arr.status === 'optimal' ? COLORS.tealLight : COLORS.amberLight }]}>{t(STATUS_LABEL_KEY[arr.status])}</Text>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
     </ScrollView>
   );
 };

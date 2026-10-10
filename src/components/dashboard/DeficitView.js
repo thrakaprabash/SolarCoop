@@ -1,26 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
-import { AlertTriangle, ArrowDownLeft, ShieldAlert, DollarSign, Zap, CheckCircle2, TrendingDown } from 'lucide-react-native';
+import { AlertTriangle, ArrowDownLeft, ShieldAlert } from 'lucide-react-native';
 
 // SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
   const { t } = useTranslation();
-  const { metrics, executeBorrowEnergy } = useEnergy();
+  const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
   
-  const [borrowAmount, setBorrowAmount] = useState('2.0');
-  const [borrowSuccess, setBorrowSuccess] = useState(false);
-
-  const handleBorrow = () => {
-    const val = parseFloat(borrowAmount);
-    if (!isNaN(val) && val > 0) {
-      executeBorrowEnergy(val);
-      setBorrowSuccess(true);
-      setTimeout(() => setBorrowSuccess(false), 3000);
-    }
-  };
+  if (!hasMetrics) return <View style={styles.sectionCard}><Text style={styles.sectionTitle}>{t('member.dashboard.waitingTitle')}</Text><Text style={styles.formSub}>{t('member.dashboard.waitingBody')}</Text></View>;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -38,7 +28,7 @@ export const DeficitView = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.alertLabel}>{t('member.deficit.currentDeficit')}</Text>
             <Text style={styles.alertVal}>
-              0.0 <Text style={styles.unit}>{t('member.deficit.zeroDeficit')}</Text>
+              {Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)} <Text style={styles.unit}>kW</Text>
             </Text>
           </View>
         </View>
@@ -46,31 +36,8 @@ export const DeficitView = () => {
         <View style={styles.alertBanner}>
           <ShieldAlert size={18} color={COLORS.teal} />
           <Text style={styles.alertBannerText}>
-            {t('member.deficit.coveredBanner')}
+            {t('member.dashboard.gridEstimate')}
           </Text>
-        </View>
-      </View>
-
-      {/* Rate Comparison Card: Co-op Peer Rate vs Main Utility Grid */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>{t('member.deficit.rateComparison')}</Text>
-
-        <View style={styles.compareRow}>
-          {/* Co-op Rate */}
-          <View style={[styles.compareCard, { backgroundColor: 'rgba(45, 212, 191, 0.08)', borderColor: 'rgba(45, 212, 191, 0.25)' }]}>
-            <Text style={[styles.compareTag, { color: COLORS.teal }]}>{t('member.deficit.recommended')}</Text>
-            <Text style={[styles.compareTitle, { color: COLORS.tealLight }]}>{t('member.deficit.coopRate')}</Text>
-            <Text style={styles.comparePrice}>$0.20 <Text style={styles.priceUnit}>/ kWh</Text></Text>
-            <Text style={styles.compareSub}>{t('member.deficit.coopRateSub')}</Text>
-          </View>
-
-          {/* Utility Grid Rate */}
-          <View style={[styles.compareCard, { backgroundColor: 'rgba(239, 68, 68, 0.08)', borderColor: 'rgba(239, 68, 68, 0.25)' }]}>
-            <Text style={[styles.compareTag, { color: COLORS.red }]}>{t('member.deficit.highPeak')}</Text>
-            <Text style={[styles.compareTitle, { color: COLORS.red }]}>{t('member.deficit.utilityRate')}</Text>
-            <Text style={styles.comparePrice}>$0.45 <Text style={styles.priceUnit}>/ kWh</Text></Text>
-            <Text style={styles.compareSub}>{t('member.deficit.utilityRateSub')}</Text>
-          </View>
         </View>
       </View>
 
@@ -81,35 +48,13 @@ export const DeficitView = () => {
           <Text style={styles.sectionTitle}>{t('member.deficit.requestDraw')}</Text>
         </View>
 
-        <Text style={styles.formSub}>
-          {t('member.deficit.borrowSub')}
-        </Text>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>{t('member.deficit.amountLabel')}</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={borrowAmount}
-            onChangeText={setBorrowAmount}
-            placeholderTextColor={COLORS.textMuted}
-          />
-        </View>
-
-        {borrowSuccess && (
-          <View style={styles.successBanner}>
-            <CheckCircle2 size={18} color={COLORS.teal} />
-            <Text style={styles.successText}>{t('member.deficit.successMessage', { amount: borrowAmount })}</Text>
-          </View>
-        )}
-
         <TouchableOpacity
           style={styles.borrowSubmitBtn}
-          onPress={handleBorrow}
+          onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
         >
           <ArrowDownLeft size={18} color="#FFFFFF" />
-          <Text style={styles.borrowSubmitText}>{t('member.deficit.executeBorrow')}</Text>
+          <Text style={styles.borrowSubmitText}>{t('member.nav.trade')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
