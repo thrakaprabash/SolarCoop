@@ -157,6 +157,11 @@
       "reverseFailedTitle": "ආපසු හැරවීම අසාර්ථකයි",
       "reverseFailedInline": "ආපසු හැරවීම අසාර්ථකයි: {{message}}",
       "reverseFailedDefault": "ගනුදෙනුව ආපසු හැරවීම අසාර්ථක විය.",
+      "reversalReason": "ආපසු හැරවීමට හේතුව",
+      "reversalReasonHint": "ආපසු හැරවීමට හේතුව (අක්ෂර 10–500)",
+      "reversalReasonPlaceholder": "මෙම ගනුදෙනුව ආපසු හැරවිය යුත්තේ ඇයිදැයි පැහැදිලි කරන්න",
+      "historicalReversal": "පැරණි ආපසු හැරවීමක් — හේතුව සටහන් කර නැත",
+      "reversalAudit": "{{date}} දින ආපසු හරවන ලදී · පරිපාලක {{admin}}",
       "expand": {
         "reference": "යොමුව",
         "dateTime": "දිනය සහ වේලාව",

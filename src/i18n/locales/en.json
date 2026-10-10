@@ -157,6 +157,11 @@
       "reverseFailedTitle": "Reverse failed",
       "reverseFailedInline": "Reverse failed: {{message}}",
       "reverseFailedDefault": "Failed to reverse transaction.",
+      "reversalReason": "Reversal reason",
+      "reversalReasonHint": "Reversal reason (10–500 characters)",
+      "reversalReasonPlaceholder": "Explain why this trade needs to be reversed",
+      "historicalReversal": "Historical reversal — reason not recorded",
+      "reversalAudit": "Reversed {{date}} · Admin {{admin}}",
       "expand": {
         "reference": "Reference",
         "dateTime": "Date & Time",

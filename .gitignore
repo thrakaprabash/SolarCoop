@@ -53,3 +53,9 @@ alert_system_plan.md
 /supabase/.temp/
 /database/demo-credentials.local.json
 /docs/DEMO_ACCOUNTS.local.md
+
+# Generated repository analysis and local validation exports
+/graphify-out/
+/.admin-web-check/
+/.simulator-web-check/
+/.technician-web-check/

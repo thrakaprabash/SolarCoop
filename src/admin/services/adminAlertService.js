@@ -11,18 +11,20 @@
  *           source   (text: admin | system — added in 0003_alert_source.sql),
  *           created_at (timestamptz)
  *
- * Admin RLS (`admin_write_alerts`) allows full read/insert/update/delete; a
- * member can only read their own or community-wide rows.
+ * Admin RLS allows read/insert/update and deletion of manual alerts; a member
+ * can only read their own or community-wide rows outside admin-only types.
  *
  * Editing rule: only alerts with source = 'admin' can have their message or
  * severity changed (see updateAlert). System-raised alerts are a record of
- * what the detector saw; admins can still resolve, reopen or delete them.
+ * what the detector saw; admins can resolve or reopen them. Only manually
+ * created alerts can be deleted, enforced by the database and this service.
  *
  * All functions are pure async utilities — no React state, no UI imports.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
 import { supabase } from '../../lib/supabase';
+import { fetchPages } from './pagination';
 
 const ALERT_COLUMNS = 'id, alert_type, user_id, message, severity, status, source, created_at';
 
@@ -121,17 +123,17 @@ async function resolveProfiles(userIds) {
   const ids = [...new Set(userIds.filter(Boolean))];
   if (ids.length === 0) return {};
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, name, household_id')
-    .in('id', ids);
-
-  if (error) {
+  try {
+    const profiles = [];
+    for (let offset = 0; offset < ids.length; offset += 100) {
+      profiles.push(...await fetchPages(() => supabase.from('profiles').select('id, name, household_id')
+        .in('id', ids.slice(offset, offset + 100)).order('id')));
+    }
+    return Object.fromEntries(profiles.map(p => [p.id, p]));
+  } catch (error) {
     console.warn('[adminAlertService] Profile lookup failed:', error.message);
     return {};
   }
-
-  return Object.fromEntries((data ?? []).map((p) => [p.id, p]));
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -142,12 +144,10 @@ async function resolveProfiles(userIds) {
  * @returns {Promise<object[]>} Array of normalised alert objects
  */
 export async function fetchAllAlerts() {
-  const { data, error } = await supabase
+  const data = await fetchPages(() => supabase
     .from('alerts')
     .select(ALERT_COLUMNS)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+    .order('created_at', { ascending: false }).order('id', { ascending: false }));
 
   const rows = data ?? [];
   const profilesById = await resolveProfiles(rows.map((r) => r.user_id));
@@ -192,7 +192,7 @@ export async function createAlert({ type, message, severity, userId = null }) {
 async function setAlertStatus(alertId, dbStatus) {
   const { data, error } = await supabase
     .from('alerts')
-    .update({ status: dbStatus })
+    .update({ status: dbStatus, auto_resolved: false })
     .eq('id', alertId)
     .select('id, status')
     .single();
@@ -275,6 +275,7 @@ export async function deleteAlert(alertId) {
     .from('alerts')
     .delete()
     .eq('id', alertId)
+    .eq('source', 'admin')
     .select('id');
 
   if (error) throw error;
