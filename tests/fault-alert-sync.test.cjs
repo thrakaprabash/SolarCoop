@@ -3,15 +3,23 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 
 function alertService(rows) {
-  const filters=[],listeners=[];
+  const filters=[],listeners=[],channelNames=[],channels=new Map();
   const query={select(columns){assert(columns.includes('resolution_source:closure_record->>source'));return query;},
     eq(...args){filters.push(args);return query;},or(){return query;},order:async()=>({data:rows,error:null})};
-  const channel={on(event,filter,callback){listeners.push({filter,callback});return channel;},subscribe(){return channel;}};
-  let removed=false;
-  const supabase={from:()=>query,channel:()=>channel,removeChannel(){removed=true;}};
+  let removed=0;
+  const supabase={from:()=>query,channel(name){
+    channelNames.push(name);
+    if(channels.has(name)) return channels.get(name);
+    let subscribed=false;
+    const channel={on(event,filter,callback){
+      if(subscribed) throw Error(`cannot add callbacks for ${name} after subscribe()`);
+      listeners.push({filter,callback});return channel;
+    },subscribe(){subscribed=true;return channel;}};
+    channels.set(name,channel);return channel;
+  },removeChannel(){removed++;}};
   const source=fs.readFileSync('src/services/faultAlertService.js','utf8').replace(/^import[^;]+;\r?\n/gm,'').replaceAll('export ','');
   const service=new Function('supabase',source+';return {fetchMyFaultAlerts,subscribeToMyFaultAlerts};')(supabase);
-  return {...service,filters,listeners,removed:()=>removed};
+  return {...service,filters,listeners,channelNames,removed:()=>removed};
 }
 test('manual simulator clears remove cards while pending faults and genuine repair confirmations remain',async()=>{
   const service=alertService([
@@ -28,7 +36,17 @@ test('job changes refresh only the household subscription and clean up',()=>{
   const stop=service.subscribeToMyFaultAlerts('owner',()=>changes++);
   assert.deepEqual(service.listeners.map(x=>x.filter.table),['jobs']);
   for(const event of service.listeners){assert.equal(event.filter.filter,'household_user_id=eq.owner');event.callback();}
-  assert.equal(changes,1);stop();assert(service.removed());
+  assert.equal(changes,1);stop();assert.equal(service.removed(),1);
+});
+test('dashboard and Alerts screen can subscribe to the same household concurrently',()=>{
+  const service=alertService([]);
+  const stopDashboard=service.subscribeToMyFaultAlerts('owner',()=>{});
+  const stopAlerts=service.subscribeToMyFaultAlerts('owner',()=>{});
+  assert.equal(service.channelNames.length,2);
+  assert.notEqual(service.channelNames[0],service.channelNames[1]);
+  assert(service.channelNames.every(name=>name.startsWith('household-jobs-owner-')));
+  stopDashboard();stopAlerts();
+  assert.equal(service.removed(),2);
 });
 
 function technicianHarness() {
