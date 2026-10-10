@@ -4,12 +4,11 @@ import { ArrowDown, ArrowUp, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { clock, tradeKwh as kwh, shortDate } from '../utils/format';
+import { clock, kwh, shortDate } from '../utils/format';
 import { Card, Pill } from './ui';
 
 export default function TransactionCard({ transaction, onPress }) {
-  const { t, i18n } = useTranslation();
-  const language = i18n.resolvedLanguage || i18n.language;
+  const { t } = useTranslation();
   const sent = transaction.dir === 'sent';
   const color = sent ? colors.tealLight : colors.amberLight;
   const Arrow = sent ? ArrowUp : ArrowDown;
@@ -36,7 +35,7 @@ export default function TransactionCard({ transaction, onPress }) {
           </Text>
 
           <View style={styles.footRow}>
-            <Text style={styles.when}>{shortDate(when, language) + ' • ' + clock(when, language)}</Text>
+            <Text style={styles.when}>{shortDate(when) + ' • ' + clock(when)}</Text>
             <Pill
               label={t(reversed ? 'trade.transaction.reversed' : 'trade.transaction.completed')}
               color={reversed ? colors.danger : colors.tealLight}

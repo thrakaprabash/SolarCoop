@@ -21,9 +21,6 @@ export default function PrimaryButton({
 
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
       onPress={disabled ? undefined : onPress}
       style={({ pressed }) => [
         styles.button,

@@ -8,7 +8,7 @@ import { HISTORY_FILTERS, HISTORY_FILTER_LABEL_KEY } from '../data/transactions'
 import { useAuth } from '../../context/AuthContext';
 import { fetchMyTransactions } from '../services/transactionService';
 import { useNavigation } from '../context/NavigationContext';
-import { tradeKwh as kwh } from '../utils/format';
+import { kwh } from '../utils/format';
 import { analyticsText } from '../utils/analyticsText';
 import { byNewest, emptyCopy, groupByMonth, matchesFilter, monthTotals } from '../utils/transactions';
 import { TransactionCard } from '../components';
@@ -64,7 +64,7 @@ export default function TransactionHistoryScreen() {
     () => transactions.filter((t) => matchesFilter(t, filter)).sort(byNewest),
     [transactions, filter]
   );
-  const groups = useMemo(() => groupByMonth(visible, i18n.resolvedLanguage || i18n.language), [visible, i18n.resolvedLanguage, i18n.language]);
+  const groups = useMemo(() => groupByMonth(visible), [visible]);
   const totals = useMemo(() => monthTotals(transactions), [transactions]);
   const empty = emptyCopy(filter);
 

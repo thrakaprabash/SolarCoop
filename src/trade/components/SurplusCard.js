@@ -4,7 +4,7 @@ import { Zap } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
-import { tradeKwh as kwh } from '../utils/format';
+import { kwh } from '../utils/format';
 import { Card, Divider, IconBadge, Pill } from './ui';
 
 /**

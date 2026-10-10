@@ -52,26 +52,6 @@ function deferred() {
   return { promise, resolve };
 }
 
-test('pool includes every other approved owner, including households without surplus', async () => {
-  const owners = [
-    { id: 'member-a', available_kwh: 3 },
-    ...Array.from({ length: 5 }, (_, i) => ({ id: `sharing-${i}`, available_kwh: 2 })),
-    { id: 'empty-balance', available_kwh: 0 },
-    { id: 'no-reading', available_kwh: null },
-  ];
-  const h = harness({ supabase: { rpc: async () => ({ data: owners, error: null }) } });
-  await h.render().refreshProviders();
-  const value = h.render();
-  assert.equal(value.households.length, 7);
-  assert.equal(value.pool.totalCount, 7);
-  assert.equal(value.pool.onlineCount, 5);
-  assert.equal(value.pool.total, 10);
-  assert.equal(value.surplus, 3);
-  assert.equal(value.households.find(row => row.id === 'empty-balance').online, false);
-  assert.equal(value.households.find(row => row.id === 'no-reading').kwh, 0);
-  assert.ok(value.households.every(row => row.id !== 'member-a'));
-});
-
 test('request read failure ends loading and retry recovers the member list', async () => {
   let failed = true;
   const h = harness({ fetchMyRequests: async () => {

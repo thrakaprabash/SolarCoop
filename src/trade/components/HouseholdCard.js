@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, Metric, Pill, PrimaryButton, ProgressBar } from './ui';
-import { tradeKwh as kwh, rate as fmtRate } from '../utils/format';
+import { kwh, rate as fmtRate } from '../utils/format';
 
 export default function HouseholdCard({ household, requested, onRequest, accentColor = colors.teal }) {
   const { t } = useTranslation();
