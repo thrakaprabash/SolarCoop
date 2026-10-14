@@ -1172,5 +1172,11 @@
       "featureHeading": "මොඩියුල විශේෂාංග",
       "createRequest": "ශක්ති ඉල්ලීමක් සාදන්න"
     }
+  },
+  "appearance": {
+    "title": "පෙනුම",
+    "light": "ආලෝක",
+    "dark": "අඳුරු",
+    "system": "උපාංගය"
   }
 }

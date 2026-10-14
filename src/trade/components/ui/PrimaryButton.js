@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 /**
  * variant: 'solid' (filled teal) | 'ghost' (translucent teal)
@@ -16,6 +17,9 @@ export default function PrimaryButton({
   style,
   children,
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const ghost = variant === 'ghost';
   const bg = background || (ghost ? colors.tealTint : colors.teal);
 
@@ -32,14 +36,14 @@ export default function PrimaryButton({
         style,
       ]}
     >
-      {Icon ? <Icon size={18} color={colors.text} strokeWidth={2} /> : null}
-      <Text style={styles.label}>{label}</Text>
+      {Icon ? <Icon size={18} color={ghost ? colors.tealLight : '#FFFFFF'} strokeWidth={2} /> : null}
+      <Text style={[styles.label, { color: ghost ? colors.tealLight : '#FFFFFF' }]}>{label}</Text>
       {children}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',

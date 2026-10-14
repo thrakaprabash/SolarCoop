@@ -4,8 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS } from '../../theme/colors';
 import { Sun, Zap, Users } from 'lucide-react-native';
+import { ThemeSwitcher } from './ThemeSwitcher';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const Header = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, hasMetrics, viewScope, setViewScope } = useEnergy();
 
@@ -15,7 +20,7 @@ export const Header = () => {
       <View style={styles.topRow}>
         <View style={styles.brandContainer}>
           <View style={styles.logoBadge}>
-            <Zap size={18} color="#FFFFFF" />
+            <Zap size={18} color={"#FFFFFF"} />
           </View>
           <View>
             <Text style={styles.appName}>{t('common.appName')}</Text>
@@ -32,7 +37,7 @@ export const Header = () => {
         </View>
       </View>
 
-      {/* Scope + Sim Row */}
+      {/* Household scope and appearance */}
       <View style={styles.bottomRow}>
         <View style={styles.scopeContainer}>
           <TouchableOpacity
@@ -48,14 +53,13 @@ export const Header = () => {
             <Text style={[styles.scopeText, viewScope === 'community' && styles.scopeTextActive]}>{t('member.header.coop')}</Text>
           </TouchableOpacity>
         </View>
-
-
+        <ThemeSwitcher compact />
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,

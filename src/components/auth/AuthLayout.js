@@ -28,8 +28,13 @@ import { Sun } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { PALETTE } from '../../theme/colors';
+import { ThemeSwitcher } from '../common/ThemeSwitcher';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const AuthLayout = ({ title, subtitle, children, footer }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const theme = useTheme();
   const { colors, spacing, radius } = theme;
@@ -69,7 +74,7 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
         colors={
           theme.isDark
             ? ['rgba(237,137,54,0.16)', 'transparent']
-            : ['rgba(246,173,85,0.28)', 'rgba(255,249,242,0)']
+            : ['#D9F3FF', '#EAF6F1', '#FFF7D4', 'rgba(240,249,255,0)']
         }
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -102,12 +107,14 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
                 end={{ x: 1, y: 1 }}
                 style={styles.logoBadge}
               >
-                <Sun size={20} color="#FFFFFF" strokeWidth={2.2} />
+                <Sun size={20} color={colors.onPrimary} strokeWidth={2.2} />
               </LinearGradient>
               <Text style={[styles.brandName, { color: colors.text }]}>
                 {t('common.appName')}
               </Text>
             </View>
+
+            <View style={{ marginBottom: 18 }}><ThemeSwitcher /></View>
 
             {/* Card */}
             <View
@@ -142,7 +149,7 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   glowTop: {
     position: 'absolute',

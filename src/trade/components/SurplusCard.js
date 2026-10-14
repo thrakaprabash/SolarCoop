@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, weight } from '../theme';
 import { tradeKwh as kwh } from '../utils/format';
 import { Card, Divider, IconBadge, Pill } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * Available surplus block. Compact by default (Incoming Requests header),
@@ -13,6 +14,9 @@ import { Card, Divider, IconBadge, Pill } from './ui';
  * "after approval" projection row.
  */
 export default function SurplusCard({ surplus, pending, large = false, afterText, afterColor }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <Card padding={large ? 18 : 16} style={large ? styles.largeCard : styles.row}>
@@ -53,7 +57,7 @@ export default function SurplusCard({ surplus, pending, large = false, afterText
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   largeCard: { gap: 14 },
   largeHead: { flexDirection: 'row', alignItems: 'center', gap: 14 },

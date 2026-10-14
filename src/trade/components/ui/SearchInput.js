@@ -4,8 +4,12 @@ import { Search } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function SearchInput({ value, onChangeText, placeholder }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <View style={styles.field}>
@@ -23,7 +27,7 @@ export default function SearchInput({ value, onChangeText, placeholder }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   field: {
     flex: 1,
     flexDirection: 'row',

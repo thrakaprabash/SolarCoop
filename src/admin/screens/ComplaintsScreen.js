@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -87,6 +88,9 @@ const STEP_LABEL_KEY = {
 };
 
 function StatusStepper({ currentStatus, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const stepMap = {
     'Open': 0, 'Under Review': 1, 'Investigated': 2, 'Resolved': 3, 'Rejected': -1,
   };
@@ -124,6 +128,9 @@ function StatusStepper({ currentStatus, t }) {
 
 // ─── Complaint Card ───────────────────────────────────────────────────────────
 function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor } = useLegacyTheme();
+
   const [expanded, setExpanded] = useState(false);
   const [noteText, setNoteText] = useState(complaint.resolutionNote || '');
   const [isSavingNote, setIsSavingNote] = useState(false);
@@ -258,10 +265,10 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
                 activeOpacity={0.8}
               >
                 {isSavingNote ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={"#FFFFFF"} />
                 ) : (
                   <>
-                    <Save size={13} color="#FFFFFF" />
+                    <Save size={13} color={"#FFFFFF"} />
                     <Text style={styles.noteSaveBtnText}>{t('admin.complaints.saveNote')}</Text>
                   </>
                 )}
@@ -286,7 +293,7 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
             <View style={styles.actionBtnsRow}>
               {status === 'Open' && (
                 <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }]}
+                  style={[styles.actionBtn, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor"), borderColor: themeColor("rgba(251,191,36,0.3)", "borderColor") }]}
                   onPress={() => onUpdateStatus(complaint.id, 'Under Review')}
                   activeOpacity={0.8}
                 >
@@ -295,7 +302,7 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.12)', borderColor: 'rgba(45,212,191,0.3)' }]}
+                style={[styles.actionBtn, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor"), borderColor: themeColor("rgba(45,212,191,0.3)", "borderColor") }]}
                 onPress={() => onUpdateStatus(complaint.id, 'Resolved')}
                 activeOpacity={0.8}
               >
@@ -303,7 +310,7 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
                 <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.complaints.action.resolve')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }]}
+                style={[styles.actionBtn, { backgroundColor: themeColor("rgba(239,68,68,0.1)", "backgroundColor"), borderColor: themeColor("rgba(239,68,68,0.25)", "borderColor") }]}
                 onPress={() => onUpdateStatus(complaint.id, 'Rejected')}
                 activeOpacity={0.8}
               >
@@ -320,6 +327,9 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function ComplaintsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const [filter, setFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
@@ -378,7 +388,7 @@ export default function ComplaintsScreen() {
           <AlertTriangle size={24} color={COLORS.red} />
           <Text style={styles.errorText}>{complaintsError}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadComplaints} activeOpacity={0.8}>
-            <RefreshCw size={14} color="#FFFFFF" />
+            <RefreshCw size={14} color={"#FFFFFF"} />
             <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
@@ -386,15 +396,15 @@ export default function ComplaintsScreen() {
 
       {/* Stats Strip */}
       <View style={styles.statsStrip}>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.red }]}>{openCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.red }]}>{t('common.status.open')}</Text>
         </View>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.amberLight }]}>{reviewCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.amberLight }]}>{t('admin.complaints.inReviewShort')}</Text>
         </View>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.tealLight }]}>{resolvedCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.tealLight }]}>{t('common.status.resolved')}</Text>
         </View>
@@ -439,7 +449,7 @@ export default function ComplaintsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 

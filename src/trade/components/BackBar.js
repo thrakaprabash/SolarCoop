@@ -3,13 +3,17 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function BackBar({ label, onPress }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, colors } = useLegacyTheme();
+
   return (
     <Pressable
       onPress={onPress}
       hitSlop={8}
-      style={({ pressed }) => [styles.button, pressed && { backgroundColor: 'rgba(255,255,255,0.16)' }]}
+      style={({ pressed }) => [styles.button, pressed && { backgroundColor: themeColor("rgba(255,255,255,0.16)", "backgroundColor") }]}
     >
       <ArrowLeft size={15} color={colors.textStrong} strokeWidth={2.2} />
       <Text style={styles.label}>{label}</Text>
@@ -17,7 +21,7 @@ export default function BackBar({ label, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   button: {
     alignSelf: 'flex-start',
     flexDirection: 'row',

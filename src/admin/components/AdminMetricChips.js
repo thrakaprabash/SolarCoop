@@ -9,6 +9,7 @@ import {
   Zap,
   BatteryCharging,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const CHIPS = [
   { id: 'all',         labelKey: 'admin.dashboard.metricChip.all', Icon: LayoutGrid },
@@ -18,6 +19,9 @@ const CHIPS = [
 ];
 
 export default function AdminMetricChips() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { adminMetricChip, setAdminMetricChip } = useAdmin();
 
@@ -50,7 +54,7 @@ export default function AdminMetricChips() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     paddingVertical: 6,
     borderBottomWidth: 1,

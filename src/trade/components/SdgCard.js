@@ -4,8 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, Divider } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function SdgCard({ goals }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <Card style={styles.card}>
@@ -37,7 +41,7 @@ export default function SdgCard({ goals }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { gap: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   badge: {

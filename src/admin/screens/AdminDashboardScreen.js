@@ -22,9 +22,13 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // ─── Stat Card ──────────────────────────────────────────────────────────────
 function StatCard({ icon: Icon, iconColor, iconBg, label, value, unit, trend, trendUp }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   return (
     <View style={[styles.statCell, { borderColor: `${iconColor}22` }]}>
       <View style={[styles.statIconBadge, { backgroundColor: iconBg }]}>
@@ -53,6 +57,9 @@ function StatCard({ icon: Icon, iconColor, iconBg, label, value, unit, trend, tr
 
 // ─── System Health Panel ────────────────────────────────────────────────────
 function SystemHealthPanel() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const services = [
     { label: t('admin.dashboard.health.appServer'), status: t('admin.dashboard.health.online'), color: COLORS.tealLight },
@@ -125,6 +132,9 @@ function getActivityFeed({ alerts, complaints, transactions }, t) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function AdminDashboardScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     adminHeaderToggle,
@@ -357,7 +367,7 @@ export default function AdminDashboardScreen() {
           onPress={() => setAdminBottomTab('alerts')}
           activeOpacity={0.8}
         >
-          <AlertTriangle size={16} color="#FFFFFF" />
+          <AlertTriangle size={16} color={"#FFFFFF"} />
           <Text style={styles.actionBtnText}>{t('admin.dashboard.viewAlerts')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -365,7 +375,7 @@ export default function AdminDashboardScreen() {
           onPress={() => setAdminBottomTab('reports')}
           activeOpacity={0.8}
         >
-          <MessageSquare size={16} color="#FFFFFF" />
+          <MessageSquare size={16} color={"#FFFFFF"} />
           <Text style={styles.actionBtnText}>{t('admin.dashboard.stat.complaints')}</Text>
         </TouchableOpacity>
       </View>
@@ -375,7 +385,7 @@ export default function AdminDashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
 

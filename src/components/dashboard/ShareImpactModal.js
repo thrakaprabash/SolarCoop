@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../theme/useTheme';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import {
   Share2,
@@ -28,6 +29,7 @@ import {
   Download,
   ShieldCheck,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -42,6 +44,10 @@ export const ShareImpactModal = ({
   metrics = {},
   memberName = 'SolarCoop Member',
 }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+  const { isDark } = useTheme();
+
   const [aspectRatio, setAspectRatio] = useState('square'); // 'square' | 'story'
   const [themePreset, setThemePreset] = useState('amber'); // 'amber' | 'teal' | 'blue'
   const [copied, setCopied] = useState(false);
@@ -64,7 +70,7 @@ export const ShareImpactModal = ({
       primary: COLORS.amber,
       light: COLORS.amberLight,
       glow: COLORS.amberGlow,
-      gradient: ['#2A1E0D', '#161922'],
+      gradient: isDark ? ['#2A1E0D', '#161922'] : ['#FFF3BE', '#FFFFFF'],
       badge: 'rgba(245, 158, 11, 0.15)',
       border: 'rgba(245, 158, 11, 0.35)',
     },
@@ -72,7 +78,7 @@ export const ShareImpactModal = ({
       primary: COLORS.teal,
       light: COLORS.tealLight,
       glow: COLORS.tealGlow,
-      gradient: ['#0D2825', '#161922'],
+      gradient: isDark ? ['#0D2825', '#161922'] : ['#DCF3E4', '#FFFFFF'],
       badge: 'rgba(20, 184, 166, 0.15)',
       border: 'rgba(20, 184, 166, 0.35)',
     },
@@ -80,7 +86,7 @@ export const ShareImpactModal = ({
       primary: COLORS.blue,
       light: COLORS.blueLight,
       glow: COLORS.blueGlow,
-      gradient: ['#0D1E32', '#161922'],
+      gradient: isDark ? ['#0D1E32', '#161922'] : ['#DDF2FA', '#FFFFFF'],
       badge: 'rgba(59, 130, 246, 0.15)',
       border: 'rgba(59, 130, 246, 0.35)',
     },
@@ -254,7 +260,7 @@ export const ShareImpactModal = ({
                 <View style={styles.cardHeader}>
                   <View style={styles.cardBrand}>
                     <View style={[styles.cardLogoCircle, { backgroundColor: themeColors.primary }]}>
-                      <Sun size={14} color="#121212" strokeWidth={2.5} />
+                      <Sun size={14} color={themeColor("#121212", "color")} strokeWidth={2.5} />
                     </View>
                     <View>
                       <Text style={styles.cardBrandName}>SOLARCOOP</Text>
@@ -369,8 +375,8 @@ export const ShareImpactModal = ({
               onPress={handleNativeShare}
               activeOpacity={0.8}
             >
-              <Share2 size={18} color="#121212" strokeWidth={2.5} />
-              <Text style={styles.primaryButtonText}>Share Impact Card</Text>
+              <Share2 size={18} color={isDark ? '#121212' : '#FFFFFF'} strokeWidth={2.5} />
+              <Text style={[styles.primaryButtonText, !isDark && { color: '#FFFFFF' }]}>Share Impact Card</Text>
             </TouchableOpacity>
 
             <View style={styles.secondaryActionsRow}>
@@ -399,7 +405,7 @@ export const ShareImpactModal = ({
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.78)',

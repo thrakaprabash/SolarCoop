@@ -4,6 +4,7 @@ import { ArrowRightLeft, Bell, LayoutDashboard, User, Zap } from 'lucide-react-n
 import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../trade/theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const TABS = [
   { key: 'dashboard', labelKey: 'member.nav.dashboard', icon: LayoutDashboard },
@@ -14,6 +15,9 @@ const TABS = [
 ];
 
 export default function BottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(bottomInset, 12) }]}>
@@ -30,7 +34,7 @@ export default function BottomTabBar({ activeKey, onSelect, bottomInset = 20 }) 
             <View
               style={[
                 styles.iconWrap,
-                active && { backgroundColor: colors.amberTint, borderColor: 'rgba(245,158,11,0.3)' },
+                active && { backgroundColor: colors.amberTint, borderColor: themeColor("rgba(245,158,11,0.3)", "borderColor") },
               ]}
             >
               <Icon size={18} color={color} strokeWidth={2} />
@@ -45,7 +49,7 @@ export default function BottomTabBar({ activeKey, onSelect, bottomInset = 20 }) 
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

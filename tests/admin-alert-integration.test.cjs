@@ -63,6 +63,7 @@ test('admin live updates debounce events, poll silently, refresh on foreground a
   const loads = name => options => refreshed.push([name, options]);
   const channel = { on(_event, filter, callback) { callbacks.push({ filter, callback }); return channel; }, subscribe() { return channel; } };
   const deps = {
+    baseStyles: {}, useThemedStyles: styles => styles, useTheme: () => ({ isDark: true }),
     useAdmin: () => ({ loadMembers: () => {}, loadComplaints: () => {},
       loadTransactions: loads('ledger'), loadAlerts: loads('alerts'), scanAlerts: loads('scan') }),
     useEffect: callback => effects.push(callback),

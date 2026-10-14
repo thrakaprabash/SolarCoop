@@ -2,8 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { User, Shield, Key, Clock } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const ProfileAuthPlaceholder = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const moduleFeatures = [
     { title: 'User Registration & Login', desc: 'Secure member authentication & household onboarding' },
     { title: 'Household Profile Management', desc: 'Solar array specifications & energy preferences profile' },
@@ -44,14 +48,14 @@ export const ProfileAuthPlaceholder = () => {
       </View>
 
       <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
-        <Key size={18} color="#FFFFFF" />
+        <Key size={18} color={"#FFFFFF"} />
         <Text style={styles.actionBtnText}>View Co-op Members</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   heroCard: { padding: 20, alignItems: 'center', gap: 8 },

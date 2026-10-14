@@ -3,8 +3,12 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { colors } from '../theme';
 import { analyticsText } from '../utils/analyticsText';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AnalyticsStatus({ analytics }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t, i18n } = useTranslation();
   const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
   const { signedIn, energyLoading, energyError, reading, refresh, loading } = analytics;
@@ -30,7 +34,7 @@ export default function AnalyticsStatus({ analytics }) {
     </Pressable> : null}
   </View>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { gap: 8 }, text: { color: colors.textMuted, fontSize: 13, lineHeight: 19 },
   action: { color: colors.tealLight, paddingVertical: 8, fontWeight: '600' },
 });

@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { History, Search, Download, Filter, Sun, Battery, Zap, ArrowUpRight, ArrowDownLeft, FileText, Check } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-101: Energy History Log View component
 export const EnergyHistoryView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { historyLogs, loadMoreHistory, historyHasMore, loadingMore } = useEnergy();
   const [filterType, setFilterType] = useState('all'); // 'all' | 'surplus' | 'production' | 'consumption' | 'deficit'
@@ -60,7 +64,7 @@ export const EnergyHistoryView = () => {
           onPress={() => setExportModalVisible(true)}
           activeOpacity={0.7}
         >
-          <Download size={16} color="#FFFFFF" />
+          <Download size={16} color={"#FFFFFF"} />
           <Text style={styles.exportBtnText}>{t('member.history.exportButton')}</Text>
         </TouchableOpacity>
       </View>
@@ -168,7 +172,7 @@ export const EnergyHistoryView = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.modalConfirmBtn} onPress={handleSimulateExport}>
-                  <Download size={16} color="#FFFFFF" />
+                  <Download size={16} color={"#FFFFFF"} />
                   <Text style={styles.modalConfirmText}>{t('member.history.modal.downloadPdf')}</Text>
                 </TouchableOpacity>
               </View>
@@ -180,7 +184,7 @@ export const EnergyHistoryView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

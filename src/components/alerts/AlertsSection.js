@@ -11,8 +11,11 @@ import {
   deleteComplaint,
 } from '../../services/complaintService';
 import { fetchMyFaultAlerts, subscribeToMyFaultAlerts } from '../../services/faultAlertService';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 export const AlertsSection = () => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const { user } = useAuth();
   const [screen, setScreen] = useState('hub');
@@ -131,6 +134,6 @@ export const AlertsSection = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1 },
 });

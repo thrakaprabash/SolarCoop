@@ -4,20 +4,24 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Zap, Wind, Repeat, Droplet, Box, Tv, AlertTriangle, Sparkles, Clock } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-98: Consumption View Component
 export const ConsumptionView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, appliances, toggleAppliance } = useEnergy();
 
   const getIcon = (iconName) => {
     switch (iconName) {
-      case 'wind': return <Wind size={20} color="#06B6D4" />;
+      case 'wind': return <Wind size={20} color={themeColor("#06B6D4", "color")} />;
       case 'zap': return <Zap size={20} color={COLORS.amber} />;
       case 'repeat': return <Repeat size={20} color={COLORS.teal} />;
-      case 'droplet': return <Droplet size={20} color="#3B82F6" />;
-      case 'box': return <Box size={20} color="#8B5CF6" />;
-      case 'tv': return <Tv size={20} color="#EC4899" />;
+      case 'droplet': return <Droplet size={20} color={themeColor("#3B82F6", "color")} />;
+      case 'box': return <Box size={20} color={themeColor("#8B5CF6", "color")} />;
+      case 'tv': return <Tv size={20} color={themeColor("#EC4899", "color")} />;
       default: return <Zap size={20} color={COLORS.amber} />;
     }
   };
@@ -103,7 +107,7 @@ export const ConsumptionView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

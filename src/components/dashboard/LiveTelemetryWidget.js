@@ -13,6 +13,7 @@ import {
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * SOL-187: Live Real-Time Telemetry & Status Indicator Widget
@@ -20,6 +21,9 @@ import {
  * inverter performance telemetry, and auto-updating heartbeat ticker.
  */
 export const LiveTelemetryWidget = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     telemetryStatus = 'offline',
@@ -189,7 +193,7 @@ export const LiveTelemetryWidget = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     padding: 14,
     gap: 12,

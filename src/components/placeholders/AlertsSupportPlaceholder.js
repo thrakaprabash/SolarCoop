@@ -2,8 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Bell, AlertTriangle, MessageSquare, Clock } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const AlertsSupportPlaceholder = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const moduleFeatures = [
     { title: 'Grid Alerts & Incident Monitoring', desc: 'Real-time solar panel and battery fault detection alerts' },
     { title: 'Complaint Submission Form', desc: 'Report energy billing discrepancies or inverter hardware issues' },
@@ -44,14 +48,14 @@ export const AlertsSupportPlaceholder = () => {
       </View>
 
       <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
-        <MessageSquare size={18} color="#FFFFFF" />
+        <MessageSquare size={18} color={"#FFFFFF"} />
         <Text style={styles.actionBtnText}>Submit Support Ticket</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   heroCard: { padding: 20, alignItems: 'center', gap: 8 },

@@ -24,6 +24,7 @@ import {
   RotateCcw,
   AlertCircle,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const FILTERS = ['All', 'Completed', 'Reversed'];
 
@@ -50,6 +51,9 @@ const TX_ICONS = {
 };
 
 function TxRow({ tx, onReverse, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const [expanded, setExpanded] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
   const [reason, setReason] = useState('');
@@ -201,6 +205,9 @@ function TxRow({ tx, onReverse, t }) {
 }
 
 export default function TransactionMonitoringScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     transactions,
@@ -317,7 +324,7 @@ export default function TransactionMonitoringScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 

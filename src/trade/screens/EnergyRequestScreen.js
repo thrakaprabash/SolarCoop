@@ -8,10 +8,14 @@ import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { tradeKwh as kwh, decimalAmount, addTradeAmounts, money, rate as fmtRate } from '../utils/format';
 import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STEP = 0.5;
 
 export default function EnergyRequestScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { getHousehold, refreshProviders, submitRequest, showToast } = useTrade();
   const { params } = useNavigation();
@@ -160,6 +164,9 @@ export default function EnergyRequestScreen() {
 }
 
 function Stepper({ icon: Icon, onPress, disabled, label }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, colors } = useLegacyTheme();
+
   return (
     <Pressable
       disabled={disabled}
@@ -167,14 +174,14 @@ function Stepper({ icon: Icon, onPress, disabled, label }) {
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
-      style={({ pressed }) => [styles.stepper, pressed && { backgroundColor: 'rgba(255,255,255,0.12)' }]}
+      style={({ pressed }) => [styles.stepper, pressed && { backgroundColor: themeColor("rgba(255,255,255,0.12)", "backgroundColor") }]}
     >
       <Icon size={16} color={colors.textStrong} strokeWidth={2.4} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   missing: { color: colors.textMuted, padding: 16 },
