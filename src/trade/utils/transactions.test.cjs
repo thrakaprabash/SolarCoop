@@ -3,9 +3,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const source = fs.readFileSync(path.join(__dirname, 'transactions.js'), 'utf8')
-  .replace("import { monthLabel } from './format';", 'const monthLabel = (date) => `${date.getFullYear()}-${date.getMonth()}`;')
+  .replace("import { monthLabel, addTradeAmounts } from './format';", '')
   .replaceAll('export ', '');
-const helpers = new Function(`${source}; return { monthTotals, matchesFilter, groupByMonth, byNewest };`)();
+const formatSource = fs.readFileSync(path.join(__dirname, 'format.js'), 'utf8').replaceAll('export ', '');
+const format = new Function(`${formatSource}; return { monthLabel, addTradeAmounts };`)();
+const helpers = new Function('monthLabel', 'addTradeAmounts', `${source}; return { monthTotals, matchesFilter, groupByMonth, byNewest };`)(format.monthLabel, format.addTradeAmounts);
 
 test('monthly completed totals exclude reversals and other months/years', () => {
   const rows = [
