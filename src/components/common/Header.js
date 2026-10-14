@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS } from '../../theme/colors';
 import { Sun, Zap, Users } from 'lucide-react-native';
-import { ThemeSwitcher } from './ThemeSwitcher';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const Header = () => {
@@ -37,7 +36,7 @@ export const Header = () => {
         </View>
       </View>
 
-      {/* Household scope and appearance */}
+      {/* Household scope */}
       <View style={styles.bottomRow}>
         <View style={styles.scopeContainer}>
           <TouchableOpacity
@@ -53,7 +52,6 @@ export const Header = () => {
             <Text style={[styles.scopeText, viewScope === 'community' && styles.scopeTextActive]}>{t('member.header.coop')}</Text>
           </TouchableOpacity>
         </View>
-        <ThemeSwitcher compact />
       </View>
     </View>
   );

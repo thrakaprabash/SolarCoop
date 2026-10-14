@@ -28,7 +28,6 @@ import { Sun } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { PALETTE } from '../../theme/colors';
-import { ThemeSwitcher } from '../common/ThemeSwitcher';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const AuthLayout = ({ title, subtitle, children, footer }) => {
@@ -113,8 +112,6 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
                 {t('common.appName')}
               </Text>
             </View>
-
-            <View style={{ marginBottom: 18 }}><ThemeSwitcher /></View>
 
             {/* Card */}
             <View
