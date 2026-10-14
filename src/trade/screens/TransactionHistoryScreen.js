@@ -12,8 +12,12 @@ import { kwh } from '../utils/format';
 import { byNewest, emptyCopy, groupByMonth, matchesFilter, monthTotals } from '../utils/transactions';
 import { TransactionCard } from '../components';
 import { Card, Chip, Divider, IconBadge, Notice, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function TransactionHistoryScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { user } = useAuth();
   const { navigate } = useNavigation();
@@ -151,7 +155,7 @@ export default function TransactionHistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
 

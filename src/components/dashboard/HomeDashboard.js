@@ -25,9 +25,12 @@ import {
 } from 'lucide-react-native';
 import { LiveTelemetryWidget } from './LiveTelemetryWidget';
 import { WidgetCustomizerModal } from './WidgetCustomizerModal';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // ─── Sub-component: SVG Arc Progress Ring (Issue #2) ───
 const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children }) => {
+  const { themeColor } = useLegacyTheme();
+
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clampedProgress = Math.min(100, Math.max(0, progress));
@@ -41,7 +44,7 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.06)"
+          stroke={themeColor("rgba(255, 255, 255, 0.06)", "stroke")}
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -67,6 +70,9 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 // ─── Main Dashboard Component ───
 // SOL-96 / SOL-185 / SOL-187: Home DashBoard View Component
 export const HomeDashboard = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     metrics,
@@ -344,7 +350,7 @@ export const HomeDashboard = () => {
 
         {/* Home Load */}
         <View style={styles.flowNode}>
-          <View style={[styles.flowNodeIcon, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
+          <View style={[styles.flowNodeIcon, { backgroundColor: themeColor("rgba(245, 158, 11, 0.15)", "backgroundColor") }]}>
             <Zap size={13} color={COLORS.amberLight} />
           </View>
           <Text style={styles.flowNodeLabel}>{t('member.dashboard.flow.home')}</Text>
@@ -410,7 +416,7 @@ export const HomeDashboard = () => {
           onPress={handleShare}
           activeOpacity={0.8}
         >
-          <ArrowUpRight size={16} color="#FFFFFF" />
+          <ArrowUpRight size={16} color={"#FFFFFF"} />
           <Text style={styles.actionBtnPrimaryText}>{t('member.dashboard.quickActions.shareSurplus')}</Text>
         </TouchableOpacity>
 
@@ -502,7 +508,7 @@ export const HomeDashboard = () => {
 };
 
 // ─── Styles ───
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
 

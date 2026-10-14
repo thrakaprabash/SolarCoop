@@ -4,6 +4,7 @@ import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 /** tone: 'teal' (approve) | 'danger' (reject) */
 export default function ConfirmModal({
@@ -17,6 +18,9 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const teal = tone === 'teal';
   const resolvedConfirmLabel = confirmLabel || t('common.confirm');
@@ -51,7 +55,7 @@ export default function ConfirmModal({
                 pressed && { opacity: 0.85 },
               ]}
             >
-              {busy ? <ActivityIndicator size="small" color={colors.text} /> : teal ? <Check size={15} color={colors.text} strokeWidth={2.4} /> : null}
+              {busy ? <ActivityIndicator size="small" color="#FFFFFF" /> : teal ? <Check size={15} color="#FFFFFF" strokeWidth={2.4} /> : null}
               <Text style={styles.confirmLabel}>{busy ? t('common.working') : resolvedConfirmLabel}</Text>
             </Pressable>
           </View>
@@ -61,7 +65,7 @@ export default function ConfirmModal({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   scrim: {
     flex: 1,
     backgroundColor: 'rgba(5,8,22,0.7)',

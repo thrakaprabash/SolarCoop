@@ -5,10 +5,13 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, IconBadge, PrimaryButton } from './ui';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const ICONS = { zap: Zap, sun: Sun, down: TrendingDown, up: TrendingUp };
 
 export default function InsightCard({ insight, onCta }) {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const Icon = ICONS[insight.icon] || Zap;
 
@@ -43,7 +46,7 @@ export default function InsightCard({ insight, onCta }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { gap: 10 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { fontSize: 15, fontWeight: weight.heavy },

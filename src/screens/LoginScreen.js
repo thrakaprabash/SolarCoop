@@ -29,10 +29,14 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
+import { useThemedStyles, useLegacyTheme } from '../theme/useLegacyTheme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { signIn } = useAuth();
   const theme = useTheme();
@@ -206,7 +210,7 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
                 transform: [{ scale: checkAnim }],
               }}
             >
-              <Check size={13} color="#FFFFFF" strokeWidth={3.5} />
+              <Check size={13} color={"#FFFFFF"} strokeWidth={3.5} />
             </Animated.View>
           </Animated.View>
           <Text style={[styles.rememberLabel, { color: colors.textSecondary }]}>
@@ -235,7 +239,7 @@ export const LoginScreen = ({ onCreateAccount, onForgotPassword }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   optionsRow: {
     flexDirection: 'row',
     alignItems: 'center',

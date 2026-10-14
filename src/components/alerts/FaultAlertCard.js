@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, UserCheck } from 'lucide-react-native';
 import { COLORS } from '../../theme/colors';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const GREEN = '#22C55E';
 
@@ -12,6 +13,8 @@ const GREEN = '#22C55E';
  * The technician sees the same job as a critical alert with the raw code.
  */
 export function FaultAlertCard({ alert }) {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const complete = alert.status === 'completed';
 
@@ -43,7 +46,7 @@ export function FaultAlertCard({ alert }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: {
     alignItems: 'center',
     gap: 8,

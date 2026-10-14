@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, weight } from '../theme';
 import { Card, IconBadge, ProgressBar } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function ImpactStatCard({
   icon: Icon,
@@ -13,6 +14,9 @@ export default function ImpactStatCard({
   label,
   progress,
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   return (
     <Card padding={18} style={progress != null ? styles.stacked : styles.row}>
       <View style={styles.row}>
@@ -32,7 +36,7 @@ export default function ImpactStatCard({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   stacked: { gap: 14 },
   value: { fontSize: 32, fontWeight: weight.heavy, lineHeight: 36 },

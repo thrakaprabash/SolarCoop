@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Sun } from 'lucide-react-native';
 import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // The pill mirrors whether the last job fetch actually reached the backend,
 // so "API Connected" is never shown while the list is stale or failing.
@@ -14,6 +15,9 @@ const PILL = {
 };
 
 export default function TechHeader() {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { connectionStatus } = useTechnician();
   const pill = PILL[connectionStatus] ?? PILL.connecting;
@@ -22,7 +26,7 @@ export default function TechHeader() {
     <View style={styles.header}>
       <View style={styles.brand}>
         <View style={styles.logo}>
-          <Sun size={18} color="#FFFFFF" strokeWidth={2.4} />
+          <Sun size={18} color={"#FFFFFF"} strokeWidth={2.4} />
         </View>
         <View>
           <Text style={styles.appName}>{t('technician.header.appName')}</Text>
@@ -38,7 +42,7 @@ export default function TechHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',

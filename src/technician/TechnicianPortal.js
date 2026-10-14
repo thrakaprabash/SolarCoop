@@ -19,8 +19,13 @@ import JobTicketDetailScreen from './screens/JobTicketDetailScreen';
 import DiagnosticsScreen from './screens/DiagnosticsScreen';
 import JobClosureScreen from './screens/JobClosureScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { useTheme } from '../theme/useTheme';
+import { useThemedStyles } from '../theme/useLegacyTheme';
 
 function TechnicianShell() {
+  const theme = useTheme();
+  const styles = useThemedStyles(baseStyles);
+
   const {
     techBottomTab, setTechBottomTab, loadJobs, selectedJob, closeJob, closureOpen, urgentAlertCount,
   } = useTechnician();
@@ -40,7 +45,7 @@ function TechnicianShell() {
   if (selectedJob) {
     return (
       <View style={styles.root}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
         <View style={styles.safeArea}>
           {closureOpen && selectedJob.status === 'active' ? <JobClosureScreen /> : <JobTicketDetailScreen />}
         </View>
@@ -59,7 +64,7 @@ function TechnicianShell() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
       <View style={styles.safeArea}>
         {techBottomTab !== 'profile' && <TechHeader />}
         <View style={styles.screen}>{renderScreen()}</View>
@@ -81,7 +86,7 @@ export default function TechnicianPortal({ onExit }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   root: { flex: 1, backgroundColor: TECH.bg },
   safeArea: {
     flex: 1,

@@ -10,8 +10,12 @@ import { useNavigation } from '../context/NavigationContext';
 import { distanceInMeters } from '../utils/format';
 import { HouseholdCard, PoolSummaryCard } from '../components';
 import { Card, EmptyState, IconBadge, PrimaryButton, ScreenTitle, SearchInput } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AvailableEnergyScreen({ showPoolSummary = true }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     households,
@@ -130,7 +134,7 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   controls: { flexDirection: 'row', alignItems: 'center', gap: 8 },

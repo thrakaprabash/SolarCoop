@@ -4,8 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { ShieldCheck, LogOut } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AdminHeader() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     adminHeaderToggle,
@@ -119,7 +123,7 @@ export default function AdminHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,

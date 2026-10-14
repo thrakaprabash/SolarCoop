@@ -22,6 +22,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Languages } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '../../i18n';
+import { useTheme } from '../../theme/useTheme';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const LANGUAGES = [
   { code: 'en', nativeLabel: 'English' },
@@ -38,8 +40,11 @@ const DEFAULT_COLORS = {
 };
 
 export const LanguageSwitcher = ({ colors }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t, i18n } = useTranslation();
-  const theme = colors || DEFAULT_COLORS;
+  const appTheme = useTheme();
+  const theme = colors || appTheme.colors;
   const activeCode = i18n.language;
 
   return (
@@ -83,7 +88,7 @@ export const LanguageSwitcher = ({ colors }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: {
     borderRadius: 18,
     borderWidth: 1,

@@ -5,12 +5,15 @@ import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 import JobStatusTabs from '../components/JobStatusTabs';
 import JobCard from '../components/JobCard';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // Urgent first, then medium, then low — the order a technician should work in.
 const URGENCY_RANK = { urgent: 0, medium: 1, low: 2 };
 const byUrgency = (a, b) => (URGENCY_RANK[a.urgency] ?? 3) - (URGENCY_RANK[b.urgency] ?? 3);
 
 function Section({ label, children }) {
+  const styles = useThemedStyles(baseStyles);
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>{label}</Text>
@@ -20,6 +23,8 @@ function Section({ label, children }) {
 }
 
 function Empty({ text }) {
+  const styles = useThemedStyles(baseStyles);
+
   return (
     <View style={styles.empty}>
       <Text style={styles.emptyText}>{text}</Text>
@@ -35,6 +40,9 @@ function Empty({ text }) {
  * away (as in the Figma frame). "Pending" and "Completed" are plain lists.
  */
 export default function TechnicianDashboardScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     jobs, jobCounts, jobFilter, setJobFilter,
@@ -110,7 +118,7 @@ export default function TechnicianDashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32, gap: 18 },
   section: { gap: 10 },

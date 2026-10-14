@@ -13,9 +13,13 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { ShareImpactModal } from './ShareImpactModal';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-103 & SOL-188: Energy Summary View & Impact Scorecard Export Component
 export const EnergySummaryView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics } = useEnergy();
   const [shareModalVisible, setShareModalVisible] = useState(false);
@@ -128,7 +132,7 @@ export const EnergySummaryView = () => {
           onPress={() => setShareModalVisible(true)}
           activeOpacity={0.8}
         >
-          <Share2 size={16} color="#121212" strokeWidth={2.5} />
+          <Share2 size={16} color={themeColor("#121212", "color")} strokeWidth={2.5} />
           <Text style={styles.shareBannerBtnText}>Export Card</Text>
         </TouchableOpacity>
       </View>
@@ -146,7 +150,7 @@ export const EnergySummaryView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16, paddingBottom: 24 },
   headerRow: {

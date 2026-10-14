@@ -17,6 +17,7 @@ import {
   TransactionDetailsScreen,
   TransactionHistoryScreen,
 } from '../screens';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const SCREENS = {
   trade: TradeScreen,
@@ -32,6 +33,8 @@ const SCREENS = {
 };
 
 export default function TradeShell() {
+  const styles = useThemedStyles(baseStyles);
+
   const { screen, canGoBack, backLabel, goBack } = useNavigation();
   const { toast } = useTrade();
 
@@ -50,7 +53,7 @@ export default function TradeShell() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   frame: { flex: 1 },
   body: { flex: 1 },
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { TECH, urgencyColor } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * One job ticket in a dashboard list.
@@ -12,6 +13,9 @@ import { TECH, urgencyColor } from '../theme';
  *              the tap target.
  */
 export default function JobCard({ job, featured = false, onPress }) {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH } = useLegacyTheme();
+
   const { t } = useTranslation();
   const accent = job.status === 'completed' ? TECH.green : urgencyColor(job.urgency);
 
@@ -68,7 +72,7 @@ export default function JobCard({ job, featured = false, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: {
     backgroundColor: TECH.card,
     borderWidth: 1,

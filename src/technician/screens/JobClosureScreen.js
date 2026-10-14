@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const MIN_NOTES = 10;
 
@@ -25,6 +26,9 @@ const notify = (title, message) => {
  * bucket and an image picker — tracked as a Sprint 4 follow-up.
  */
 export default function JobClosureScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { selectedJob: job, closeClosure, toggleChecklistItem, completeJob } = useTechnician();
   const [notes, setNotes] = useState(job.resolutionNotes ?? '');
@@ -97,7 +101,7 @@ export default function JobClosureScreen() {
               accessibilityState={{ checked: item.done }}
             >
               <View style={[styles.box, item.done && styles.boxDone]}>
-                {item.done ? <Check size={11} color="#FFFFFF" strokeWidth={3} /> : null}
+                {item.done ? <Check size={11} color={"#FFFFFF"} strokeWidth={3} /> : null}
               </View>
               <Text style={[styles.checkText, item.done && styles.checkTextDone]}>{item.label}</Text>
             </Pressable>
@@ -134,7 +138,7 @@ export default function JobClosureScreen() {
             style={[styles.completeBtn, (!notesOk || saving) && styles.btnDisabled]}
           >
             {saving
-              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              ? <ActivityIndicator size="small" color={"#FFFFFF"} />
               : <Text style={styles.completeText}>{t('technician.closure.complete')}</Text>}
           </LinearGradient>
         </Pressable>
@@ -143,7 +147,7 @@ export default function JobClosureScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 14 },
   back: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', maxWidth: '100%' },

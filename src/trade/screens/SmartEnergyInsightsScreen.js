@@ -10,6 +10,7 @@ import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
 import { dayPart } from '../utils/format';
 import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const GREETING_KEY = {
   morning: 'trade.greeting.morning',
@@ -18,6 +19,8 @@ const GREETING_KEY = {
 };
 
 export default function SmartEnergyInsightsScreen() {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const analytics = useEnergyAnalytics();
   const { surplus, providersLoading, providersError, refreshProviders } = useTrade();
@@ -48,7 +51,7 @@ export default function SmartEnergyInsightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 14 },
   tabs: { flexDirection: 'row', alignItems: 'center', gap: 6 },

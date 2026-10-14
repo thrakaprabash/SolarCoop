@@ -5,6 +5,7 @@ import { ShieldCheck } from 'lucide-react-native';
 import { TECH } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 import CriticalAlertCard from '../components/CriticalAlertCard';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -17,6 +18,9 @@ const notify = (title, message) => {
  * works through on site.
  */
 export default function DiagnosticsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     openAlerts, technicianId, toggleChecklistItem, openJob, jobsLoading, loadJobs,
@@ -62,7 +66,7 @@ export default function DiagnosticsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32, gap: 14 },
   sectionLabel: {

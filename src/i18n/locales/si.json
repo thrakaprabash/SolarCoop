@@ -252,9 +252,18 @@
         "household": "උදා: HH-ADMIN-01"
       },
       "menu": {
-        "about": { "label": "SolarCoop පිළිබඳ", "sub": "ප්‍රජා ශක්ති බෙදාගැනීමේ යෙදුම v1.0.0" },
-        "adminPrivileges": { "label": "පරිපාලක වරප්‍රසාද", "sub": "සම්පූර්ණ පද්ධති ප්‍රවේශය · තත්‍ය කාලීන සාමාජික සමමුහුර්තකරණය" },
-        "systemEnv": { "label": "පද්ධති පරිසරය", "sub": "Expo SDK 57 · React Native 0.86" }
+        "about": {
+          "label": "SolarCoop පිළිබඳ",
+          "sub": "ප්‍රජා ශක්ති බෙදාගැනීමේ යෙදුම v1.0.0"
+        },
+        "adminPrivileges": {
+          "label": "පරිපාලක වරප්‍රසාද",
+          "sub": "සම්පූර්ණ පද්ධති ප්‍රවේශය · තත්‍ය කාලීන සාමාජික සමමුහුර්තකරණය"
+        },
+        "systemEnv": {
+          "label": "පද්ධති පරිසරය",
+          "sub": "Expo SDK 57 · React Native 0.86"
+        }
       }
     },
     "alerts": {
@@ -1065,5 +1074,11 @@
       "featureHeading": "මොඩියුල විශේෂාංග",
       "createRequest": "ශක්ති ඉල්ලීමක් සාදන්න"
     }
+  },
+  "appearance": {
+    "title": "පෙනුම",
+    "light": "ආලෝක",
+    "dark": "අඳුරු",
+    "system": "උපාංගය"
   }
 }

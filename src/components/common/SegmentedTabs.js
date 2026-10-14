@@ -13,6 +13,7 @@ import {
   BarChart3,
   Leaf
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const tabsConfig = [
   { id: 'dashboard', labelKey: 'member.tabs.dashboard', Icon: LayoutDashboard },
@@ -26,6 +27,9 @@ export const tabsConfig = [
 ];
 
 export const SegmentedTabs = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { activeTab, setActiveTab } = useEnergy();
 
@@ -71,7 +75,7 @@ export const SegmentedTabs = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     paddingVertical: 6,
     borderBottomWidth: 1,

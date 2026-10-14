@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function IconBadge({
   size = 50,
@@ -11,6 +12,9 @@ export default function IconBadge({
   children,
   style,
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   return (
     <View
       style={[
@@ -31,6 +35,6 @@ export default function IconBadge({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   badge: { alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 });

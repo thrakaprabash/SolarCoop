@@ -33,6 +33,7 @@ import {
   RotateCcw,
   ScanSearch,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STATUS_FILTERS = ['All', 'Open', 'Resolved'];
 
@@ -134,6 +135,9 @@ const describeScan = (scan, t) => {
 };
 
 function Chip({ label, active, onPress, color }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   return (
     <TouchableOpacity
       style={[
@@ -154,6 +158,9 @@ function Chip({ label, active, onPress, color }) {
 
 // ─── Alert Card ───────────────────────────────────────────────────────────────
 function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const [busy, setBusy] = useState(null); // 'resolve' | 'reopen' | 'delete' | null
   const { color, bg, Icon } = SEVERITY_STYLE[alert.severity] ?? SEVERITY_STYLE.Medium;
   const status = STATUS_STYLE[alert.status] ?? STATUS_STYLE.Open;
@@ -311,6 +318,9 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
 // this via `key` whenever the alert being edited changes, so the initial
 // state below is always seeded fresh from `editing`.
 function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const isEditing = !!editing;
 
@@ -523,7 +533,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
             activeOpacity={0.85}
           >
             {saving
-              ? <ActivityIndicator size="small" color="#000000" />
+              ? <ActivityIndicator size="small" color={themeColor("#000000", "color")} />
               : <Text style={styles.primaryBtnText}>{isEditing ? t('admin.settings.saveChanges') : t('admin.alerts.form.createAlert')}</Text>
             }
           </TouchableOpacity>
@@ -535,6 +545,9 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function AlertsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     alerts,
@@ -789,7 +802,7 @@ export default function AlertsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 

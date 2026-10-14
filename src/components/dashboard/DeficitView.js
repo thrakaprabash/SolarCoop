@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { AlertTriangle, ArrowDownLeft, ShieldAlert, DollarSign, Zap, CheckCircle2, TrendingDown } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, executeBorrowEnergy } = useEnergy();
   
@@ -57,7 +61,7 @@ export const DeficitView = () => {
 
         <View style={styles.compareRow}>
           {/* Co-op Rate */}
-          <View style={[styles.compareCard, { backgroundColor: 'rgba(45, 212, 191, 0.08)', borderColor: 'rgba(45, 212, 191, 0.25)' }]}>
+          <View style={[styles.compareCard, { backgroundColor: themeColor("rgba(45, 212, 191, 0.08)", "backgroundColor"), borderColor: themeColor("rgba(45, 212, 191, 0.25)", "borderColor") }]}>
             <Text style={[styles.compareTag, { color: COLORS.teal }]}>{t('member.deficit.recommended')}</Text>
             <Text style={[styles.compareTitle, { color: COLORS.tealLight }]}>{t('member.deficit.coopRate')}</Text>
             <Text style={styles.comparePrice}>$0.20 <Text style={styles.priceUnit}>/ kWh</Text></Text>
@@ -65,7 +69,7 @@ export const DeficitView = () => {
           </View>
 
           {/* Utility Grid Rate */}
-          <View style={[styles.compareCard, { backgroundColor: 'rgba(239, 68, 68, 0.08)', borderColor: 'rgba(239, 68, 68, 0.25)' }]}>
+          <View style={[styles.compareCard, { backgroundColor: themeColor("rgba(239, 68, 68, 0.08)", "backgroundColor"), borderColor: themeColor("rgba(239, 68, 68, 0.25)", "borderColor") }]}>
             <Text style={[styles.compareTag, { color: COLORS.red }]}>{t('member.deficit.highPeak')}</Text>
             <Text style={[styles.compareTitle, { color: COLORS.red }]}>{t('member.deficit.utilityRate')}</Text>
             <Text style={styles.comparePrice}>$0.45 <Text style={styles.priceUnit}>/ kWh</Text></Text>
@@ -108,7 +112,7 @@ export const DeficitView = () => {
           onPress={handleBorrow}
           activeOpacity={0.7}
         >
-          <ArrowDownLeft size={18} color="#FFFFFF" />
+          <ArrowDownLeft size={18} color={"#FFFFFF"} />
           <Text style={styles.borrowSubmitText}>{t('member.deficit.executeBorrow')}</Text>
         </TouchableOpacity>
       </View>
@@ -116,7 +120,7 @@ export const DeficitView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

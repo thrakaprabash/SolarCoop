@@ -9,6 +9,7 @@ import { TECH, urgencyColor } from '../theme';
 import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
 import { buildDirectionsUrl } from '../utils/maps';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}
@@ -20,6 +21,9 @@ ${message}`);
 const isoDate = (iso) => (iso ? String(iso).slice(0, 10) : '—');
 
 function DossierCard({ icon: Icon, title, children }) {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH } = useLegacyTheme();
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -32,6 +36,8 @@ function DossierCard({ icon: Icon, title, children }) {
 }
 
 function InfoLine({ label, value }) {
+  const styles = useThemedStyles(baseStyles);
+
   return (
     <Text style={styles.infoLine}>
       {label ? `${label}: ` : ''}<Text style={styles.infoValue}>{value || '—'}</Text>
@@ -44,6 +50,9 @@ function InfoLine({ label, value }) {
  * the equipment is reporting, and what has been done at this site before.
  */
 export default function JobTicketDetailScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { selectedJob: job, closeJob, acceptJob, technicianId, openClosure } = useTechnician();
   const [accepting, setAccepting] = useState(false);
@@ -126,7 +135,7 @@ export default function JobTicketDetailScreen() {
           disabled={!directionsUrl}
           accessibilityRole="link"
         >
-          <MapPin size={15} color="#FFFFFF" />
+          <MapPin size={15} color={"#FFFFFF"} />
           <Text style={styles.mapsBtnText}>{t('technician.detail.navigate')}</Text>
         </Pressable>
       </DossierCard>
@@ -187,7 +196,7 @@ export default function JobTicketDetailScreen() {
             style={[styles.acceptBtn, accepting && styles.btnDisabled]}
           >
             {accepting
-              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              ? <ActivityIndicator size="small" color={"#FFFFFF"} />
               : <Text style={styles.acceptText}>{t('technician.detail.accept')}</Text>}
           </LinearGradient>
         </Pressable>
@@ -228,7 +237,7 @@ ${job.resolutionNotes}` : ''}
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 14 },
   back: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },

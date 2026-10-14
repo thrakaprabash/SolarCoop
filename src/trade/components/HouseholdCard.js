@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { colors, radius, weight } from '../theme';
 import { Card, Metric, Pill, PrimaryButton, ProgressBar } from './ui';
 import { kwh, rate as fmtRate } from '../utils/format';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function HouseholdCard({ household, requested, onRequest, accentColor = colors.teal }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { name, house, dist, soc, online } = household;
   const buttonBg = !online ? 'rgba(255,255,255,0.12)' : requested ? colors.tealTintStrong : accentColor;
@@ -61,7 +65,7 @@ export default function HouseholdCard({ household, requested, onRequest, accentC
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { gap: 12 },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   name: { fontSize: 15, fontWeight: weight.heavy, color: colors.text },

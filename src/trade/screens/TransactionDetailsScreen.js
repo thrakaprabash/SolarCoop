@@ -19,8 +19,12 @@ import {
   PrimaryButton,
   SectionLabel,
 } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function TransactionDetailsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { params, navigate } = useNavigation();
   const { showToast } = useTrade();
@@ -151,7 +155,7 @@ export default function TransactionDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   missing: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },

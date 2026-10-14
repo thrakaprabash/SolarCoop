@@ -2,8 +2,12 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AnalyticsStatus({ analytics }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { signedIn, energyLoading, energyError, reading, refresh, loading } = analytics;
   let message = 'Sign in to view your energy activity.';
@@ -27,7 +31,7 @@ export default function AnalyticsStatus({ analytics }) {
     </Pressable> : null}
   </View>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { gap: 8 }, text: { color: colors.textMuted, fontSize: 13, lineHeight: 19 },
   action: { color: colors.tealLight, paddingVertical: 8, fontWeight: '600' },
 });

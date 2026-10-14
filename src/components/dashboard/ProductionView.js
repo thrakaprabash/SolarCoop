@@ -5,6 +5,7 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Rect, Path, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { Sun, ShieldAlert, Cpu, Gauge, Compass, Thermometer, Sparkles } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STATUS_LABEL_KEY = {
   optimal: 'member.production.status.optimal',
@@ -13,6 +14,9 @@ const STATUS_LABEL_KEY = {
 
 // SOL-97: Production View Component
 export const ProductionView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics } = useEnergy();
 
@@ -140,7 +144,7 @@ export const ProductionView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

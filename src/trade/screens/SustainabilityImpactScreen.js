@@ -11,8 +11,12 @@ import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
 import { ImpactStatCard, SdgCard } from '../components';
 import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function SustainabilityImpactScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const analytics = useEnergyAnalytics({ includeLedger: true });
   const { navigate } = useNavigation();
@@ -62,7 +66,7 @@ export default function SustainabilityImpactScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 14 },
   tabs: { flexDirection: 'row', alignItems: 'center', gap: 6 },

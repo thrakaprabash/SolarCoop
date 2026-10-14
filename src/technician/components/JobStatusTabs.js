@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { TECH } from '../theme';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const TABS = ['pending', 'active', 'completed'];
 
@@ -11,6 +12,8 @@ const TABS = ['pending', 'active', 'completed'];
  * number of finished jobs doesn't compete for attention.
  */
 export default function JobStatusTabs({ value, onChange, counts }) {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
 
   return (
@@ -38,7 +41,7 @@ export default function JobStatusTabs({ value, onChange, counts }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   track: {
     flexDirection: 'row',
     backgroundColor: TECH.card,

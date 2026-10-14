@@ -252,9 +252,18 @@
         "household": "e.g. HH-ADMIN-01"
       },
       "menu": {
-        "about": { "label": "About SolarCoop", "sub": "Community Energy Sharing App v1.0.0" },
-        "adminPrivileges": { "label": "Admin Privileges", "sub": "Full system access · Real-time Member Sync" },
-        "systemEnv": { "label": "System Environment", "sub": "Expo SDK 57 · React Native 0.86" }
+        "about": {
+          "label": "About SolarCoop",
+          "sub": "Community Energy Sharing App v1.0.0"
+        },
+        "adminPrivileges": {
+          "label": "Admin Privileges",
+          "sub": "Full system access · Real-time Member Sync"
+        },
+        "systemEnv": {
+          "label": "System Environment",
+          "sub": "Expo SDK 57 · React Native 0.86"
+        }
       }
     },
     "alerts": {
@@ -1065,5 +1074,11 @@
       "featureHeading": "Module Features",
       "createRequest": "Create Energy Request"
     }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Device"
   }
 }

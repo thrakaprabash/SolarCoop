@@ -22,6 +22,7 @@ import {
   Check, 
   Lock 
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * SOL-185: Dashboard Widget Customization & Reordering UI Modal
@@ -34,6 +35,9 @@ export const WidgetCustomizerModal = ({
   onSaveLayout,
   onResetLayout,
 }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const [currentLayout, setCurrentLayout] = useState(layout);
 
@@ -196,7 +200,7 @@ export const WidgetCustomizerModal = ({
                   onPress={handleSave}
                   activeOpacity={0.8}
                 >
-                  <Check size={16} color="#FFFFFF" />
+                  <Check size={16} color={"#FFFFFF"} />
                   <Text style={styles.saveBtnText}>{t('member.widgetCustomizer.applyLayout')}</Text>
                 </TouchableOpacity>
               </View>
@@ -208,7 +212,7 @@ export const WidgetCustomizerModal = ({
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.72)',

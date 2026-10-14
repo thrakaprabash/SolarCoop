@@ -15,6 +15,7 @@ import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
+import { ThemeSwitcher } from '../../components/common/ThemeSwitcher';
 import {
   UserCog,
   ShieldCheck,
@@ -30,6 +31,7 @@ import {
   Mail,
   Shield,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const SWITCHER_COLORS = {
   card: GLASS.card.backgroundColor,
@@ -48,6 +50,9 @@ const getInitials = (name = '') => {
 };
 
 export default function AdminSettingsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { onExit, communityStats } = useAdmin();
   const { user, profile, updateProfile } = useAuth();
@@ -324,10 +329,10 @@ export default function AdminSettingsScreen() {
                 activeOpacity={0.8}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={"#FFFFFF"} />
                 ) : (
                   <>
-                    <Check size={16} color="#FFFFFF" />
+                    <Check size={16} color={"#FFFFFF"} />
                     <Text style={styles.saveFormBtnText}>{t('admin.settings.saveChanges')}</Text>
                   </>
                 )}
@@ -337,7 +342,8 @@ export default function AdminSettingsScreen() {
         )}
       </View>
 
-      <LanguageSwitcher colors={SWITCHER_COLORS} />
+      <LanguageSwitcher />
+      <ThemeSwitcher />
 
       {/* System Information Card */}
       <View style={[GLASS.card, styles.menuCard]}>
@@ -372,7 +378,7 @@ export default function AdminSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
 

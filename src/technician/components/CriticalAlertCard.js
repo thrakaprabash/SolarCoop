@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react-native';
 import { TECH, urgencyColor } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * SOL-198 — the technician's side of a fault: the raw error code, where it
@@ -14,6 +15,9 @@ import { TECH, urgencyColor } from '../theme';
  * pending job it is shown read-only as a preview of the work.
  */
 export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem, onViewJob }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const accent = urgencyColor(job.urgency);
   const critical = job.urgency === 'urgent';
@@ -57,7 +61,7 @@ export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem,
               item.done && { backgroundColor: accent, borderColor: accent },
               !canEditChecklist && styles.boxLocked,
             ]}>
-              {item.done ? <Check size={11} color="#FFFFFF" strokeWidth={3} /> : null}
+              {item.done ? <Check size={11} color={"#FFFFFF"} strokeWidth={3} /> : null}
             </View>
             <Text style={[styles.checkText, item.done && styles.checkTextDone]}>{item.label}</Text>
           </Pressable>
@@ -77,7 +81,7 @@ export default function CriticalAlertCard({ job, canEditChecklist, onToggleItem,
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 4 },
   kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   dot: { width: 7, height: 7, borderRadius: 4 },

@@ -252,9 +252,18 @@
         "household": "எ.கா. HH-ADMIN-01"
       },
       "menu": {
-        "about": { "label": "SolarCoop பற்றி", "sub": "சமூக ஆற்றல் பகிர்வு பயன்பாடு v1.0.0" },
-        "adminPrivileges": { "label": "நிர்வாக சிறப்புரிமைகள்", "sub": "முழு கணினி அணுகல் · நிகழ்நேர உறுப்பினர் ஒத்திசைவு" },
-        "systemEnv": { "label": "கணினி சூழல்", "sub": "Expo SDK 57 · React Native 0.86" }
+        "about": {
+          "label": "SolarCoop பற்றி",
+          "sub": "சமூக ஆற்றல் பகிர்வு பயன்பாடு v1.0.0"
+        },
+        "adminPrivileges": {
+          "label": "நிர்வாக சிறப்புரிமைகள்",
+          "sub": "முழு கணினி அணுகல் · நிகழ்நேர உறுப்பினர் ஒத்திசைவு"
+        },
+        "systemEnv": {
+          "label": "கணினி சூழல்",
+          "sub": "Expo SDK 57 · React Native 0.86"
+        }
       }
     },
     "alerts": {
@@ -1065,5 +1074,11 @@
       "featureHeading": "தொகுதி அம்சங்கள்",
       "createRequest": "ஆற்றல் கோரிக்கையை உருவாக்கு"
     }
+  },
+  "appearance": {
+    "title": "தோற்றம்",
+    "light": "ஒளி",
+    "dark": "இருள்",
+    "system": "சாதனம்"
   }
 }

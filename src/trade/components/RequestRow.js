@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { colors, radius, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { kwh, money } from '../utils/format';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestRow({ request, last, onPress }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
   const displayName = request.name || t('trade.household.fallback');
@@ -40,7 +44,7 @@ export default function RequestRow({ request, last, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   divided: { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: colors.hairline },
   left: { gap: 3 },

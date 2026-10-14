@@ -4,8 +4,12 @@ import { Clock, Zap } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function FeatureRow({ feature, onPress, last }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const enabled = !!feature.screen;
   return (
@@ -26,7 +30,7 @@ export default function FeatureRow({ feature, onPress, last }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { gap: 4 },
   divided: { paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.hairline },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

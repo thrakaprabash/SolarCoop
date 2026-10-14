@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Stethoscope, User, Wrench } from 'lucide-react-native';
 import { TECH } from '../theme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const TABS = [
   { key: 'dashboard',   labelKey: 'technician.nav.dashboard',   icon: Wrench },
@@ -11,6 +12,9 @@ const TABS = [
 ];
 
 export default function TechBottomTabBar({ activeKey, onSelect, badges = {} }) {
+  const styles = useThemedStyles(baseStyles);
+  const { TECH } = useLegacyTheme();
+
   const { t } = useTranslation();
 
   return (
@@ -40,7 +44,7 @@ export default function TechBottomTabBar({ activeKey, onSelect, badges = {} }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

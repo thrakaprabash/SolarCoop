@@ -7,8 +7,12 @@ import { colors, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { kwh } from '../utils/format';
 import { IconBadge, Pill } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function IncomingRequestRow({ request, onPress, last }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
@@ -41,7 +45,7 @@ export default function IncomingRequestRow({ request, onPress, last }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divided: { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: colors.hairline },
   initials: { fontSize: 13, fontWeight: weight.heavy, color: colors.tealLight },

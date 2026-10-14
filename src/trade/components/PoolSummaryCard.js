@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { colors, weight } from '../theme';
 import { Card, Divider, IconBadge, Metric } from './ui';
 import { kwh, rate as fmtRate } from '../utils/format';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function PoolSummaryCard({ pool }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <Card padding={18}>
@@ -35,7 +39,7 @@ export default function PoolSummaryCard({ pool }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   statsRow: {
     flexDirection: 'row',

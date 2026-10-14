@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Calendar, Clock, Sliders, Check, X } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export const DATE_RANGES = [
   { key: 'today', labelKey: 'member.dateFilter.range.today', shortLabel: 'Today' },
@@ -55,6 +56,9 @@ export const DateRangeFilter = ({
   customRange = { startDate: '2026-09-01', endDate: '2026-09-29' },
   onSelectCustomRange,
 }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [tempStart, setTempStart] = useState(customRange.startDate);
@@ -231,7 +235,7 @@ export const DateRangeFilter = ({
                   onPress={handleApplyCustom}
                   activeOpacity={0.8}
                 >
-                  <Check size={16} color="#FFFFFF" />
+                  <Check size={16} color={"#FFFFFF"} />
                   <Text style={styles.applyBtnText}>{t('member.dateFilter.applyFilter')}</Text>
                 </TouchableOpacity>
               </View>
@@ -243,7 +247,7 @@ export const DateRangeFilter = ({
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   wrapper: {
     gap: 8,
     marginBottom: 6,
