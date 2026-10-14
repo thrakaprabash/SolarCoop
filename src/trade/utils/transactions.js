@@ -1,4 +1,4 @@
-import { monthLabel } from './format';
+import { monthLabel, addTradeAmounts } from './format';
 
 export const matchesFilter = (txn, filter) =>
   filter === 'All' || (filter === 'Sent' ? txn.dir === 'sent' : txn.dir === 'received');
@@ -6,13 +6,16 @@ export const matchesFilter = (txn, filter) =>
 export const byNewest = (a, b) => new Date(b.ts) - new Date(a.ts);
 
 /** Groups transactions into { label, items } blocks by calendar month. */
-export function groupByMonth(list) {
+const reportingMonth = (value) => new Date(new Date(value).getTime() + 330 * 60000).toISOString().slice(0, 7);
+
+export function groupByMonth(list, language) {
   const groups = [];
   list.forEach((txn) => {
-    const label = monthLabel(new Date(txn.ts));
-    let group = groups.find((g) => g.label === label);
+    const key = reportingMonth(txn.ts);
+    const label = monthLabel(new Date(txn.ts), language);
+    let group = groups.find((g) => g.key === key);
     if (!group) {
-      group = { label, items: [] };
+      group = { key, label, items: [] };
       groups.push(group);
     }
     group.items.push(txn);
@@ -23,10 +26,9 @@ export function groupByMonth(list) {
 /** kWh sent and received within the calendar month of the given date. */
 export function monthTotals(list, now = new Date()) {
   const inMonth = list.filter((t) => {
-    const d = new Date(t.ts);
-    return t.status === 'COMPLETED' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return t.status === 'COMPLETED' && reportingMonth(t.ts) === reportingMonth(now);
   });
-  const by = (dir) => inMonth.filter((t) => t.dir === dir).reduce((s, t) => s + t.kwh, 0);
+  const by = (dir) => inMonth.filter((t) => t.dir === dir).reduce((s, t) => addTradeAmounts(s, t.kwh), 0);
   return { sent: by('sent'), received: by('received') };
 }
 

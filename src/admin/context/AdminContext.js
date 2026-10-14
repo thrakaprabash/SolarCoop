@@ -61,6 +61,8 @@ export const AdminProvider = ({ children, onExit }) => {
   const [scanning, setScanning] = useState(false);
   const [lastScan, setLastScan] = useState(null);
   const scanInFlight = useRef(null);
+  const transactionReads = useRef(0);
+  const alertReads = useRef(0);
 
   // Shared by the header status pill, the dashboard stat and the alerts screen,
   // so the "what needs attention" definition lives in exactly one place.
@@ -119,20 +121,23 @@ export const AdminProvider = ({ children, onExit }) => {
   /**
    * Fetch all transactions (with sender/receiver names resolved) from Supabase.
    */
-  const loadTransactions = useCallback(async () => {
-    setTransactionsLoading(true);
+  const loadTransactions = useCallback(async ({ silent = false } = {}) => {
+    const request = ++transactionReads.current;
+    if (!silent) setTransactionsLoading(true);
     setTransactionsError(null);
     try {
       const data = await fetchAllTransactions();
+      if (request !== transactionReads.current) return;
       setTransactions(data);
     } catch (err) {
+      if (request !== transactionReads.current) return;
       console.error('[AdminContext] loadTransactions failed:', err.message);
       setTransactionsError(
         err.message ||
         'Could not load transactions. Check your Supabase RLS policies.'
       );
     } finally {
-      setTransactionsLoading(false);
+      if (request === transactionReads.current) setTransactionsLoading(false);
     }
   }, []);
 
@@ -140,20 +145,23 @@ export const AdminProvider = ({ children, onExit }) => {
   /**
    * Fetch all alerts (with targeted member names resolved) from Supabase.
    */
-  const loadAlerts = useCallback(async () => {
-    setAlertsLoading(true);
+  const loadAlerts = useCallback(async ({ silent = false } = {}) => {
+    const request = ++alertReads.current;
+    if (!silent) setAlertsLoading(true);
     setAlertsError(null);
     try {
       const data = await fetchAllAlerts();
+      if (request !== alertReads.current) return;
       setAlerts(data);
     } catch (err) {
+      if (request !== alertReads.current) return;
       console.error('[AdminContext] loadAlerts failed:', err.message);
       setAlertsError(
         err.message ||
         'Could not load alerts. Check your Supabase RLS policies.'
       );
     } finally {
-      setAlertsLoading(false);
+      if (request === alertReads.current) setAlertsLoading(false);
     }
   }, []);
 
@@ -184,7 +192,7 @@ export const AdminProvider = ({ children, onExit }) => {
           error: err?.message || 'The scan could not run.',
         });
       } finally {
-        await loadAlerts();
+        await loadAlerts({ silent: true });
         setScanning(false);
         scanInFlight.current = null;
       }
@@ -238,8 +246,10 @@ export const AdminProvider = ({ children, onExit }) => {
   }, []);
 
   // ─── reverseTransaction ─────────────────────────────────────────────────────
-  const reverseTransaction = useCallback(async (transactionId) => {
-    const updatedRecord = await serviceReverseTransaction(transactionId);
+  const reverseTransaction = useCallback(async (transactionId, reason) => {
+    const updatedRecord = await serviceReverseTransaction(transactionId, reason);
+    ++transactionReads.current;
+    setTransactionsLoading(false);
     setTransactions(prev =>
       prev.map(t => (t.id === transactionId ? updatedRecord : t))
     );
@@ -251,6 +261,8 @@ export const AdminProvider = ({ children, onExit }) => {
   // ─── createAlert ────────────────────────────────────────────────────────────
   const createAlert = useCallback(async (alertData) => {
     const created = await serviceCreateAlert(alertData);
+    ++alertReads.current;
+    setAlertsLoading(false);
     setAlerts(prev => [created, ...prev]);
     return created;
   }, []);
@@ -259,23 +271,31 @@ export const AdminProvider = ({ children, onExit }) => {
   // Only admin-created alerts can be edited; the service enforces it.
   const updateAlert = useCallback(async (alertId, changes) => {
     const updated = await serviceUpdateAlert(alertId, changes);
+    ++alertReads.current;
+    setAlertsLoading(false);
     setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, ...updated } : a)));
   }, []);
 
   // ─── resolveAlert / reopenAlert ─────────────────────────────────────────────
   const resolveAlert = useCallback(async (alertId) => {
     const { status } = await serviceResolveAlert(alertId);
+    ++alertReads.current;
+    setAlertsLoading(false);
     setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, status } : a)));
   }, []);
 
   const reopenAlert = useCallback(async (alertId) => {
     const { status } = await serviceReopenAlert(alertId);
+    ++alertReads.current;
+    setAlertsLoading(false);
     setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, status } : a)));
   }, []);
 
   // ─── deleteAlert ────────────────────────────────────────────────────────────
   const deleteAlert = useCallback(async (alertId) => {
     await serviceDeleteAlert(alertId);
+    ++alertReads.current;
+    setAlertsLoading(false);
     setAlerts(prev => prev.filter(a => a.id !== alertId));
   }, []);
 

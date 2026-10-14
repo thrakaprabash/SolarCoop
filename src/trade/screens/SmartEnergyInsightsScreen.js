@@ -10,7 +10,7 @@ import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
 import { analyticsText } from '../utils/analyticsText';
 import { dayPart } from '../utils/format';
-import { kwh } from '../utils/format';
+import { kwh, tradeKwh } from '../utils/format';
 import { Card, Chip, ScreenTitle, SectionLabel } from '../components/ui';
 
 const GREETING_KEY = {
@@ -57,7 +57,7 @@ export default function SmartEnergyInsightsScreen() {
         {daily.trend ? <Text style={styles.notice}>{copy(`trend_${daily.trend.kind}`)}</Text> : null}
       </Card> : null}
       {analytics.signedIn && !providersLoading && !providersError && surplus > 0 ?
-        <Text style={styles.notice}>{copy('available', { amount: surplus.toFixed(1) })}</Text> : null}
+        <Text style={styles.notice}>{copy('available', { amount: tradeKwh(surplus) })}</Text> : null}
       <Text style={styles.footNote}>{copy('snapshotNote')}</Text>
     </ScrollView>
   );

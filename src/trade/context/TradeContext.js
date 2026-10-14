@@ -65,7 +65,9 @@ export function TradeProvider({ children }) {
         setProviderState({
           userId,
           surplus: providers.find((provider) => provider.id === userId)?.kwh ?? 0,
-          items: providers.filter((provider) => provider.online && provider.id !== userId),
+          // Keep zero-surplus owners visible so the total represents all other
+          // approved solar households, not just those currently able to share.
+          items: providers.filter((provider) => provider.id !== userId),
         });
       }
     } catch (error) {

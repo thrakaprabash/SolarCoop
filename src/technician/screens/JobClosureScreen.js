@@ -6,7 +6,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Check } from 'lucide-react-native';
-import { TECH } from '../theme';
+import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { useTechnician } from '../context/TechnicianContext';
 
 import RepairEvidenceCard from '../components/RepairEvidenceCard';
@@ -20,6 +20,8 @@ const notify = (title, message) => {
 
 /** Repair evidence, checklist and notes for an active job. */
 export default function JobClosureScreen() {
+  const { TECH } = useTechnicianTheme();
+  const styles = useTechStyles(createStyles);
   const { t } = useTranslation();
   const { selectedJob: job, closeClosure, toggleChecklistItem, completeJob, uploadRepairPhoto, saveResolutionNotes, pendingWrites } = useTechnician();
   const [notes, setNotes] = useState(job.resolutionNotes ?? '');
@@ -138,7 +140,7 @@ export default function JobClosureScreen() {
               accessibilityState={{ checked: item.done, disabled: busy }}
             >
               <View style={[styles.box, item.done && styles.boxDone]}>
-                {item.done ? <Check size={16} color="#FFFFFF" strokeWidth={3} /> : null}
+                {item.done ? <Check size={16} color={TECH.onAccent} strokeWidth={3} /> : null}
               </View>
               <Text style={[styles.checkText, item.done && styles.checkTextDone]}>{item.label}</Text>
             </Pressable>
@@ -182,7 +184,7 @@ export default function JobClosureScreen() {
           style={({ pressed }) => pressed && styles.pressed}
         >
           <LinearGradient
-            colors={[TECH.orange, TECH.orangeDark]}
+            colors={[TECH.action, TECH.orangeDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={[styles.completeBtn, (!notesOk || !photosOk || busy) && styles.btnDisabled]}
@@ -197,13 +199,13 @@ export default function JobClosureScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = TECH => StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 14 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', maxWidth: '100%' },
-  backText: { flexShrink: 1, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6, color: TECH.orange, textTransform: 'uppercase' },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 14 },
+  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', maxWidth: '100%' },
+  backText: { flexShrink: 1, fontSize: 12, fontWeight: '600', letterSpacing: 0.6, color: TECH.orange, textTransform: 'uppercase' },
   titleBlock: { gap: 4, marginTop: 4 },
-  title: { fontSize: 20, fontWeight: '800', color: TECH.text, letterSpacing: -0.3 },
+  title: { fontSize: 20, fontWeight: '600', color: TECH.text, letterSpacing: -0.3 },
   subtitle: { fontSize: 12, color: TECH.textSecondary },
   card: {
     backgroundColor: TECH.card,
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTitle: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
+  cardTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 0.7, color: TECH.text, textTransform: 'uppercase' },
   count: { fontSize: 11, fontWeight: '700', color: TECH.textSecondary },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, minHeight: 48 },
   box: {
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   boxDone: { backgroundColor: TECH.orange, borderColor: TECH.orange },
-  checkText: { flex: 1, fontSize: 12.5, color: TECH.text },
+  checkText: { flex: 1, fontSize: 14, color: TECH.text },
   checkTextDone: { color: TECH.textSecondary },
   input: {
     minHeight: 96,
@@ -237,15 +239,15 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 13,
     color: TECH.text,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: TECH.bg,
     marginTop: 4,
   },
   notesFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   saveNotesBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 10, backgroundColor: TECH.orangeSoft },
   saveNotesText: { fontSize: 12, fontWeight: '700', color: TECH.orange },
   hint: { fontSize: 11, color: TECH.textMuted },
-  completeBtn: { alignItems: 'center', justifyContent: 'center', borderRadius: 26, minHeight: 50, marginTop: 4 },
-  completeText: { fontSize: 12.5, fontWeight: '800', letterSpacing: 0.6, color: '#FFFFFF', textTransform: 'uppercase' },
+  completeBtn: { alignItems: 'center', justifyContent: 'center', borderRadius: 12, minHeight: 50, marginTop: 4 },
+  completeText: { fontSize: 14, fontWeight: '600', letterSpacing: 0.6, color: '#FFFFFF', textTransform: 'uppercase' },
   btnDisabled: { opacity: 0.45 },
   pressed: { opacity: 0.85 },
 });

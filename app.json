@@ -29,6 +29,14 @@
           "cameraPermission": "Allow SolarCoop to photograph completed repairs.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
       ]
     ]
   }

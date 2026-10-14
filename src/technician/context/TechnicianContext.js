@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchTechnicianJobs,
@@ -19,6 +20,9 @@ const TechnicianContext = createContext(null);
 export const TechnicianProvider = ({ children, onExit }) => {
   const { user, profile } = useAuth();
   const technicianId = user?.id ?? null;
+  const jobRequests = useRef(0);
+  const identity = useRef(technicianId);
+  identity.current = technicianId;
 
   // ─── Navigation state ───────────────────────────────────────────────────────
   const [techBottomTab, setTechBottomTab] = useState('dashboard'); // 'dashboard' | 'diagnostics' | 'profile'
@@ -41,6 +45,8 @@ export const TechnicianProvider = ({ children, onExit }) => {
   }
   const saveJobChange = useCallback((jobId, action) => mutationQueue.current.enqueue(jobId, async () => {
     const updated = await action();
+    ++jobRequests.current;
+    setJobsLoading(false);
     setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
     return updated;
   }), []);
@@ -86,24 +92,36 @@ export const TechnicianProvider = ({ children, onExit }) => {
    * Fetch the technician's board from Supabase. Safe to call repeatedly
    * (mount, retry, pull-to-refresh).
    */
-  const loadJobs = useCallback(async () => {
+  const loadJobs = useCallback(async ({ silent = false } = {}) => {
     if (!technicianId) return;
-    setJobsLoading(true);
+    const request = ++jobRequests.current;
+    if (!silent) setJobsLoading(true);
     setJobsError(null);
     try {
       const data = await fetchTechnicianJobs(technicianId);
+      if (identity.current !== technicianId || request !== jobRequests.current) return;
       setJobs(data);
       setHasLoaded(true);
     } catch (err) {
+      if (identity.current !== technicianId || request !== jobRequests.current) return;
       console.error('[TechnicianContext] loadJobs failed:', err.message);
       setJobsError(
         err.message ||
         'Could not load jobs. Check that migration 0006_technician_jobs.sql has been applied.'
       );
     } finally {
-      setJobsLoading(false);
+      if (identity.current === technicianId && request === jobRequests.current) setJobsLoading(false);
     }
   }, [technicianId]);
+
+  // Reconcile the board when mobile Realtime disconnects or misses an update.
+  useEffect(() => {
+    if (!technicianId) return;
+    const refresh = () => loadJobs({ silent: true });
+    const timer = setInterval(refresh, 10_000);
+    const foreground = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
+    return () => { ++jobRequests.current; clearInterval(timer); foreground.remove(); };
+  }, [technicianId, loadJobs]);
 
   // ─── acceptJob ──────────────────────────────────────────────────────────────
   /**
@@ -118,6 +136,8 @@ export const TechnicianProvider = ({ children, onExit }) => {
         id: technicianId,
         name: profile?.name ?? user?.user_metadata?.name,
       });
+      ++jobRequests.current;
+      setJobsLoading(false);
       setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
       setJobFilter('active');
       return updated;
@@ -163,10 +183,15 @@ export const TechnicianProvider = ({ children, onExit }) => {
     return subscribeToJobs(`technician-jobs-${technicianId}`, (payload) => {
       if (payload.eventType === 'DELETE') {
         const goneId = payload.old?.id;
-        if (goneId) setJobs(prev => prev.filter(j => j.id !== goneId));
+        if (goneId) {
+          ++jobRequests.current; setJobsLoading(false);
+          setJobs(prev => prev.filter(j => j.id !== goneId));
+        }
         return;
       }
       if (!payload.new?.id) return;
+      ++jobRequests.current;
+      setJobsLoading(false);
       const job = buildJob(payload.new);
       setJobs(prev => {
         const rest = prev.filter(j => j.id !== job.id);
@@ -198,6 +223,7 @@ export const TechnicianProvider = ({ children, onExit }) => {
         jobsError,
         jobCounts,
         connectionStatus,
+        hasLoaded,
         loadJobs,
         acceptJob,
         completeJob,

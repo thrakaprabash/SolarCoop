@@ -7,7 +7,7 @@ import { colors, radius, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
-import { kwh } from '../utils/format';
+import { tradeKwh as kwh, stamp, addTradeAmounts } from '../utils/format';
 import { SurplusCard } from '../components';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
 } from '../components/ui';
 
 export default function RequestApprovalScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { params, navigate } = useNavigation();
   const { getIncoming, surplus, providersLoading, providersError, refreshProviders, approveIncoming, rejectIncoming } = useTrade();
   const [modal, setModal] = useState('');
@@ -46,7 +46,7 @@ export default function RequestApprovalScreen() {
 
   const pending = request.status === 'Pending';
   const canApprove = !providersLoading && !providersError && request.kwh <= surplus;
-  const remaining = Math.max(0, +(surplus - request.kwh).toFixed(1));
+  const remaining = Math.max(0, addTradeAmounts(surplus, -request.kwh));
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
   const onApprove = async () => {
@@ -129,7 +129,7 @@ export default function RequestApprovalScreen() {
           <Text style={styles.amountCaption}>{t('trade.approval.requestedEnergy')}</Text>
         </View>
         <Divider />
-        <DetailRow label={t('trade.approval.requestedOn')} value={request.when || t('trade.dateUnavailable')} />
+        <DetailRow label={t('trade.approval.requestedOn')} value={request.ts ? stamp(new Date(request.ts), i18n.resolvedLanguage || i18n.language) : t('trade.dateUnavailable')} />
       </Card>
 
       <SectionLabel>{t('trade.approval.energyStatus')}</SectionLabel>

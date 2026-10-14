@@ -41,29 +41,45 @@ const requestTimestamp = (timestamp) => {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
+// A timestamp + ID cursor stays stable when newer requests arrive mid-read.
+async function loadRequests(column, userId) {
+  const rows = [];
+  let cursor;
+  for (;;) {
+    let query = supabase.from('energy_requests').select(REQUEST_COLUMNS)
+      .eq(column, userId).order('created_at', { ascending: false })
+      .order('id', { ascending: false }).range(0, 499);
+    if (cursor) query = query.or(`created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`);
+    const { data, error } = await query;
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < 500) return rows;
+    const next = data[data.length - 1];
+    if (cursor && String(next.id) === String(cursor.id)) throw new Error('Request pagination did not advance.');
+    cursor = next;
+  }
+}
+
+async function loadRequestProfiles(ids) {
+  const profiles = [];
+  // Bound the URL and keep each lookup below the normal API row limit.
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await supabase.from('profiles').select('id, name').in('id', ids.slice(i, i + 100));
+    if (error) throw error;
+    profiles.push(...(data || []));
+  }
+  return profiles;
+}
+
 /** Fetch only the signed-in member's submitted requests, newest first. */
 export async function fetchMyRequests(userId) {
   if (!userId) return [];
 
-  const { data: rows, error: requestsError } = await supabase
-    .from('energy_requests')
-    .select(REQUEST_COLUMNS)
-    .eq('requester_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (requestsError) throw requestsError;
+  const rows = await loadRequests('requester_id', userId);
   if (!rows?.length) return [];
 
   const providerIds = [...new Set(rows.map((row) => row.provider_id).filter(Boolean))];
-  let providers = [];
-  if (providerIds.length > 0) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, name')
-      .in('id', providerIds);
-    if (error) throw error;
-    providers = data || [];
-  }
+  const providers = await loadRequestProfiles(providerIds);
   const providerById = new Map((providers || []).map((profile) => [profile.id, profile]));
 
   return rows.map((row) => {
@@ -87,25 +103,11 @@ export async function fetchMyRequests(userId) {
 export async function fetchIncomingRequests(providerId) {
   if (!providerId) return [];
 
-  const { data: rows, error: requestsError } = await supabase
-    .from('energy_requests')
-    .select(REQUEST_COLUMNS)
-    .eq('provider_id', providerId)
-    .order('created_at', { ascending: false });
-
-  if (requestsError) throw requestsError;
+  const rows = await loadRequests('provider_id', providerId);
   if (!rows?.length) return [];
 
   const requesterIds = [...new Set(rows.map((row) => row.requester_id).filter(Boolean))];
-  let requesters = [];
-  if (requesterIds.length > 0) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, name')
-      .in('id', requesterIds);
-    if (error) throw error;
-    requesters = data || [];
-  }
+  const requesters = await loadRequestProfiles(requesterIds);
 
   const requesterById = new Map(requesters.map((profile) => [profile.id, profile]));
   return rows.map((row) => {

@@ -1,34 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
-import { BatteryCharging, ArrowUpRight, Share2, Coins, CheckCircle2, ShieldCheck, Zap } from 'lucide-react-native';
+import { BatteryCharging, ArrowUpRight, Share2 } from 'lucide-react-native';
 
 // SOL-99: Surplus View Component
 export const SurplusView = () => {
   const { t } = useTranslation();
-  const {
-    metrics,
-    autoShareEnabled,
-    setAutoShareEnabled,
-    autoShareThreshold,
-    setAutoShareThreshold,
-    executeShareEnergy
-  } = useEnergy();
+  const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
 
-  const [shareAmount, setShareAmount] = useState('3.5');
-  const [recipientHousehold, setRecipientHousehold] = useState(t('member.surplus.defaultRecipient'));
-  const [shareSuccess, setShareSuccess] = useState(false);
-
-  const handleShare = () => {
-    const val = parseFloat(shareAmount);
-    if (!isNaN(val) && val > 0) {
-      executeShareEnergy(val, recipientHousehold);
-      setShareSuccess(true);
-      setTimeout(() => setShareSuccess(false), 3000);
-    }
-  };
+  if (!hasMetrics) return <View style={styles.sectionCard}><Text style={styles.sectionTitle}>{t('member.dashboard.waitingTitle')}</Text><Text style={styles.formSubtitle}>{t('member.dashboard.waitingBody')}</Text></View>;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -46,7 +28,7 @@ export const SurplusView = () => {
           <View>
             <Text style={styles.label}>{t('member.surplus.currentRate')}</Text>
             <Text style={styles.val}>
-              {metrics.surplusAvailable} <Text style={styles.unit}>kW</Text>
+              {metrics.surplusAvailable} <Text style={styles.unit}>kWh</Text>
             </Text>
           </View>
         </View>
@@ -54,7 +36,7 @@ export const SurplusView = () => {
         <View style={styles.batteryProgressContainer}>
           <View style={styles.batteryHeader}>
             <Text style={styles.batteryLabel}>{t('member.surplus.batteryState')}</Text>
-            <Text style={styles.batteryVal}>{metrics.batteryLevel}% (11.8 kWh)</Text>
+            <Text style={styles.batteryVal}>{metrics.batteryLevel}% ({((metrics.batteryLevel / 100) * metrics.batteryCapacity).toFixed(2)} / {metrics.batteryCapacity} kWh)</Text>
           </View>
 
           {/* Custom battery bar */}
@@ -83,66 +65,16 @@ export const SurplusView = () => {
           <Text style={styles.sectionTitle}>{t('member.surplus.transferTitle')}</Text>
         </View>
 
-        <Text style={styles.formSubtitle}>
-          {t('member.surplus.transferSubtitle')}
-        </Text>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>{t('member.surplus.amountLabel')}</Text>
-          <TextInput
-            style={[styles.input, GLASS.input]}
-            keyboardType="numeric"
-            value={shareAmount}
-            onChangeText={setShareAmount}
-            placeholderTextColor={COLORS.textMuted}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>{t('member.surplus.recipientLabel')}</Text>
-          <TextInput
-            style={[styles.input, GLASS.input]}
-            value={recipientHousehold}
-            onChangeText={setRecipientHousehold}
-            placeholderTextColor={COLORS.textMuted}
-          />
-        </View>
-
-        {shareSuccess && (
-          <View style={styles.successBanner}>
-            <CheckCircle2 size={18} color={COLORS.tealLight} />
-            <Text style={styles.successText}>{t('member.surplus.successMessage', { amount: shareAmount, recipient: recipientHousehold })}</Text>
-          </View>
-        )}
-
         <TouchableOpacity
           style={styles.shareSubmitBtn}
-          onPress={handleShare}
+          onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
         >
           <ArrowUpRight size={18} color="#FFFFFF" />
-          <Text style={styles.shareSubmitText}>{t('member.surplus.confirmTransfer')}</Text>
+          <Text style={styles.shareSubmitText}>{t('member.nav.trade')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Auto-Sharing Settings Card */}
-      <View style={[styles.sectionCard, GLASS.card, SHADOWS.glass]}>
-        <View style={styles.settingRow}>
-          <View style={styles.settingLeft}>
-            <ShieldCheck size={20} color={COLORS.tealLight} />
-            <View>
-              <Text style={styles.settingTitle}>{t('member.surplus.autoShareTitle')}</Text>
-              <Text style={styles.settingSub}>{t('member.surplus.autoShareSub')}</Text>
-            </View>
-          </View>
-          <Switch
-            value={autoShareEnabled}
-            onValueChange={setAutoShareEnabled}
-            trackColor={{ false: 'rgba(255,255,255,0.15)', true: COLORS.teal }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
     </ScrollView>
   );
 };

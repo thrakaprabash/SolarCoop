@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { Card, Divider, IconBadge, Metric } from './ui';
-import { kwh, rate as fmtRate } from '../utils/format';
+import { tradeKwh as kwh, rate as fmtRate } from '../utils/format';
 
 export default function PoolSummaryCard({ pool }) {
   const { t } = useTranslation();
