@@ -1,0 +1,64 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {PGlite}=require('@electric-sql/pglite');
+const source=fs.readFileSync('src/technician/utils/systemHealth.js','utf8').replace(/export /g,'');
+const {systemHealthStatus,systemReadingFresh,communityFeed}=new Function(source+';return {systemHealthStatus,systemReadingFresh,communityFeed};')();
+test('community feed distinguishes surplus and shortfall, and hides unavailable or expired totals',()=>{
+  const now=Date.parse('2026-10-08T12:00:00Z');
+  const snapshot={server_time:new Date(now).toISOString(),community:{energy:{households:6,fresh_households:6,production_kw:5.7,consumption_kw:2.39,pool_today_kwh:369.39},open_faults:1,repair_jobs:1}};
+  let feed=communityFeed(snapshot,now);assert.ok(Math.abs(feed.balance-3.31)<0.0001);assert.equal(feed.fresh,6);assert.equal(feed.total,6);
+  snapshot.community.energy.fresh_households=4;assert.equal(communityFeed(snapshot,now).production,5.7);assert.equal(communityFeed(snapshot,now).balance,null);snapshot.community.energy.fresh_households=6;
+  snapshot.community.energy.consumption_kw=8;assert.equal(communityFeed(snapshot,now).balance,-2.3);
+  snapshot.community.energy.production_kw=0;snapshot.community.energy.consumption_kw=0;assert.equal(communityFeed(snapshot,now).balance,0);
+  snapshot.community.energy.fresh_households=0;assert.equal(communityFeed(snapshot,now).production,null);
+  snapshot.community.energy.fresh_households=4;feed=communityFeed(snapshot,now+61_000);assert.equal(feed.production,null);assert.equal(feed.balance,null);assert.equal(feed.faults,null);
+  assert.equal(communityFeed({},now).balance,null);
+});
+test('health distinguishes no signal from faults and never treats zero solar output as a fault',()=>{
+  const now=Date.parse('2026-10-08T12:00:00Z');
+  const system={device_status:'online',last_reading_at:new Date(now-5000).toISOString(),production_kw:0};
+  assert.equal(systemHealthStatus(system,now),'healthy');
+  assert.equal(systemHealthStatus({...system,last_reading_at:null},now),'unknown');
+  assert.equal(systemHealthStatus({...system,last_reading_at:'invalid'},now),'unknown');
+  assert.equal(systemHealthStatus(system,now+60_000),'stale');
+  assert.equal(systemHealthStatus({...system,device_status:'offline'},now+60_000),'offline');
+  assert.equal(systemHealthStatus({...system,fault_code:'E02'},now+60_000),'fault');
+  assert.equal(systemHealthStatus({...system,device_status:'degraded'},now),'degraded');
+  assert.equal(systemReadingFresh({...system,last_reading_at:new Date(now+120_000).toISOString()},now),false);
+});
+test('fleet RPC limits access, excludes consumer hardware and masks inaccessible job links and placeholder readings',async()=>{
+  const db=new PGlite();
+  const tech='11111111-1111-4111-8111-111111111111',owner='22222222-2222-4222-8222-222222222222',consumer='33333333-3333-4333-8333-333333333333',blocked='44444444-4444-4444-8444-444444444444';
+  const device='55555555-5555-4555-8555-555555555555',fault='66666666-6666-4666-8666-666666666666',job='77777777-7777-4777-8777-777777777777';
+  try{
+    await db.exec(`create role anon; create role authenticated; create schema auth;
+      create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+      create table profiles(id uuid,name text,household_id text,role text,status text);
+      create table sim_devices(id uuid,household_user_id uuid,inverter_serial text,capacity_kw numeric,panel_count int,status text,active_fault_id uuid,battery_kwh numeric);
+      create table energy_metrics(user_id uuid,updated_at timestamptz,instant_production numeric,daily_production numeric,battery_level int,is_simulated boolean,instant_consumption numeric,daily_consumption numeric);
+      create table device_faults(id uuid,status text,code text,title text,job_id uuid,device_id uuid);
+      create table jobs(id uuid,status text,technician_id uuid);
+      insert into profiles values('${tech}','Tech',null,'technician','active'),('${owner}','Owner','H-01','owner','active'),('${consumer}','Consumer',null,'consumer','active'),('${blocked}','Blocked',null,'technician','blocked');
+      insert into sim_devices values('${device}','${owner}','INV-01',5,10,'online',null,0),('${consumer}','${consumer}','VIRTUAL-LOAD',0,0,'online',null,0);
+      insert into energy_metrics values('${owner}',now(),8.5,42.6,80,false,1.5,12.6);
+      grant usage on schema public,auth to anon,authenticated;
+    `);
+    await db.exec(fs.readFileSync('database/supabase/migrations/20261008120000_technician_system_health.sql','utf8'));
+    await db.exec(fs.readFileSync('database/supabase/migrations/20261008130000_technician_community_feed.sql','utf8'));
+    const role=async(id,name='authenticated')=>db.exec(`reset role;set role ${name};select set_config('request.jwt.claim.sub','${id}',false);`);
+    await role('', 'anon');await assert.rejects(db.query('select technician_system_health()'),/permission denied/);
+    await role(owner);await assert.rejects(db.query('select technician_system_health()'),/active technician/);
+    await role(blocked);await assert.rejects(db.query('select technician_system_health()'),/active technician/);
+    await role(tech);await assert.rejects(db.query('select * from sim_devices'),/permission denied/);
+    const read=async()=> (await db.query('select technician_system_health() data')).rows[0].data;
+    let data=await read();assert.equal(data.systems.length,1);assert.equal(data.systems[0].last_reading_at,null);assert.equal(data.systems[0].production_kw,null);
+    assert.equal(data.community.energy.fresh_households,0);assert.equal(data.community.energy.production_kw,null);
+    await db.exec(`reset role;update energy_metrics set is_simulated=true,instant_production=0;insert into energy_metrics values('${consumer}',now(),0,0,0,true,2.4,10);insert into jobs values('${job}','active','${blocked}');insert into device_faults values('${fault}','open','E01','Offline','${job}','${device}');update sim_devices set active_fault_id='${fault}',status='offline' where id='${device}';`);
+    await role(tech);data=await read();assert.equal(data.systems[0].fault_code,'E01');assert.equal(data.systems[0].job_id,null);assert.equal(data.systems[0].production_kw,0);assert.equal(data.systems[0].battery_level,null);
+    assert.equal(data.community.energy.households,2);assert.equal(data.community.energy.fresh_households,2);assert.equal(data.community.energy.consumption_kw,3.9);assert.equal(data.community.energy.pool_today_kwh,30);assert.equal(data.community.open_faults,1);assert.equal(data.community.repair_jobs,1);
+    await db.exec(`reset role;update energy_metrics set updated_at=now()-interval '2 minutes' where user_id='${consumer}';`);await role(tech);data=await read();assert.equal(data.community.energy.fresh_households,1);assert.equal(data.community.energy.consumption_kw,1.5);
+    await db.exec(`reset role;update jobs set technician_id='${tech}';`);await role(tech);assert.equal((await read()).systems[0].job_id,job);
+    await db.exec(`reset role;update profiles set status='pending_approval' where id='${owner}';`);await role(tech);assert.deepEqual((await read()).systems,[]);
+  } finally {await db.close();}
+});

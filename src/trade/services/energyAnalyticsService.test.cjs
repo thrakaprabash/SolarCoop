@@ -22,7 +22,7 @@ function harness(responses = []) {
   const source = fs.readFileSync(path.join(__dirname, 'energyAnalyticsService.js'), 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replaceAll('export async function ', 'async function ')
     .replaceAll('export function ', 'function ');
-  const service = new Function('supabase', `${source}\nreturn { reportingPeriod, fetchLatestEnergyReading, fetchSharedEnergy };`)(supabase);
+  const service = new Function('supabase', `${source}\nreturn { reportingPeriod, fetchLatestEnergyReading, fetchAnalyticsReadings, fetchSharedEnergy };`)(supabase);
   return { ...service, calls };
 }
 const period = { start: '2026-09-30T18:30:00.000Z', end: '2026-10-03T12:00:00.000Z' };
@@ -73,4 +73,35 @@ test('invalid amounts, dates, reversed and received rows cannot masquerade as va
     const h = harness([{ data: [{ ...row(1), ...patch }], error: null }]);
     await assert.rejects(h.fetchSharedEnergy('member', period), /verified/);
   }
+});
+
+test('energy history spans seven completed days across a month boundary and reads every page', async () => {
+  const p = harness().reportingPeriod(new Date('2026-10-04T06:00:00Z'));
+  const reading = (id) => ({ id, user_id: 'member', recorded_at: '2026-09-30T18:30:00Z' });
+  const h = harness([{ data: Array.from({ length: 500 }, (_, i) => reading(i)), error: null },
+    { data: [reading(500)], error: null }]);
+  assert.equal((await h.fetchAnalyticsReadings('member', p)).length, 501);
+  assert.deepEqual(h.calls[0].filters, [['eq', 'user_id', 'member'],
+    ['gte', 'recorded_at', '2026-09-26T18:30:00.000Z'], ['lte', 'recorded_at', p.end]]);
+  assert.deepEqual(h.calls[1].range, [500, 999]);
+  const lateMonth = harness([{ data: [], error: null }]);
+  await lateMonth.fetchAnalyticsReadings('member', lateMonth.reportingPeriod(new Date('2026-10-20T06:00:00Z')));
+  assert.equal(lateMonth.calls[0].filters[1][2], '2026-09-30T18:30:00.000Z');
+});
+
+test('failed or unverifiable energy pages never produce partial daily input', async () => {
+  const p = harness().reportingPeriod(new Date('2026-10-04T06:00:00Z'));
+  const rows = Array.from({ length: 500 }, (_, id) => ({ id, user_id: 'member', recorded_at: '2026-10-01T00:00:00Z' }));
+  const failed = harness([{ data: rows, error: null }, { error: new Error('offline') }]);
+  await assert.rejects(failed.fetchAnalyticsReadings('member', p), /offline/);
+  for (const patch of [{ user_id: 'other' }, { recorded_at: 'bad' },
+    { recorded_at: '2026-08-26T00:00:00Z' }, { recorded_at: '2026-10-05T00:00:00Z' }]) {
+    const h = harness([{ data: [{ ...rows[0], ...patch }], error: null }]);
+    await assert.rejects(h.fetchAnalyticsReadings('member', p), /verified/);
+  }
+  const duplicate = harness([{ data: [rows[0], rows[0]], error: null }]);
+  await assert.rejects(duplicate.fetchAnalyticsReadings('member', p), /verified/);
+  const signedOut = harness();
+  assert.deepEqual(await signedOut.fetchAnalyticsReadings(null, p), []);
+  assert.equal(signedOut.calls.length, 0);
 });

@@ -4,6 +4,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 function harness(services = {}) {
+  const load = (file, name) => new Function(`${fs.readFileSync(path.join(__dirname, '..', 'utils', file), 'utf8')
+    .replace('export function ', 'function ')}\nreturn ${name};`)();
   const slots = []; let cursor = 0; let user = { id: 'a' };
   const deps = {
     useAuth: () => ({ user, profile: user ? { id: user.id, name: user.id } : null }),
@@ -13,6 +15,9 @@ function harness(services = {}) {
       return [slots[i], (next) => { slots[i] = typeof next === 'function' ? next(slots[i]) : next; }]; },
     reportingPeriod: () => ({ day: '2026-10-03', month: '2026-10' }),
     fetchLatestEnergyReading: async () => null, fetchSharedEnergy: async () => 0, ...services,
+    fetchAnalyticsReadings: services.fetchAnalyticsReadings || (async () => []),
+    normalizeDailyReadings: load('dailyEnergyReadings.js', 'normalizeDailyReadings'),
+    calculateDailyAnalytics: load('energyAnalytics.js', 'calculateDailyAnalytics'),
   };
   const source = fs.readFileSync(path.join(__dirname, 'useEnergyAnalytics.js'), 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replace('export function ', 'function ');
@@ -60,4 +65,32 @@ test('overlapping refresh cannot replace the newest analytics', async () => {
   const pending = h.render().refresh(); await h.render().refresh();
   old.resolve({ id: 'old' }); await pending;
   assert.equal(h.render().reading.id, 'latest');
+});
+
+test('history failure leaves independent reading and ledger usable; retry restores calculated metrics', async () => {
+  let failed = true;
+  const h = harness({ fetchLatestEnergyReading: async () => ({ id: 1 }),
+    fetchAnalyticsReadings: async () => {
+      if (failed) throw new Error('offline');
+      return [{ id: 1, recorded_at: '2026-10-02T12:00:00Z', production_kwh: 12, consumption_kwh: 10 }];
+    } });
+  await h.render().refresh();
+  assert.equal(h.render().daily, null); assert.ok(h.render().dailyError);
+  assert.equal(h.render().shared, 0); assert.equal(h.render().reading.id, 1);
+  assert.equal(h.render().loading, false);
+  failed = false; await h.render().refresh();
+  assert.equal(h.render().daily.average, 10); assert.equal(h.render().daily.generation, 12);
+  assert.equal(h.render().dailyError, null);
+});
+
+test('late historical analytics cannot cross accounts or overwrite a newer refresh', async () => {
+  const old = deferred(); let calls = 0;
+  const h = harness({ fetchAnalyticsReadings: () => ++calls === 1 ? old.promise : Promise.resolve([]) });
+  const pending = h.render().refresh(); h.switchUser('b');
+  assert.equal(h.render().daily, null);
+  await h.render().refresh();
+  old.resolve([{ id: 1, recorded_at: '2026-10-02T12:00:00Z', production_kwh: 99, consumption_kwh: 99 }]);
+  await pending;
+  assert.equal(h.render().daily.generation, null);
+  assert.equal(h.render().daily.average, null);
 });

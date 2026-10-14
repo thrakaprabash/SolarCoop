@@ -28,7 +28,9 @@ function fakeSupabase(responses) {
         select(columns) { call.columns = columns; return query; },
         eq(column, value) { call.filters.push(['eq', column, value]); return query; },
         in(column, values) { call.filters.push(['in', column, values]); return query; },
-        order(column, options) { call.order = [column, options]; return query; },
+        order(column, options) { (call.orders ||= []).push([column, options]); return query; },
+        range(start, end) { call.range = [start, end]; return query; },
+        or(value) { call.filters.push(['or', value]); return query; },
         then(resolve, reject) { return Promise.resolve(responses.shift()).then(resolve, reject); },
       };
       return query;
@@ -53,7 +55,7 @@ test('My Requests is scoped to the requester and maps server data for the UI', a
   const rows = await fetchMyRequests('member-1');
 
   assert.deepEqual(calls[0].filters, [['eq', 'requester_id', 'member-1']]);
-  assert.deepEqual(calls[0].order, ['created_at', { ascending: false }]);
+  assert.deepEqual(calls[0].orders, [['created_at', { ascending: false }], ['id', { ascending: false }]]);
   assert.deepEqual(calls[1].filters, [['in', 'id', ['owner-1', 'owner-2']]]);
   assert.deepEqual(rows.map(({ id, name, kwh, status, ts, rate }) => ({ id, name, kwh, status, ts, rate })), [
     { id: '12', name: 'Solar Home', kwh: 2.5, status: 'Completed', ts: '2026-09-29T10:00:00.000Z', rate: null },

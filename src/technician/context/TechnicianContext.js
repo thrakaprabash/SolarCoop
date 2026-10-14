@@ -1,19 +1,28 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchTechnicianJobs,
   acceptJob as serviceAcceptJob,
-  updateChecklist as serviceUpdateChecklist,
+  toggleChecklistItem as serviceToggleChecklistItem,
+  saveResolutionNotes as serviceSaveResolutionNotes,
   completeJob as serviceCompleteJob,
   subscribeToJobs,
   buildJob,
 } from '../services/jobService';
+
+import { uploadRepairPhoto as serviceUploadRepairPhoto } from '../services/repairPhotoService';
+
+import { createJobMutationQueue } from '../utils/jobMutationQueue';
 
 const TechnicianContext = createContext(null);
 
 export const TechnicianProvider = ({ children, onExit }) => {
   const { user, profile } = useAuth();
   const technicianId = user?.id ?? null;
+  const jobRequests = useRef(0);
+  const identity = useRef(technicianId);
+  identity.current = technicianId;
 
   // ─── Navigation state ───────────────────────────────────────────────────────
   const [techBottomTab, setTechBottomTab] = useState('dashboard'); // 'dashboard' | 'diagnostics' | 'profile'
@@ -26,6 +35,21 @@ export const TechnicianProvider = ({ children, onExit }) => {
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError]     = useState(null);
   const [hasLoaded, setHasLoaded]     = useState(false);
+
+  const [pendingWrites, setPendingWrites] = useState({});
+  const mutationQueue = useRef(null);
+  if (!mutationQueue.current) {
+    mutationQueue.current = createJobMutationQueue((jobId, delta) => {
+      setPendingWrites(prev => ({ ...prev, [jobId]: Math.max(0, (prev[jobId] ?? 0) + delta) }));
+    });
+  }
+  const saveJobChange = useCallback((jobId, action) => mutationQueue.current.enqueue(jobId, async () => {
+    const updated = await action();
+    ++jobRequests.current;
+    setJobsLoading(false);
+    setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    return updated;
+  }), []);
 
   // What the header pill shows: only "connected" once a fetch has actually
   // come back, "offline" if the latest one failed.
@@ -68,24 +92,36 @@ export const TechnicianProvider = ({ children, onExit }) => {
    * Fetch the technician's board from Supabase. Safe to call repeatedly
    * (mount, retry, pull-to-refresh).
    */
-  const loadJobs = useCallback(async () => {
+  const loadJobs = useCallback(async ({ silent = false } = {}) => {
     if (!technicianId) return;
-    setJobsLoading(true);
+    const request = ++jobRequests.current;
+    if (!silent) setJobsLoading(true);
     setJobsError(null);
     try {
       const data = await fetchTechnicianJobs(technicianId);
+      if (identity.current !== technicianId || request !== jobRequests.current) return;
       setJobs(data);
       setHasLoaded(true);
     } catch (err) {
+      if (identity.current !== technicianId || request !== jobRequests.current) return;
       console.error('[TechnicianContext] loadJobs failed:', err.message);
       setJobsError(
         err.message ||
         'Could not load jobs. Check that migration 0006_technician_jobs.sql has been applied.'
       );
     } finally {
-      setJobsLoading(false);
+      if (identity.current === technicianId && request === jobRequests.current) setJobsLoading(false);
     }
   }, [technicianId]);
+
+  // Reconcile the board when mobile Realtime disconnects or misses an update.
+  useEffect(() => {
+    if (!technicianId) return;
+    const refresh = () => loadJobs({ silent: true });
+    const timer = setInterval(refresh, 10_000);
+    const foreground = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
+    return () => { ++jobRequests.current; clearInterval(timer); foreground.remove(); };
+  }, [technicianId, loadJobs]);
 
   // ─── acceptJob ──────────────────────────────────────────────────────────────
   /**
@@ -100,6 +136,8 @@ export const TechnicianProvider = ({ children, onExit }) => {
         id: technicianId,
         name: profile?.name ?? user?.user_metadata?.name,
       });
+      ++jobRequests.current;
+      setJobsLoading(false);
       setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
       setJobFilter('active');
       return updated;
@@ -109,42 +147,28 @@ export const TechnicianProvider = ({ children, onExit }) => {
     }
   }, [technicianId, profile?.name, user?.user_metadata?.name, loadJobs]);
 
-  // ─── toggleChecklistItem ────────────────────────────────────────────────────
-  /**
-   * SOL-198 — tick / untick one diagnostic step. Optimistic: the box flips
-   * immediately and is put back if the save fails.
-   */
-  const toggleChecklistItem = useCallback(async (jobId, index) => {
+  // Server toggles plus a per-job queue prevent rapid taps from overwriting saved steps.
+  const toggleChecklistItem = useCallback((jobId, index) =>
+    saveJobChange(jobId, () => serviceToggleChecklistItem(jobId, index)), [saveJobChange]);
+
+  const saveResolutionNotes = useCallback((jobId, notes) =>
+    saveJobChange(jobId, () => serviceSaveResolutionNotes(jobId, notes)), [saveJobChange]);
+
+  const uploadRepairPhoto = useCallback((jobId, asset) => {
     const job = jobs.find(j => j.id === jobId);
-    if (!job || !job.checklist[index]) return;
+    if (!job) return Promise.reject(new Error('This job is no longer on your board.'));
+    return saveJobChange(jobId, () => serviceUploadRepairPhoto(job, technicianId, asset));
+  }, [jobs, technicianId, saveJobChange]);
 
-    const previous = job.checklist;
-    const next = previous.map((item, i) => (i === index ? { ...item, done: !item.done } : item));
-    setJobs(prev => prev.map(j => (j.id === jobId ? { ...j, checklist: next } : j)));
-
-    try {
-      const updated = await serviceUpdateChecklist(jobId, next);
-      setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
-    } catch (err) {
-      setJobs(prev => prev.map(j => (j.id === jobId ? { ...j, checklist: previous } : j)));
-      throw err;
-    }
-  }, [jobs]);
-
-  // ─── completeJob ────────────────────────────────────────────────────────────
-  /**
-   * SOL-201 — Active → Completed, with resolution notes. The household's
-   * alert card reads this same row, so it updates too.
-   */
+  // SOL-204: complete after queued saves, then show the ticket in the Completed tab.
   const completeJob = useCallback(async (jobId, resolutionNotes) => {
-    const job = jobs.find(j => j.id === jobId);
-    if (!job) throw new Error('This job is no longer on your board.');
-    const updated = await serviceCompleteJob(jobId, { resolutionNotes, checklist: job.checklist });
-    setJobs(prev => prev.map(j => (j.id === jobId ? updated : j)));
+    const updated = await saveJobChange(jobId, () => serviceCompleteJob(jobId, { resolutionNotes }));
     setClosureOpen(false);
+    setSelectedJobId(null);
+    setTechBottomTab('dashboard');
     setJobFilter('completed');
     return updated;
-  }, [jobs]);
+  }, [saveJobChange]);
 
   // ─── Live sync (SOL-201) ────────────────────────────────────────────────────
   // Apply every jobs change straight onto the board: new faults appear, jobs
@@ -159,10 +183,15 @@ export const TechnicianProvider = ({ children, onExit }) => {
     return subscribeToJobs(`technician-jobs-${technicianId}`, (payload) => {
       if (payload.eventType === 'DELETE') {
         const goneId = payload.old?.id;
-        if (goneId) setJobs(prev => prev.filter(j => j.id !== goneId));
+        if (goneId) {
+          ++jobRequests.current; setJobsLoading(false);
+          setJobs(prev => prev.filter(j => j.id !== goneId));
+        }
         return;
       }
       if (!payload.new?.id) return;
+      ++jobRequests.current;
+      setJobsLoading(false);
       const job = buildJob(payload.new);
       setJobs(prev => {
         const rest = prev.filter(j => j.id !== job.id);
@@ -194,9 +223,13 @@ export const TechnicianProvider = ({ children, onExit }) => {
         jobsError,
         jobCounts,
         connectionStatus,
+        hasLoaded,
         loadJobs,
         acceptJob,
         completeJob,
+        uploadRepairPhoto,
+        saveResolutionNotes,
+        pendingWrites,
         // Diagnostics
         openAlerts,
         urgentAlertCount,

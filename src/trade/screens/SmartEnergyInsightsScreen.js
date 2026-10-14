@@ -8,8 +8,10 @@ import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
+import { analyticsText } from '../utils/analyticsText';
 import { dayPart } from '../utils/format';
-import { Chip, ScreenTitle, SectionLabel } from '../components/ui';
+import { kwh, tradeKwh } from '../utils/format';
+import { Card, Chip, ScreenTitle, SectionLabel } from '../components/ui';
 import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const GREETING_KEY = {
@@ -21,13 +23,16 @@ const GREETING_KEY = {
 export default function SmartEnergyInsightsScreen() {
   const styles = useThemedStyles(baseStyles);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
   const analytics = useEnergyAnalytics();
   const { surplus, providersLoading, providersError, refreshProviders } = useTrade();
   const { navigate } = useNavigation();
   useEffect(() => { refreshProviders(); }, [refreshProviders]);
 
   const refresh = () => { analytics.refresh(); refreshProviders(); };
+  const daily = analytics.daily;
+  const comparison = daily?.comparison;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}
@@ -43,10 +48,20 @@ export default function SmartEnergyInsightsScreen() {
       />
       <SectionLabel>{t('trade.insightsScreen.sectionLabel')}</SectionLabel>
       <AnalyticsStatus analytics={{ ...analytics, refresh }} />
-      <Text style={styles.notice}>Daily consumption insights are unavailable. These readings do not yet support verified daily totals.</Text>
+      {daily ? <Card style={{ gap: 10 }}>
+        <Text style={styles.metric}>{copy('todayConsumption', { amount: daily.current == null ? '—' : kwh(daily.current) })}</Text>
+        <Text style={styles.metric}>{copy('averageConsumption', { amount: daily.average == null ? '—' : kwh(daily.average) })}</Text>
+        <Text style={styles.notice}>{copy('baselineCoverage', { days: daily.baselineDays })}</Text>
+        {comparison ? <Text style={styles.notice}>{copy(comparison.kind === 'inLine' && comparison.percent == null
+          ? 'comparison_zeroBoth' : `comparison_${comparison.kind}`, {
+          percent: comparison.percent == null ? '—' : Math.abs(comparison.percent).toFixed(1),
+          amount: kwh(comparison.absolute),
+        })}</Text> : <Text style={styles.notice}>{copy('comparisonUnavailable')}</Text>}
+        {daily.trend ? <Text style={styles.notice}>{copy(`trend_${daily.trend.kind}`)}</Text> : null}
+      </Card> : null}
       {analytics.signedIn && !providersLoading && !providersError && surplus > 0 ?
-        <Text style={styles.notice}>Available to share: {surplus.toFixed(1)} kWh, based on your current trade balance.</Text> : null}
-      <Text style={styles.footNote}>Daily averages and trends will appear when supported by your energy data.</Text>
+        <Text style={styles.notice}>{copy('available', { amount: tradeKwh(surplus) })}</Text> : null}
+      <Text style={styles.footNote}>{copy('snapshotNote')}</Text>
     </ScrollView>
   );
 }
@@ -56,6 +71,7 @@ const baseStyles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 14 },
   tabs: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   notice: { color: colors.textMuted, fontSize: 14, lineHeight: 21 },
+  metric: { color: colors.textStrong, fontSize: 16, fontWeight: weight.bold, lineHeight: 24 },
   footNote: {
     fontSize: 11,
     fontWeight: weight.medium,

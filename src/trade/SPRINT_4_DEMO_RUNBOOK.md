@@ -1,6 +1,8 @@
 # SOL-181 — SolarCoop demo runbook
 
-Prepared: 3 October 2026. Status: walkthrough prepared; full rehearsal and evidence capture pending.
+Prepared: 3 October 2026. Status: saved-record provider/requester browser walkthrough and analytics screenshots verified; recording and additional outage checks pending.
+
+Update, 4 October: daily snapshots are now the user-adopted project convention and both screens are connected. Earlier unavailable-contract statements below describe prior rehearsal. Use SPRINT_4_DEMO_SCRIPT.md for current narration. Missing current-period data still gives unavailable values; positive-data verification is pending. History/Insights offline checks were reported successful and recovery was verified directly.
 
 ## Setup
 
@@ -21,13 +23,15 @@ Use the existing ignored .env. The user signs into each test account; never stor
 | Role | Existing account/evidence | Expected behavior |
 | --- | --- | --- |
 | Requester | SolarCoop Test Requester | Saved 0.5 kWh completed request and separate rejected request to Vihanga Perera; received transaction in September history. |
-| Provider | Vihanga Perera | Sender of the saved completed trade; authenticated read check found one August energy reading. User must sign in for provider UI rehearsal. |
+| Provider | Vihanga Perera | Sender of the saved completed trade; authenticated read check found one August energy reading. Provider saved-record browser walkthrough verified on 4 October. |
 | Unrelated member | Existing third-member database access check | Historical test confirmed no access to the saved transaction. Current UI check remains pending. |
 
 Saved reference: `TXN-E3BED65B5B0641CE870E330558931BEC`.
 Saved transaction UUID: `e3bed65b-5b06-41ce-870e-330558931bec`.
 
 ## Read-only walkthrough to perform now
+
+For presentation timing and spoken narration, use `SPRINT_4_DEMO_SCRIPT.md`. The saved-record provider/requester walkthrough has been verified; video capture and playback review remain pending.
 
 1. Sign into the requester account and open P2P Trade -> My Requests. Confirm completed and rejected 0.5 kWh requests.
 2. Open the completed request's transaction. Confirm COMPLETED, 0.5 kWh, Vihanga Perera -> requester, 30 September, and the saved reference. Return to My Requests.
@@ -51,6 +55,8 @@ For authorized disposable test requests only: submit -> requester Pending -> pro
 
 ## Recovery and device rehearsal
 
+User confirmed on 4 October that the sprint demo will use the web browser. Complete the browser rehearsal for this demo; native phone checks remain unverified and are outside the selected demo scope.
+
 - On the intended phone: check scrolling, keyboard, cancel/back, details, and pull-to-refresh.
 - User disconnects the test device, refreshes, and verifies loading ends with an error/retry. Reconnect and retry. Record actual results; simulated tests are not this check.
 - Reopen/restart the app and verify saved requests/trades persist.
@@ -64,7 +70,7 @@ For authorized disposable test requests only: submit -> requester Pending -> pro
 - Real empty/stale Insights state and Impact period/shared total.
 - Retry/recovery and phone demonstration.
 
-Keep credentials, private account details and unrelated members out of captures. Screenshot/recording files have not yet been created; do not represent this runbook as captured demo evidence.
+Keep credentials, private account details and unrelated members out of captures. The analytics screenshot bundle is under `evidence/sprint4/README.md`; it contains the supplied empty/stale/failure/recovery states and direct browser language checks. P2P recording, physical-device evidence, and full rehearsal remain pending.
 
 ## Demo limits to explain
 

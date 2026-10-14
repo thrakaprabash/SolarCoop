@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, radius, weight } from '../theme';
 import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
-import { kwh, money, rate as fmtRate } from '../utils/format';
+import { tradeKwh as kwh, decimalAmount, addTradeAmounts, money, rate as fmtRate } from '../utils/format';
 import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
@@ -43,9 +43,10 @@ export default function EnergyRequestScreen() {
   }, [cleanAmount, value, provider, t]);
 
   const step = (delta) => {
+    if (submitInFlight.current) return;
     const max = provider ? provider.kwh : 10;
-    const current = isNaN(value) ? 0 : value;
-    setAmount(Math.min(max, Math.max(STEP, current + delta)).toFixed(1));
+    const current = Number.isFinite(value) ? value : 0;
+    setAmount(decimalAmount(Math.min(max, Math.max(STEP, addTradeAmounts(current, delta)))));
     submitted.current = false;
     setConfirmation('');
     setSubmitError('');
@@ -118,11 +119,14 @@ export default function EnergyRequestScreen() {
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>{t('trade.request.amountRequired')}</Text>
           <View style={styles.stepperRow}>
-            <Stepper icon={Minus} onPress={() => step(-STEP)} />
+            <Stepper icon={Minus} disabled={submitting} label={`${t('trade.request.amountRequired')}: −0.5 kWh`} onPress={() => step(-STEP)} />
             <View style={styles.input}>
               <TextInput
                 value={amount}
+                editable={!submitting}
+                accessibilityLabel={t('trade.request.amountRequired')}
                 onChangeText={(text) => {
+                  if (submitInFlight.current) return;
                   setAmount(text);
                   submitted.current = false;
                   setConfirmation('');
@@ -134,7 +138,7 @@ export default function EnergyRequestScreen() {
               />
               <Text style={styles.inputUnit}>kWh</Text>
             </View>
-            <Stepper icon={Plus} onPress={() => step(STEP)} />
+            <Stepper icon={Plus} disabled={submitting} label={`${t('trade.request.amountRequired')}: +0.5 kWh`} onPress={() => step(STEP)} />
           </View>
         </View>
 
@@ -159,12 +163,16 @@ export default function EnergyRequestScreen() {
   );
 }
 
-function Stepper({ icon: Icon, onPress }) {
+function Stepper({ icon: Icon, onPress, disabled, label }) {
   const styles = useThemedStyles(baseStyles);
   const { themeColor, colors } = useLegacyTheme();
 
   return (
     <Pressable
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
       style={({ pressed }) => [styles.stepper, pressed && { backgroundColor: themeColor("rgba(255,255,255,0.12)", "backgroundColor") }]}
     >

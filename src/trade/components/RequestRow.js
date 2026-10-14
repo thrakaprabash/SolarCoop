@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
-import { kwh, money } from '../utils/format';
+import { tradeKwh as kwh, money, longDate } from '../utils/format';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestRow({ request, last, onPress }) {
   const styles = useThemedStyles(baseStyles);
   const { colors } = useLegacyTheme();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
   const displayName = request.name || t('trade.household.fallback');
 
@@ -31,7 +31,7 @@ export default function RequestRow({ request, last, onPress }) {
         </View>
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.detail}>{t('trade.request.requestedColon', { amount: kwh(request.kwh) })}</Text>
-        <Text style={styles.date}>{request.date || t('trade.dateUnavailable')}</Text>
+        <Text style={styles.date}>{request.ts ? longDate(new Date(request.ts), i18n.resolvedLanguage || i18n.language) : t('trade.dateUnavailable')}</Text>
       </View>
 
       {request.rate != null ? (

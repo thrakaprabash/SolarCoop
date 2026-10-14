@@ -73,3 +73,18 @@ test('new selection wins over pending restore; latest valid choice persists last
 test('invalid saved values fall back to the existing dark appearance', async () => {
   const h = harness('unknown'); await h.restore(); assert.equal(h.render().mode,'dark');
 });
+test('portal override preserves its own appearance controls and falls back to the shared preference', () => {
+  const global = { mode: 'dark', preference: 'dark', setPreference: () => {}, colors: { text: 'global' } };
+  const ThemeContext = {}, ThemeOverrideContext = {};
+  let override = null;
+  const code = source('useTheme.js').replace(/^import .*;\r?\n/gm,'').replaceAll('export const ', 'const ');
+  const useTheme = new Function('useContext','ThemeContext','ThemeOverrideContext',code+'\nreturn useTheme;')(
+    context => context === ThemeContext ? global : override, ThemeContext, ThemeOverrideContext);
+  assert.equal(useTheme(), global);
+  const setPreference = () => {};
+  override = { mode: 'light', preference: 'system', setPreference, colors: { text: 'portal' } };
+  assert.equal(useTheme().mode, 'light');
+  assert.equal(useTheme().preference, 'system');
+  assert.equal(useTheme().setPreference, setPreference);
+  assert.equal(useTheme().colors.text, 'portal');
+});

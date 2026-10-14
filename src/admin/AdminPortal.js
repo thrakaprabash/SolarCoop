@@ -5,6 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   View,
+  AppState,
 } from 'react-native';
 import { AdminProvider, useAdmin } from './context/AdminContext';
 import AdminHeader from './components/AdminHeader';
@@ -17,6 +18,7 @@ import TransactionMonitoringScreen from './screens/TransactionMonitoringScreen';
 import AlertsScreen from './screens/AlertsScreen';
 import ComplaintsScreen from './screens/ComplaintsScreen';
 import AdminSettingsScreen from './screens/AdminSettingsScreen';
+import { supabase } from '../lib/supabase';
 import { useTheme } from '../theme/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemedStyles } from '../theme/useLegacyTheme';
@@ -26,8 +28,8 @@ const BG = require('../../assets/bg.jpg');
 
 // ─── Inner shell — consumes AdminContext ──────────────────────────────────────
 function AdminShell() {
-  const theme = useTheme();
   const styles = useThemedStyles(baseStyles);
+  const theme = useTheme();
 
   const { adminBottomTab, setAdminBottomTab, loadMembers, loadComplaints, loadTransactions, loadAlerts, scanAlerts } = useAdmin();
 
@@ -41,6 +43,34 @@ function AdminShell() {
     loadAlerts();
     scanAlerts();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let timer;
+    const refresh = () => {
+      if (AppState.currentState && AppState.currentState !== 'active') return;
+      loadTransactions({ silent: true });
+      loadAlerts({ silent: true });
+    };
+    const changed = () => {
+      clearTimeout(timer);
+      timer = setTimeout(refresh, 300);
+    };
+    const channel = supabase.channel('admin-live-ledger-alerts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, changed)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, changed)
+      .subscribe();
+    const poll = setInterval(refresh, 10_000);
+    const scan = setInterval(() => {
+      if (!AppState.currentState || AppState.currentState === 'active') scanAlerts();
+    }, 60_000);
+    const foreground = AppState.addEventListener('change', state => {
+      if (state === 'active') { refresh(); scanAlerts(); }
+    });
+    return () => {
+      clearTimeout(timer); clearInterval(poll); clearInterval(scan);
+      foreground.remove(); supabase.removeChannel(channel);
+    };
+  }, [loadTransactions, loadAlerts, scanAlerts]);
 
   const renderScreen = () => {
     switch (adminBottomTab) {

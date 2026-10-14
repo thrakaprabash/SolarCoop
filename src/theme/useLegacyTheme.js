@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTheme } from './useTheme';
 import { COLORS, GLASS } from './colors';
 import { colors as tradeColors } from '../trade/theme/colors';
-import { TECH } from '../technician/theme';
+import { TECH_DARK as TECH } from '../technician/theme';
 import { adaptStyles, lightColor } from './legacyTheme';
 
 const lightLegacy = {

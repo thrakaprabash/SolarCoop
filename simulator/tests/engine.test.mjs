@@ -1,0 +1,60 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { sunCurve, weatherFactor } from '../src/engine/solar.js';
+import { baseLoad } from '../src/engine/consumption.js';
+import { faultEffect } from '../src/engine/faults.js';
+import { tick } from '../src/engine/tick.js';
+import { colomboClock, advanceClock } from '../src/engine/clock.js';
+import { battery } from '../src/engine/battery.js';
+import { seededRandom } from '../src/engine/random.js';
+const device = { id: 'one', capacity_kw: 4, panel_count: 8, string_count: 2, panel_health: Array(8).fill(1), load_profile: 'family', load_factor: 1, battery_kwh: 0, battery_level: 50 };
+const snapshot = { config: { mode: 'demo', sim_time: '12:00:00', speed: 60, weather: 'sunny' }, devices: [device], faults: [] };
+test('solar has daylight bounds and weather attenuation', () => {
+  for (const h of [0, 5, 6, 18, 23]) assert.equal(sunCurve(h), 0);
+  assert.equal(sunCurve(12), 1);
+  assert.equal(weatherFactor('cloudy'), 0.4);
+  assert.equal(weatherFactor('rain'), 0.15);
+  assert.ok(Math.abs(weatherFactor('partly', () => 0.5) - 0.7) < 1e-12);
+});
+test('load profiles follow morning, evening and business peaks', () => {
+  assert.equal(baseLoad('family', 7), 1.5);
+  assert.equal(baseLoad('large', 20), 3.8);
+  assert.equal(baseLoad('business', 12), 3);
+  assert.equal(baseLoad('small', 2), 0.25);
+});
+test('all fault effects including string mapping and missing meter readings', () => {
+  for (const code of ['E01', 'E04', 'E08']) assert.equal(faultEffect(device, { code }, 1, 0).multiplier, 0);
+  assert.equal(faultEffect(device, { code: 'E02' }, 1, 0).multiplier, 0.6);
+  assert.equal(faultEffect(device, { code: 'E05' }, 1, 0).multiplier, 0.7);
+  assert.equal(faultEffect(device, { code: 'E05' }, 0.5, 0).multiplier, 1);
+  assert.equal(faultEffect(device, { code: 'E03' }, 1, 0).multiplier, 0);
+  assert.equal(faultEffect(device, { code: 'E03' }, 1, 3).multiplier, 1);
+  assert.deepEqual(faultEffect(device, { code: 'E06', details: { string: 2 } }, 1, 0).health, [1,1,1,1,0,0,0,0]);
+  assert.equal(tick({ ...snapshot, faults: [{ device_id: 'one', code: 'E07' }] }).batch.length, 0);
+  const frozen = { one: { day:'2026-10-07', production:10, consumption:4, instantProduction:3, instantConsumption:1 } };
+  const missing = tick({ ...snapshot, faults:[{device_id:'one',code:'E07'}] },frozen,{elapsedSeconds:60});
+  assert.equal(missing.state.one.production,10);
+  assert.equal(missing.state.one.instantProduction,3);
+});
+test('clock uses Colombo real day; demo speed and daily rollover are independent', () => {
+  const now = new Date('2026-10-07T18:31:00Z');
+  assert.equal(colomboClock(now).day, '2026-10-08');
+  assert.equal(advanceClock(snapshot.config, 60, now).hour, 13);
+  const result = tick(snapshot, { one: { day: '2026-10-07', production: 100, consumption: 50 } }, { now, elapsedSeconds: 60, random: () => 0.5 });
+  assert.ok(result.state.one.production < 4);
+  assert.equal(result.batch[0].write_record, true);
+  assert.equal(result.state.one.day, '2026-10-08');
+});
+test('tick accumulates energy without mutating inputs; batteries clamp and random demos reproduce', () => {
+  const before = JSON.stringify(snapshot);
+  const now = new Date('2026-10-07T06:30:00Z');
+  const first = tick(snapshot, {}, { now, elapsedSeconds: 3, random: () => 0.5 });
+  const second = tick(snapshot, first.state, { now, elapsedSeconds: 3, index: 1, random: () => 0.5 });
+  assert.ok(second.state.one.production > first.state.one.production);
+  assert.equal(second.batch[0].write_record, false);
+  assert.equal(JSON.stringify(snapshot), before);
+  assert.equal(battery({ battery_kwh: 1, battery_level: 90 }, 5, 1).level, 100);
+  assert.equal(battery({ battery_kwh: 1, battery_level: 10 }, -5, 1).level, 0);
+  const a = seededRandom(4), b = seededRandom(4);
+  assert.deepEqual(Array.from({length: 10}, a), Array.from({length: 10}, b));
+});

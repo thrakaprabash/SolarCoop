@@ -7,6 +7,7 @@ import { colors, weight } from '../theme';
 import { SDGS } from '../data/energy';
 import { useEnergyAnalytics } from '../context/useEnergyAnalytics';
 import AnalyticsStatus from '../components/AnalyticsStatus';
+import { analyticsText } from '../utils/analyticsText';
 import { useNavigation } from '../context/NavigationContext';
 import { kwh } from '../utils/format';
 import { ImpactStatCard, SdgCard } from '../components';
@@ -17,9 +18,13 @@ export default function SustainabilityImpactScreen() {
   const styles = useThemedStyles(baseStyles);
   const { colors } = useLegacyTheme();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
   const analytics = useEnergyAnalytics({ includeLedger: true });
   const { navigate } = useNavigation();
+  const daily = analytics.daily;
+  const generation = daily?.generation;
+  const coverage = daily?.estimatedSolarCoverage;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}
@@ -33,14 +38,15 @@ export default function SustainabilityImpactScreen() {
         title={t('trade.impact.title')}
         subtitle={t('trade.impact.subtitle')}
       />
-      <Text style={styles.notice}>Month to date: {analytics.period.month}-01 to {analytics.period.day} (Asia/Colombo)</Text>
+      <Text style={styles.notice}>{copy('period', { start: `${analytics.period.month}-01`, end: analytics.period.day })}</Text>
       <AnalyticsStatus analytics={analytics} />
 
       <ImpactStatCard
         icon={Sun}
         iconColor={colors.amberLight}
         tint={colors.amberTint}
-        value="—"
+        value={generation == null ? '—' : kwh(generation)}
+        unit={generation == null ? null : 'kWh'}
         label={t('trade.impact.solarGenerated')}
       />
 
@@ -53,15 +59,23 @@ export default function SustainabilityImpactScreen() {
 
       <ImpactStatCard
         icon={Leaf}
-        value="—"
-        label="Estimated solar coverage"
+        value={coverage == null ? '—' : coverage.toFixed(1)}
+        unit={coverage == null ? null : '%'}
+        progress={coverage == null ? null : coverage}
+        label={copy('coverage')}
       />
-      <Text style={styles.notice}>Solar generation and estimated solar coverage are unavailable until daily energy totals can be verified.</Text>
+      {daily ? <Text style={styles.notice}>{copy('impactCoverage', {
+        generationDays: daily.generationDays, matchedDays: daily.matchedDays,
+        days: Number(analytics.period.day.slice(-2)),
+      })}</Text> : null}
+      {daily && (generation == null || coverage == null) ? <Text style={styles.notice}>{copy('solarMissing')}</Text> : null}
+      <Text style={styles.notice}>{copy('snapshotNote')}</Text>
+      <Text style={styles.notice}>{copy('coverageEstimateNote')}</Text>
 
       <SectionLabel style={styles.sdgLabel}>{t('trade.impact.sdgSectionLabel')}</SectionLabel>
       <SdgCard goals={SDGS} />
 
-      <Text style={styles.footNote}>Shared energy includes only your completed outgoing trades during this period.</Text>
+      <Text style={styles.footNote}>{copy('sharingNote')}</Text>
     </ScrollView>
   );
 }

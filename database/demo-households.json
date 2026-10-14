@@ -1,0 +1,15 @@
+[
+  {"key":"owner03","name":"Nimal Perera","role":"owner","household":"DEMO-O03","scenario":"Small home in Malabe","capacity":3.2,"panels":8,"strings":1,"battery":0,"soc":0,"load":"small","factor":0.85,"distance":"180 m"},
+  {"key":"owner04","name":"Sanduni Fernando","role":"owner","household":"DEMO-O04","scenario":"Family home in Kaduwela","capacity":4.8,"panels":12,"strings":2,"battery":5,"soc":65,"load":"family","factor":0.9,"distance":"350 m"},
+  {"key":"owner05","name":"Kasun Silva","role":"owner","household":"DEMO-O05","scenario":"Family home with home office in Battaramulla","capacity":6.4,"panels":16,"strings":2,"battery":10,"soc":70,"load":"family","factor":1.2,"distance":"600 m"},
+  {"key":"owner06","name":"Dilani Jayasinghe","role":"owner","household":"DEMO-O06","scenario":"Large family home in Athurugiriya","capacity":8,"panels":20,"strings":2,"battery":7.5,"soc":55,"load":"large","factor":1.1,"distance":"850 m"},
+  {"key":"owner07","name":"Ruwan Wickramasinghe","role":"owner","household":"DEMO-O07","scenario":"Solar rooftop above a neighbourhood grocery","capacity":10,"panels":25,"strings":3,"battery":15,"soc":75,"load":"business","factor":1.15,"distance":"1.2 km"},
+  {"key":"consumer05","name":"Amali Dias","role":"consumer","household":"DEMO-C05","scenario":"One-person apartment","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"small","factor":0.65,"distance":"200 m"},
+  {"key":"consumer06","name":"Dinesh Senanayake","role":"consumer","household":"DEMO-C06","scenario":"Two-person home","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"small","factor":1,"distance":"300 m"},
+  {"key":"consumer07","name":"Tharushi Gunawardena","role":"consumer","household":"DEMO-C07","scenario":"Four-person family home","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"family","factor":0.9,"distance":"400 m"},
+  {"key":"consumer08","name":"Pradeep Rathnayake","role":"consumer","household":"DEMO-C08","scenario":"Family home with evening cooking demand","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"family","factor":1.2,"distance":"550 m"},
+  {"key":"consumer09","name":"Hiruni de Alwis","role":"consumer","household":"DEMO-C09","scenario":"Large multigeneration household","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"large","factor":1.1,"distance":"700 m"},
+  {"key":"consumer10","name":"Saman Weerasinghe","role":"consumer","household":"DEMO-C10","scenario":"Small neighbourhood shop","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"business","factor":0.65,"distance":"900 m"},
+  {"key":"consumer11","name":"Ishani Abeysekara","role":"consumer","household":"DEMO-C11","scenario":"Daytime home office","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"business","factor":0.45,"distance":"1 km"},
+  {"key":"consumer12","name":"Chamara Bandara","role":"consumer","household":"DEMO-C12","scenario":"Large household with higher evening demand","capacity":0,"panels":0,"strings":1,"battery":0,"soc":0,"load":"large","factor":1.35,"distance":"1.4 km"}
+]
