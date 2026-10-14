@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react
 import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS } from '../../theme/colors';
-import { Sun, Zap, Users } from 'lucide-react-native';
+import { SolarCoopLogo } from './SolarCoopLogo';
 
 export const Header = () => {
   const { t } = useTranslation();
@@ -14,9 +14,7 @@ export const Header = () => {
       {/* Top row */}
       <View style={styles.topRow}>
         <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
-            <Zap size={18} color="#FFFFFF" />
-          </View>
+          <SolarCoopLogo size={36} decorative />
           <View>
             <Text style={styles.appName}>{t('common.appName')}</Text>
             <Text style={styles.subTitle}>{t('app.communityEnergySharing')}</Text>
@@ -71,16 +69,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  logoBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   appName: {
     fontSize: 18,

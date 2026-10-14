@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { ShieldCheck, LogOut } from 'lucide-react-native';
+import { LogOut } from 'lucide-react-native';
+import { SolarCoopLogo } from '../../components/common/SolarCoopLogo';
 
 export default function AdminHeader() {
   const { t } = useTranslation();
@@ -62,9 +63,7 @@ export default function AdminHeader() {
       {/* Top Row */}
       <View style={styles.topRow}>
         <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
-            <ShieldCheck size={18} color={COLORS.amberLight} />
-          </View>
+          <SolarCoopLogo size={36} decorative />
           <View>
             <View style={styles.titleRow}>
               <Text style={styles.appName}>{t('common.appName')}</Text>
@@ -135,16 +134,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  logoBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',

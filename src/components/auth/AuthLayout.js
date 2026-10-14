@@ -24,8 +24,8 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Sun } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { SolarCoopLogo } from '../common/SolarCoopLogo';
 import { useTheme } from '../../theme/useTheme';
 import { PALETTE } from '../../theme/colors';
 
@@ -96,14 +96,7 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
           <Animated.View style={contentStyle}>
             {/* Brand */}
             <View style={styles.brandRow}>
-              <LinearGradient
-                colors={[colors.primaryLight, colors.primary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.logoBadge}
-              >
-                <Sun size={20} color="#FFFFFF" strokeWidth={2.2} />
-              </LinearGradient>
+              <SolarCoopLogo size={44} decorative />
               <Text style={[styles.brandName, { color: colors.text }]}>
                 {t('common.appName')}
               </Text>
@@ -179,18 +172,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     marginBottom: 2,
-  },
-  logoBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: PALETTE.solarOrange,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
   },
   brandName: {
     fontSize: 24,

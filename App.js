@@ -60,6 +60,7 @@ import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import AdminPortal from './src/admin/AdminPortal';
 import TechnicianPortal from './src/technician/TechnicianPortal';
 import { useTheme } from './src/theme/useTheme';
+import { SolarCoopLogo } from './src/components/common/SolarCoopLogo';
 import {
   BadgeCheck,
   Ban,
@@ -141,11 +142,7 @@ function LoadingSplash({ label = 'Loading SolarCoop…' }) {
         backgroundColor={theme.colors.background}
         translucent
       />
-      <View
-        style={[styles.loadingBadge, { backgroundColor: theme.colors.primarySoft }]}
-      >
-        <Sun size={26} color={theme.colors.primary} />
-      </View>
+      <SolarCoopLogo size={72} decorative style={styles.loadingLogo} />
       <ActivityIndicator
         size="large"
         color={theme.colors.primary}
@@ -695,14 +692,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  loadingBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
+  loadingLogo: { marginBottom: 4 },
   loadingSpinner: { marginTop: 8 },
   loadingText: { fontSize: 13, fontWeight: '600' },
 

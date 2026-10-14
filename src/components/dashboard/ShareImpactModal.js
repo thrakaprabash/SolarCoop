@@ -12,13 +12,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
+import { SolarCoopLogo } from '../common/SolarCoopLogo';
 import {
   Share2,
   X,
   Check,
   Copy,
   Sparkles,
-  Sun,
   TreePine,
   DollarSign,
   CloudOff,
@@ -254,7 +254,7 @@ export const ShareImpactModal = ({
                 <View style={styles.cardHeader}>
                   <View style={styles.cardBrand}>
                     <View style={[styles.cardLogoCircle, { backgroundColor: themeColors.primary }]}>
-                      <Sun size={14} color="#121212" strokeWidth={2.5} />
+                      <SolarCoopLogo variant="mark" size={18} color="#121212" gapColor={themeColors.primary} decorative />
                     </View>
                     <View>
                       <Text style={styles.cardBrandName}>SOLARCOOP</Text>
