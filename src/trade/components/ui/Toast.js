@@ -3,8 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { CircleCheck } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function Toast({ message, bottom = 96 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   if (!message) return null;
   return (
     <View style={[styles.toast, { bottom }]} pointerEvents="none">
@@ -14,7 +18,7 @@ export default function Toast({ message, bottom = 96 }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   toast: {
     position: 'absolute',
     left: 16,

@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { colors, weight } from '../theme';
 import { clock, tradeKwh as kwh, shortDate } from '../utils/format';
 import { Card, Pill } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function TransactionCard({ transaction, onPress }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors, themeColor } = useLegacyTheme();
+
   const { t, i18n } = useTranslation();
   const language = i18n.resolvedLanguage || i18n.language;
   const sent = transaction.dir === 'sent';
@@ -42,7 +46,7 @@ export default function TransactionCard({ transaction, onPress }) {
               color={reversed ? colors.danger : colors.tealLight}
               background={reversed ? colors.dangerTint : colors.tealTintSoft}
               style={[styles.completed, reversed && {
-                borderColor: 'rgba(239,68,68,0.35)', backgroundColor: colors.dangerTint,
+                borderColor: themeColor("rgba(239,68,68,0.35)", "borderColor"), backgroundColor: colors.dangerTint,
               }]}
             />
           </View>
@@ -54,7 +58,7 @@ export default function TransactionCard({ transaction, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   body: { flex: 1, minWidth: 0, gap: 4 },
   dirRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },

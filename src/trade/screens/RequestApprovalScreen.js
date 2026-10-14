@@ -19,8 +19,12 @@ import {
   Notice,
   SectionLabel,
 } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestApprovalScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, colors } = useLegacyTheme();
+
   const { t, i18n } = useTranslation();
   const { params, navigate } = useNavigation();
   const { getIncoming, surplus, providersLoading, providersError, refreshProviders, approveIncoming, rejectIncoming } = useTrade();
@@ -88,7 +92,7 @@ export default function RequestApprovalScreen() {
   if (rejected) {
     return (
       <View style={styles.result}>
-        <IconBadge size={72} background="rgba(239,68,68,0.15)" borderColor="rgba(239,68,68,0.4)">
+        <IconBadge size={72} background="rgba(239,68,68,0.15)" borderColor={themeColor("rgba(239,68,68,0.4)", "borderColor")}>
           <X size={34} color={colors.danger} strokeWidth={2.2} />
         </IconBadge>
         <Text style={styles.resultTitle}>{t('trade.approval.rejectedTitle')}</Text>
@@ -248,7 +252,7 @@ export default function RequestApprovalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 14 },
   missing: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },

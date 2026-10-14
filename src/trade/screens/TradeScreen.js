@@ -8,8 +8,12 @@ import { MEMBER, MODULE_FEATURES } from '../data/features';
 import { useNavigation } from '../context/NavigationContext';
 import { FeatureRow } from '../components';
 import { Card, IconBadge, PrimaryButton } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function TradeScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { navigate } = useNavigation();
 
@@ -50,7 +54,7 @@ export default function TradeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   hero: { alignItems: 'center', gap: 8 },

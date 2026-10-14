@@ -6,9 +6,13 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
 import { DateRangeFilter } from './DateRangeFilter';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-102 / SOL-153 / SOL-186: Interactive Energy Charts View Component & Multi-Range Filter
 export const ChartsView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     chartData, 
@@ -270,7 +274,7 @@ export const ChartsView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

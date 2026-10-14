@@ -7,8 +7,12 @@ import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { IncomingRequestRow, SurplusCard } from '../components';
 import { Card, EmptyState, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function IncomingRequestsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     incoming,
@@ -87,7 +91,7 @@ export default function IncomingRequestsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   list: { gap: 14 },

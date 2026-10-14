@@ -49,6 +49,7 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
+import { useThemedStyles } from '../theme/useLegacyTheme';
 
 const ROLES = [
   { id: 'consumer', labelKey: 'auth.register.role.consumer', Icon: Home },
@@ -60,6 +61,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SEGMENT_GAP = 6;
 
 export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const { signUp } = useAuth();
   const theme = useTheme();
@@ -528,7 +531,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   stepHeader: {
     flexDirection: 'row',
     alignItems: 'center',

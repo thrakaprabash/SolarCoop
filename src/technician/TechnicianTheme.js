@@ -39,7 +39,8 @@ export function TechnicianThemeProvider({ children }) {
       inputBg: TECH.card, inputBorder: TECH.borderStrong, inputBorderFocus: TECH.orange,
       track: TECH.cardRaised, primary: TECH.action, primarySoft: TECH.orangeSoft, danger: '#C13232' } };
   }, [mode, TECH]);
-  return <ThemeContext.Provider value={value}><ThemeOverrideContext.Provider value={sharedTheme}>{children}</ThemeOverrideContext.Provider></ThemeContext.Provider>;
+  const appearance = { ...sharedTheme, preference, setPreference: setMode, ready };
+  return <ThemeContext.Provider value={value}><ThemeOverrideContext.Provider value={appearance}>{children}</ThemeOverrideContext.Provider></ThemeContext.Provider>;
 }
 export const useTechnicianTheme = () => useContext(ThemeContext);
 export function useTechStyles(factory) {

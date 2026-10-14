@@ -13,6 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { ArrowLeft, Send, AlertCircle } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const COMPLAINT_TYPES = [
   'Transaction Error',
@@ -29,6 +30,9 @@ const TYPE_LABEL_KEY = {
 };
 
 export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = null }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const isEditing = !!existingComplaint;
   
@@ -184,7 +188,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
           activeOpacity={0.8}
         >
           {isSubmitting ? (
-            <ActivityIndicator size="small" color="#000000" />
+            <ActivityIndicator size="small" color={themeColor("#000000", "color")} />
           ) : (
             <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled]}>
               {isEditing ? t('admin.settings.saveChanges') : t('member.alertsHub.submitComplaintButton')}
@@ -198,7 +202,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   
   header: {

@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { AlertTriangle, ArrowDownLeft, ShieldAlert } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
   
@@ -53,7 +57,7 @@ export const DeficitView = () => {
           onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
         >
-          <ArrowDownLeft size={18} color="#FFFFFF" />
+          <ArrowDownLeft size={18} color={"#FFFFFF"} />
           <Text style={styles.borrowSubmitText}>{t('member.nav.trade')}</Text>
         </TouchableOpacity>
       </View>
@@ -61,7 +65,7 @@ export const DeficitView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

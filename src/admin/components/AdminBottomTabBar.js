@@ -11,6 +11,7 @@ import {
 import { COLORS } from '../../theme/colors';
 import { colors } from '../../trade/theme';
 import { useAdmin } from '../context/AdminContext';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const TAB_KEYS = [
   { key: 'dashboard', labelKey: 'admin.nav.dashboard', icon: LayoutDashboard },
@@ -21,6 +22,9 @@ const TAB_KEYS = [
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, colors, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { complaints } = useAdmin();
 
@@ -48,7 +52,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               <View
                 style={[
                   styles.iconWrap,
-                  active && { backgroundColor: 'rgba(245,158,11,0.2)', borderColor: 'rgba(245,158,11,0.3)' },
+                  active && { backgroundColor: themeColor("rgba(245,158,11,0.2)", "backgroundColor"), borderColor: themeColor("rgba(245,158,11,0.3)", "borderColor") },
                 ]}
               >
                 <Icon size={18} color={color} strokeWidth={2} />
@@ -71,7 +75,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

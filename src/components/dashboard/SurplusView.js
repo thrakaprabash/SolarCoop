@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { BatteryCharging, ArrowUpRight, Share2 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-99: Surplus View Component
 export const SurplusView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
 
@@ -70,7 +74,7 @@ export const SurplusView = () => {
           onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
         >
-          <ArrowUpRight size={18} color="#FFFFFF" />
+          <ArrowUpRight size={18} color={"#FFFFFF"} />
           <Text style={styles.shareSubmitText}>{t('member.nav.trade')}</Text>
         </TouchableOpacity>
       </View>
@@ -79,7 +83,7 @@ export const SurplusView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

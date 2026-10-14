@@ -51,7 +51,9 @@ import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { AuthField } from '../components/auth/AuthField';
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
 import { showAlert, showConfirm } from '../utils/alert';
+import { useThemedStyles, useLegacyTheme } from '../theme/useLegacyTheme';
 
 // Canonical role/status values stay in English — only the label shown is
 // translated. Reused verbatim in App.js's role-router shell.
@@ -108,6 +110,9 @@ const getInitials = (name = '') => {
 };
 
 export const ProfileScreen = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { user, profile, signOut, loading, refreshProfile, updateProfile } =
     useAuth();
@@ -275,7 +280,7 @@ export const ProfileScreen = () => {
       >
         {/* Hero member card — tinted by role */}
         <LinearGradient
-          colors={roleTheme.gradient}
+          colors={theme.isDark ? roleTheme.gradient : ['#CDEEFF', '#E2F3DA', '#FFF1A8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.hero}
@@ -286,14 +291,14 @@ export const ProfileScreen = () => {
             </Text>
           </View>
 
-          <Text style={styles.heroGreeting}>{t('profile.welcome', { name: firstName })}</Text>
-          <Text style={styles.heroEmail}>{user?.email}</Text>
+          <Text style={[styles.heroGreeting, !theme.isDark && { color: colors.text }]}>{t('profile.welcome', { name: firstName })}</Text>
+          <Text style={[styles.heroEmail, !theme.isDark && { color: colors.textSecondary }]}>{user?.email}</Text>
 
           <View style={styles.badgeRow}>
             {/* Role badge */}
             <View style={styles.roleBadge}>
-              <Shield size={12} color="#FFFFFF" strokeWidth={2.4} />
-              <Text style={styles.badgeText}>{roleLabel}</Text>
+              <Shield size={12} color={theme.isDark ? '#FFFFFF' : colors.text} strokeWidth={2.4} />
+              <Text style={[styles.badgeText, !theme.isDark && { color: colors.text }]}>{roleLabel}</Text>
             </View>
 
             {/* Status badge */}
@@ -441,6 +446,7 @@ export const ProfileScreen = () => {
         </View>
 
         <LanguageSwitcher colors={colors} />
+        <ThemeSwitcher />
 
         {/* Save button — visible only while editing */}
         {editing ? (
@@ -467,7 +473,7 @@ export const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   root: {
     flex: 1,
   },

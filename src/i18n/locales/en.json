@@ -1189,5 +1189,11 @@
       "featureHeading": "Module Features",
       "createRequest": "Create Energy Request"
     }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Device"
   }
 }

@@ -2,8 +2,12 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function Chip({ label, active, onPress, icon: Icon }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -29,7 +33,7 @@ export default function Chip({ label, active, onPress, icon: Icon }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

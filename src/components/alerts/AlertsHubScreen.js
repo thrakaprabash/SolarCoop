@@ -25,6 +25,7 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -77,6 +78,9 @@ const STEP_LABEL_KEY = {
 };
 
 function StatusStepper({ currentStatus }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const stepMap = {
     'Open': 0, 'Under Review': 1, 'Investigated': 2, 'Resolved': 3, 'Rejected': -1,
@@ -115,6 +119,9 @@ function StatusStepper({ currentStatus }) {
 
 // ─── Complaint Card (Member View) ─────────────────────────────────────────────
 function MemberComplaintCard({ complaint, onEdit, onDelete }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -258,6 +265,9 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], loading = false, onEdit, onDelete }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -280,7 +290,7 @@ export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], load
         activeOpacity={0.8}
         onPress={() => onNavigate('submit')}
       >
-        <PlusCircle size={18} color="#FFFFFF" />
+        <PlusCircle size={18} color={"#FFFFFF"} />
         <Text style={styles.actionBtnText}>{t('member.alertsHub.submitButton')}</Text>
       </TouchableOpacity>
 
@@ -316,7 +326,7 @@ export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], load
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   

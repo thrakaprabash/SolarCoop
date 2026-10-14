@@ -2,8 +2,12 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function ProgressBar({ value = 0, color = colors.teal }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const pct = Math.max(0, Math.min(100, value));
   return (
     <View style={styles.track}>
@@ -12,7 +16,7 @@ export default function ProgressBar({ value = 0, color = colors.teal }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   track: {
     height: 10,
     borderRadius: 5,

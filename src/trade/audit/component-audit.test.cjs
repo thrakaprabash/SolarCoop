@@ -54,6 +54,8 @@ function screenHarness(relative, name, overrides = {}) {
   ].map(name => [name, name]));
   const deps = {
     ...hooks, ...ui, StyleSheet: { create: x => x }, colors: {}, radius: {}, weight: {},
+    useThemedStyles: styles => styles,
+    useLegacyTheme: () => ({ colors: {}, themeColor: value => value }),
     kwh: format.tradeKwh, decimalAmount: format.decimalAmount, addTradeAmounts: format.addTradeAmounts, reportingHelp,
     money: n => '$' + Number(n).toFixed(2), fmtRate: n => Number(n).toFixed(2),
     stamp: d => d.toISOString(),

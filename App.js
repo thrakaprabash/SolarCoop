@@ -61,6 +61,8 @@ import AdminPortal from './src/admin/AdminPortal';
 import TechnicianPortal from './src/technician/TechnicianPortal';
 import { useTheme } from './src/theme/useTheme';
 import { SolarCoopLogo } from './src/components/common/SolarCoopLogo';
+import { ThemeProvider } from './src/theme/ThemeProvider';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   BadgeCheck,
   Ban,
@@ -73,6 +75,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from './src/theme/useLegacyTheme';
 
 /* ─── Shared presentational helpers ────────────────────────────────────────── */
 
@@ -116,6 +119,8 @@ const getInitials = (name = '') => {
 };
 
 const StatusPill = ({ status }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const label = STATUS_LABELS[status] || status;
   const color = STATUS_COLORS[status] || '#94A3B8';
   return (
@@ -134,6 +139,8 @@ const StatusPill = ({ status }) => {
 /* ─── Themed loading splash ────────────────────────────────────────────────── */
 
 function LoadingSplash({ label = 'Loading SolarCoop…' }) {
+  const styles = useThemedStyles(baseStyles);
+
   const theme = useTheme();
   return (
     <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
@@ -179,14 +186,18 @@ function AuthGate() {
 /* ─── Dark-glass shell frame shared by every authenticated shell ───────────── */
 
 function ShellFrame({ header, children }) {
+  const styles = useThemedStyles(baseStyles);
+  const theme = useTheme();
+
   return (
     <ImageBackground
-      source={require('./assets/bg.jpg')}
+      source={theme.isDark ? require('./assets/bg.jpg') : undefined}
       style={styles.bgImage}
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        {!theme.isDark && <LinearGradient pointerEvents="none" colors={['#D9F3FF', '#F5FBFF', '#E4F4DF', '#FFF7D4']} style={StyleSheet.absoluteFillObject} />}
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
         <View style={styles.safeArea}>
           {header}
           <View style={styles.mainContentContainer}>{children}</View>
@@ -197,6 +208,8 @@ function ShellFrame({ header, children }) {
 }
 
 function PortalHeader({ title, subtitle, accentColor }) {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const theme = useTheme();
   return (
@@ -230,6 +243,9 @@ function PortalHeader({ title, subtitle, accentColor }) {
 /* ─── Pending-approval lock screen (Solar Owners awaiting Admin validation) ── */
 
 function PendingApprovalLock() {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const theme = useTheme();
   const { refreshProfile } = useAuth();
@@ -265,10 +281,10 @@ function PendingApprovalLock() {
         activeOpacity={0.85}
       >
         {refreshing ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
+          <ActivityIndicator size="small" color={"#FFFFFF"} />
         ) : (
           <>
-            <RefreshCw size={16} color="#FFFFFF" />
+            <RefreshCw size={16} color={"#FFFFFF"} />
             <Text style={styles.lockRefreshText}>{t('app.pendingLock.checkStatus')}</Text>
           </>
         )}
@@ -280,6 +296,8 @@ function PendingApprovalLock() {
 /* ─── Member shell (Consumer / Solar Owner) ────────────────────────────────── */
 
 function MemberApp() {
+  const styles = useThemedStyles(baseStyles);
+
   const { profile, user } = useAuth();
   const { mainBottomTab, setMainBottomTab } = useEnergy();
 
@@ -333,6 +351,8 @@ function MemberApp() {
 /* ─── Reusable bottom tab bar for the Admin / Technician shells ────────────── */
 
 function ShellTabBar({ tabs, activeKey, onSelect }) {
+  const styles = useThemedStyles(baseStyles);
+
   return (
     <View style={styles.shellTabBar}>
       {tabs.map((tab) => {
@@ -369,6 +389,9 @@ function ShellTabBar({ tabs, activeKey, onSelect }) {
 /* ─── Admin shell — SOL-95 Member Management dashboard ─────────────────────── */
 
 function AdminMemberRow({ member, onApprove, onBlock, isSelf, busy }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const role = member.role || 'consumer';
   const roleColor = ROLE_COLORS[role] || ROLE_COLORS.consumer;
   const status = member.status || 'pending';
@@ -417,7 +440,7 @@ function AdminMemberRow({ member, onApprove, onBlock, isSelf, busy }) {
               disabled={busy}
               activeOpacity={0.8}
             >
-              <UserCheck size={14} color="#FFFFFF" />
+              <UserCheck size={14} color={"#FFFFFF"} />
               <Text style={styles.actionBtnText}>Approve</Text>
             </TouchableOpacity>
           ) : null}
@@ -428,7 +451,7 @@ function AdminMemberRow({ member, onApprove, onBlock, isSelf, busy }) {
               disabled={busy}
               activeOpacity={0.8}
             >
-              <Ban size={14} color="#FFFFFF" />
+              <Ban size={14} color={"#FFFFFF"} />
               <Text style={styles.actionBtnText}>Block</Text>
             </TouchableOpacity>
           ) : null}
@@ -439,6 +462,9 @@ function AdminMemberRow({ member, onApprove, onBlock, isSelf, busy }) {
 }
 
 function AdminApp() {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { profile, fetchAllProfiles, adminUpdateProfileStatus } = useAuth();
   const [tab, setTab] = useState('members'); // 'members' | 'profile'
   const [members, setMembers] = useState([]);
@@ -558,12 +584,12 @@ function AdminApp() {
             <Text style={styles.statLabel}>Total Members</Text>
           </View>
           <View style={styles.statCard}>
-            <TriangleAlert size={18} color="#F59E0B" />
+            <TriangleAlert size={18} color={themeColor("#F59E0B", "color")} />
             <Text style={styles.statValue}>{pendingCount}</Text>
             <Text style={styles.statLabel}>Pending Approval</Text>
           </View>
           <View style={styles.statCard}>
-            <BadgeCheck size={18} color="#22C55E" />
+            <BadgeCheck size={18} color={themeColor("#22C55E", "color")} />
             <Text style={styles.statValue}>{activeCount}</Text>
             <Text style={styles.statLabel}>Active</Text>
           </View>
@@ -571,14 +597,14 @@ function AdminApp() {
 
         {memberError ? (
           <View style={styles.noticeCard}>
-            <ShieldAlert size={16} color="#F59E0B" />
+            <ShieldAlert size={16} color={themeColor("#F59E0B", "color")} />
             <Text style={styles.noticeText}>{memberError}</Text>
           </View>
         ) : null}
 
         {loadingMembers ? (
           <View style={styles.listLoading}>
-            <ActivityIndicator size="large" color="#F59E0B" />
+            <ActivityIndicator size="large" color={themeColor("#F59E0B", "color")} />
             <Text style={styles.listLoadingText}>Loading members…</Text>
           </View>
         ) : (
@@ -660,6 +686,7 @@ function RoleRouter() {
 export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
+      <ThemeProvider>
       <AuthProvider>
         <EnergyProvider>
           <TradeProvider>
@@ -667,13 +694,14 @@ export default function App() {
           </TradeProvider>
         </EnergyProvider>
       </AuthProvider>
+      </ThemeProvider>
     </I18nextProvider>
   );
 }
 
 /* ─── Styles ───────────────────────────────────────────────────────────────── */
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   flex: { flex: 1 },
   bgImage: { flex: 1, width: '100%', height: '100%' },
   overlay: { flex: 1, backgroundColor: 'rgba(5, 8, 22, 0.55)' },

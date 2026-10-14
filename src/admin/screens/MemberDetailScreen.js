@@ -31,6 +31,7 @@ import {
   UserX,
   ShieldOff,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STATUS_COLORS = {
   Active:    COLORS.tealLight,
@@ -48,6 +49,9 @@ const STATUS_LABEL_KEY = {
 };
 
 export default function MemberDetailScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { selectedMember, setSelectedMember, setAdminBottomTab, updateMemberStatus } = useAdmin();
   const [updating, setUpdating] = useState(false);
@@ -150,7 +154,7 @@ export default function MemberDetailScreen() {
         {/* Accent Banner */}
         <View style={[styles.profileBanner, { backgroundColor: `${accentColor}18` }]} />
 
-        <View style={[styles.profileAvatar, { backgroundColor: 'rgba(245,158,11,0.2)', borderColor: 'rgba(245,158,11,0.4)' }]}>
+        <View style={[styles.profileAvatar, { backgroundColor: themeColor("rgba(245,158,11,0.2)", "backgroundColor"), borderColor: themeColor("rgba(245,158,11,0.4)", "borderColor") }]}>
           <Text style={styles.profileAvatarText}>
             {member.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
           </Text>
@@ -191,7 +195,7 @@ export default function MemberDetailScreen() {
         <Text style={styles.sectionTitle}>{t('admin.memberDetail.energyOverviewToday')}</Text>
         <View style={styles.energyGrid}>
           <View style={styles.energyCell}>
-            <View style={[styles.energyIcon, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+            <View style={[styles.energyIcon, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
               <Sun size={16} color={COLORS.amberLight} />
             </View>
             <Text style={styles.energyValue}>{member.todayProduction}</Text>
@@ -199,7 +203,7 @@ export default function MemberDetailScreen() {
             <Text style={styles.energyLabel}>{t('admin.memberDetail.produced')}</Text>
           </View>
           <View style={styles.energyCell}>
-            <View style={[styles.energyIcon, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
+            <View style={[styles.energyIcon, { backgroundColor: themeColor("rgba(20,184,166,0.12)", "backgroundColor") }]}>
               <Zap size={16} color={COLORS.teal} />
             </View>
             <Text style={styles.energyValue}>{member.todayConsumption}</Text>
@@ -237,7 +241,7 @@ export default function MemberDetailScreen() {
         <Text style={styles.sectionSubtext}>{t('admin.memberDetail.accountManagementSubtitle')}</Text>
         <View style={styles.actionBtnsCol}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.15)', borderColor: 'rgba(45,212,191,0.3)' }, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(45,212,191,0.15)", "backgroundColor"), borderColor: themeColor("rgba(45,212,191,0.3)", "borderColor") }, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Active')}
             disabled={memberStatus === 'Active' || updating}
             activeOpacity={0.8}
@@ -250,7 +254,7 @@ export default function MemberDetailScreen() {
             {memberStatus === 'Active' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor"), borderColor: themeColor("rgba(251,191,36,0.3)", "borderColor") }, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Inactive')}
             disabled={memberStatus === 'Inactive' || updating}
             activeOpacity={0.8}
@@ -263,7 +267,7 @@ export default function MemberDetailScreen() {
             {memberStatus === 'Inactive' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.3)' }, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor"), borderColor: themeColor("rgba(239,68,68,0.3)", "borderColor") }, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Suspended')}
             disabled={memberStatus === 'Suspended' || updating}
             activeOpacity={0.8}
@@ -321,7 +325,7 @@ export default function MemberDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
 

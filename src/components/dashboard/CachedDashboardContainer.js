@@ -9,6 +9,7 @@ import { DeficitView } from './DeficitView';
 import { EnergyHistoryView } from './EnergyHistoryView';
 import { ChartsView } from './ChartsView';
 import { EnergySummaryView } from './EnergySummaryView';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 // Memoized views to avoid unnecessary re-renders of background tabs
 const MemoizedHomeDashboard = React.memo(HomeDashboard);
@@ -40,6 +41,8 @@ const TAB_COMPONENTS = {
  * - Instant tab transitions: Switching between tabs is 60fps instant with zero lag and zero refetching.
  */
 export const CachedDashboardContainer = () => {
+  const styles = useThemedStyles(baseStyles);
+
   const { activeTab = 'dashboard', visitedTabs = [] } = useEnergy();
   
   // Mounted tabs tracking: starts with current activeTab (or dashboard) plus any visited tabs
@@ -85,7 +88,7 @@ export const CachedDashboardContainer = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',

@@ -3,9 +3,13 @@ import { StyleSheet, Text, View } from 'react-native';
 import { CircleCheck, TriangleAlert } from 'lucide-react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 /** tone: 'error' | 'success' */
 export default function Notice({ message, tone = 'error' }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   if (!message) return null;
   const error = tone === 'error';
   const color = error ? colors.danger : colors.tealLight;
@@ -19,7 +23,7 @@ export default function Notice({ message, tone = 'error' }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   notice: {
     flexDirection: 'row',
     alignItems: 'center',

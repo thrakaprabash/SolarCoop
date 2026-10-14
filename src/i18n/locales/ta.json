@@ -1172,5 +1172,11 @@
       "featureHeading": "தொகுதி அம்சங்கள்",
       "createRequest": "ஆற்றல் கோரிக்கையை உருவாக்கு"
     }
+  },
+  "appearance": {
+    "title": "தோற்றம்",
+    "light": "ஒளி",
+    "dark": "இருள்",
+    "system": "சாதனம்"
   }
 }

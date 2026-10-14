@@ -2,8 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 export default function Pill({ label, color = colors.tealLight, background = colors.tealTintSoft, dotColor, style }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   return (
     <View style={[styles.pill, { backgroundColor: background }, style]}>
       {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
@@ -12,7 +16,7 @@ export default function Pill({ label, color = colors.tealLight, background = col
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -21,6 +21,7 @@ import {
   AlertCircle,
   Users,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STATUS_COLORS = {
   Active:    COLORS.tealLight,
@@ -49,6 +50,9 @@ const STATUS_LABEL_KEY = {
 const FILTER_OPTS = ['All', 'Active', 'Pending', 'Inactive', 'Suspended'];
 
 function MemberCard({ member, onPress, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, COLORS } = useLegacyTheme();
+
   const accentColor = STATUS_COLORS[member.status];
   const hasSurplus = member.todaySurplus > 0;
 
@@ -62,7 +66,7 @@ function MemberCard({ member, onPress, t }) {
       <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
 
       {/* Avatar */}
-      <View style={[styles.avatar, { backgroundColor: 'rgba(245,158,11,0.2)', borderColor: 'rgba(245,158,11,0.35)' }]}>
+      <View style={[styles.avatar, { backgroundColor: themeColor("rgba(245,158,11,0.2)", "backgroundColor"), borderColor: themeColor("rgba(245,158,11,0.35)", "borderColor") }]}>
         <Text style={styles.avatarText}>
           {member.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
         </Text>
@@ -129,6 +133,9 @@ function MemberCard({ member, onPress, t }) {
 }
 
 export default function MemberMonitoringScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     setSelectedMember,
@@ -249,23 +256,23 @@ export default function MemberMonitoringScreen() {
 
       {/* Summary Strip */}
       <View style={styles.summaryStrip}>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.tealLight }]}>{activeCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.tealLight }]}>{t('common.status.active')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(59,130,246,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.blueLight }]}>{pendingCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.blueLight }]}>{t('common.status.pending')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.amberLight }]}>{inactiveCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.amberLight }]}>{t('common.status.inactive')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.red }]}>{suspendCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.red }]}>{t('common.status.suspended')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(255,255,255,0.07)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(255,255,255,0.07)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.textPrimary }]}>{filtered.length}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>{t('admin.members.shown')}</Text>
         </View>
@@ -287,7 +294,7 @@ export default function MemberMonitoringScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 
