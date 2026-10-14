@@ -52,13 +52,15 @@ const TX_ICONS = {
 
 function TxRow({ tx, onReverse, t }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
 
   const [expanded, setExpanded] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
   const [reason, setReason] = useState('');
-  const color  = TX_COLORS[tx.status];
-  const bg     = TX_BG[tx.status];
+  // TX_COLORS / TX_BG hold dark-theme tokens, so map them for the active theme
+  // (bright teal on a pale pill is only 1.6:1).
+  const color  = themeColor(TX_COLORS[tx.status], 'color');
+  const bg     = themeColor(TX_BG[tx.status], 'backgroundColor');
   const StatusIcon = TX_ICONS[tx.status];
 
   const performReverse = async () => {
@@ -104,6 +106,8 @@ function TxRow({ tx, onReverse, t }) {
       style={[styles.txCard, { borderColor: `${color}20` }]}
       onPress={() => setExpanded(e => !e)}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityState={{ expanded }}
     >
       {/* Accent Bar */}
       <View style={[styles.txAccent, { backgroundColor: color }]} />
@@ -184,10 +188,12 @@ function TxRow({ tx, onReverse, t }) {
 
           {tx.status === 'Completed' && (
             <TouchableOpacity
-              style={[styles.reverseBtn, (isReversing || reason.trim().length < 10) && styles.reverseBtnDisabled]}
+              style={[styles.reverseBtn, action.dangerTonal.box, (isReversing || reason.trim().length < 10) && styles.reverseBtnDisabled]}
               onPress={handleReverse}
               disabled={isReversing || reason.trim().length < 10}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isReversing || reason.trim().length < 10 }}
             >
               {isReversing
                 ? <ActivityIndicator size="small" color={COLORS.red} />
@@ -206,7 +212,7 @@ function TxRow({ tx, onReverse, t }) {
 
 export default function TransactionMonitoringScreen() {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS } = useLegacyTheme();
+  const { COLORS, GLASS, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const {
@@ -256,8 +262,8 @@ export default function TransactionMonitoringScreen() {
           <AlertCircle size={28} color={COLORS.red} />
           <Text style={styles.errorTitle}>{t('admin.transactions.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{transactionsError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadTransactions} activeOpacity={0.8}>
-            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          <TouchableOpacity style={[styles.retryBtn, action.tonal.box]} onPress={loadTransactions} activeOpacity={0.8} accessibilityRole="button">
+            <Text style={[styles.retryText, action.tonal.text]}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -296,11 +302,14 @@ export default function TransactionMonitoringScreen() {
         {FILTERS.map(f => (
           <TouchableOpacity
             key={f}
-            style={[styles.filterChip, filter === f && styles.filterChipActive]}
+            style={[styles.filterChip, filter === f && styles.filterChipActive, filter === f && action.selected.box]}
             onPress={() => setFilter(f)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === f }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{t(STATUS_LABEL_KEY[f])}</Text>
+            <Text style={[styles.filterText, filter === f && styles.filterTextActive, filter === f && action.selected.text]}>{t(STATUS_LABEL_KEY[f])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>

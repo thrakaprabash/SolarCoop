@@ -9,12 +9,14 @@ import { useNavigation } from '../context/NavigationContext';
 import { tradeKwh as kwh, decimalAmount, addTradeAmounts, money, rate as fmtRate } from '../utils/format';
 import { Card, Divider, IconBadge, Metric, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTheme } from '../../theme/useTheme';
 
 const STEP = 0.5;
 
 export default function EnergyRequestScreen() {
   const styles = useThemedStyles(baseStyles);
   const { colors } = useLegacyTheme();
+  const { isDark } = useTheme();
 
   const { t } = useTranslation();
   const { getHousehold, refreshProviders, submitRequest, showToast } = useTrade();
@@ -155,7 +157,8 @@ export default function EnergyRequestScreen() {
           icon={ArrowUpRight}
           onPress={onSubmit}
           disabled={!!error || submitting || !!confirmation}
-          background={error || confirmation ? colors.tealTintStrong : colors.teal}
+          variant={!isDark && confirmation ? 'ghost' : 'solid'}
+          background={isDark ? (error || confirmation ? colors.tealTintStrong : colors.teal) : undefined}
           style={styles.submit}
         />
       </Card>
@@ -234,7 +237,9 @@ const baseStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  inputText: { flex: 1, padding: 0, fontSize: 18, fontWeight: weight.heavy, color: colors.textStrong },
+  // minWidth:0 lets the field shrink inside the row; otherwise on web its default
+  // width pushes the "kWh" unit out past the + button.
+  inputText: { flex: 1, minWidth: 0, padding: 0, fontSize: 18, fontWeight: weight.heavy, color: colors.textStrong },
   inputUnit: { fontSize: 13, fontWeight: weight.bold, color: colors.textFaint },
   costRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   costLabel: { fontSize: 11, fontWeight: weight.medium, color: colors.textFaint },

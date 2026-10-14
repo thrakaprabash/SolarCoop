@@ -11,10 +11,12 @@ import { distanceInMeters } from '../utils/format';
 import { HouseholdCard, PoolSummaryCard } from '../components';
 import { Card, EmptyState, IconBadge, PrimaryButton, ScreenTitle, SearchInput } from '../components/ui';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTheme } from '../../theme/useTheme';
 
 export default function AvailableEnergyScreen({ showPoolSummary = true }) {
   const styles = useThemedStyles(baseStyles);
-  const { colors } = useLegacyTheme();
+  const { colors, action } = useLegacyTheme();
+  const { isDark } = useTheme();
 
   const { t } = useTranslation();
   const {
@@ -74,10 +76,13 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
             <SearchInput value={query} onChangeText={setQuery} placeholder={t('trade.availableEnergy.searchPlaceholder')} />
             <Pressable
               onPress={() => setSortIndex((i) => (i + 1) % SORTS.length)}
-              style={({ pressed }) => [styles.sort, pressed && { opacity: 0.8 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t(SORTS[sortIndex].labelKey)}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              style={({ pressed }) => [styles.sort, action.tonal.box, pressed && { opacity: 0.8 }]}
             >
-              <ArrowDownWideNarrow size={14} color={colors.amberLight} strokeWidth={2} />
-              <Text style={styles.sortLabel}>{t(SORTS[sortIndex].labelKey)}</Text>
+              <ArrowDownWideNarrow size={14} color={action.tonal.icon ?? colors.amberLight} strokeWidth={2} />
+              <Text style={[styles.sortLabel, action.tonal.text]}>{t(SORTS[sortIndex].labelKey)}</Text>
             </Pressable>
           </View>
 
@@ -109,8 +114,7 @@ export default function AvailableEnergyScreen({ showPoolSummary = true }) {
       <PrimaryButton
         label={t('trade.nav.incomingRequests')}
         icon={ArrowDownToLine}
-        background={colors.surfaceAlt}
-        style={styles.neutralButton}
+        variant={isDark ? 'neutral' : 'ghost'}
         onPress={() => navigate('incoming')}
       >
         <View style={styles.badge}>
@@ -166,7 +170,6 @@ const baseStyles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   badgeText: { color: colors.amberLight, fontSize: 11, fontWeight: weight.heavy },
-  neutralButton: { borderWidth: 1, borderColor: colors.border },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   historyBody: { flex: 1, minWidth: 0 },
   historyTitle: { fontSize: 14, fontWeight: weight.heavy, color: colors.text },

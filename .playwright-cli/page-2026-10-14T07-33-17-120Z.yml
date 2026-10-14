@@ -1,0 +1,122 @@
+- generic [ref=f2e7]:
+  - generic [ref=f2e8]:
+    - generic [ref=f2e9]:
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: SolarCoop
+        - generic [ref=f2e26]: Community Energy Sharing
+      - generic [ref=f2e27]: Surplus
+    - generic [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32] [cursor=pointer]: Household
+        - generic [ref=f2e34] [cursor=pointer]: Co-op
+      - generic "Appearance" [ref=f2e695]:
+        - button "Dark" [ref=f2e696] [cursor=pointer]
+  - generic [ref=f2e41]:
+    - generic [ref=f2e867]:
+      - generic [ref=f2e870]:
+        - generic [ref=f2e871] [cursor=pointer]: Dashboard
+        - generic [ref=f2e878] [cursor=pointer]: Production
+        - generic [ref=f2e886] [cursor=pointer]: Consumption
+        - generic [ref=f2e890] [cursor=pointer]: Surplus
+        - generic [ref=f2e896] [cursor=pointer]: Deficit
+        - generic [ref=f2e900] [cursor=pointer]: History
+        - generic [ref=f2e906] [cursor=pointer]: Charts
+        - generic [ref=f2e910] [cursor=pointer]: Summary
+      - generic [ref=f2e919]:
+        - generic [ref=f2e920]:
+          - generic [ref=f2e921]:
+            - generic [ref=f2e922]:
+              - generic [ref=f2e924]: Current Power
+              - generic [ref=f2e925]: Simulated
+            - generic [ref=f2e926]: Live • Smart Energy Microgrid
+          - generic [ref=f2e927]:
+            - generic [ref=f2e928] [cursor=pointer]
+            - generic [ref=f2e930] [cursor=pointer]
+        - generic [ref=f2e936]:
+          - generic [ref=f2e937]:
+            - generic [ref=f2e946]:
+              - generic [ref=f2e947]:
+                - generic [ref=f2e949]: Live Inverter Telemetry
+                - generic [ref=f2e950]: Realtime Stream
+              - generic [ref=f2e952]: "Heartbeat: 23s ago"
+            - generic [ref=f2e957] [cursor=pointer]: Sync
+          - generic [ref=f2e963]:
+            - generic [ref=f2e964]:
+              - generic [ref=f2e965]: Inverter Health
+              - generic [ref=f2e969]: No reported fault
+            - generic [ref=f2e971]:
+              - generic [ref=f2e972]: Grid Frequency
+              - generic [ref=f2e977]: —
+              - generic [ref=f2e978]: Hz
+            - generic [ref=f2e980]:
+              - generic [ref=f2e981]: Telemetry Ping
+              - generic [ref=f2e987]: 8 ms
+              - generic [ref=f2e988]: Ultra Low
+        - generic [ref=f2e989]:
+          - generic [ref=f2e990]:
+            - generic [ref=f2e991] [cursor=pointer]:
+              - generic [ref=f2e992]: Solar
+              - generic [ref=f2e1002]: 2.5 kW
+              - generic [ref=f2e1003]: 21.01 kWh
+            - generic [ref=f2e1008] [cursor=pointer]:
+              - generic [ref=f2e1009]: Grid
+              - generic [ref=f2e1016]: 0.00 kW
+              - generic [ref=f2e1017]: Estimated grid import
+          - generic [ref=f2e1021]:
+            - generic [ref=f2e1022]:
+              - generic [ref=f2e1023]: Net Output
+              - generic [ref=f2e1027]: 2.08 kW
+              - generic [ref=f2e1028]: Exporting
+            - generic [ref=f2e1033] [cursor=pointer]:
+              - generic [ref=f2e1034]: Battery
+              - generic [ref=f2e1040]: 0.00 kW
+              - generic [ref=f2e1041]: 65%
+        - generic [ref=f2e1046]:
+          - generic [ref=f2e1047]: Environmental Benefits
+          - generic [ref=f2e1051]:
+            - generic [ref=f2e1052]:
+              - generic [ref=f2e1053]: "94"
+              - generic [ref=f2e1061]: CO₂ Saved
+              - generic [ref=f2e1062]: kg
+            - generic [ref=f2e1063]:
+              - generic [ref=f2e1064]: —
+              - generic [ref=f2e1075]: Sunshine
+              - generic [ref=f2e1076]: "%"
+            - generic [ref=f2e1077]:
+              - generic [ref=f2e1078]: "100"
+              - generic [ref=f2e1086]: Grid Free
+              - generic [ref=f2e1087]: "%"
+        - generic [ref=f2e1088]:
+          - generic [ref=f2e1089]:
+            - generic [ref=f2e1090]: Site Power
+            - generic [ref=f2e1091]:
+              - generic [ref=f2e1092] [cursor=pointer]: Power
+              - generic [ref=f2e1094] [cursor=pointer]: Energy
+          - generic [ref=f2e1096]:
+            - generic [ref=f2e1097]: 0.42 kW
+            - generic [ref=f2e1098]:
+              - generic [ref=f2e1099]: Solar 2.50
+              - generic [ref=f2e1102]: "Estimated grid import: 0.00 kW"
+          - generic [ref=f2e1105]:
+            - generic [ref=f2e1106]: Solar
+            - generic [ref=f2e1118]: Home
+            - generic [ref=f2e1126]: Battery
+        - generic [ref=f2e1131]:
+          - generic [ref=f2e1132]:
+            - generic [ref=f2e1138]: "8"
+            - generic [ref=f2e1139]: Online
+          - generic [ref=f2e1141]:
+            - generic [ref=f2e1144]: "34.5"
+            - generic [ref=f2e1145]: kW Pool
+          - generic [ref=f2e1147]:
+            - generic [ref=f2e1153]: "120"
+            - generic [ref=f2e1154]: Tokens
+        - generic [ref=f2e1156]:
+          - generic [ref=f2e1157] [cursor=pointer]: Share Surplus
+          - generic [ref=f2e1162] [cursor=pointer]: Request Draw
+    - generic [ref=f2e343]:
+      - generic [active] [ref=f2e344] [cursor=pointer]: Dashboard
+      - generic [ref=f2e352] [cursor=pointer]: P2P Trade
+      - generic [ref=f2e358] [cursor=pointer]: Energy
+      - generic [ref=f2e363] [cursor=pointer]: Alerts
+      - generic [ref=f2e369] [cursor=pointer]: Profile

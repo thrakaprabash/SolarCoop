@@ -279,13 +279,15 @@ function PendingApprovalLock() {
         onPress={handleRefresh}
         disabled={refreshing}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityState={{ busy: refreshing }}
       >
         {refreshing ? (
           <ActivityIndicator size="small" color={"#FFFFFF"} />
         ) : (
           <>
             <RefreshCw size={16} color={"#FFFFFF"} />
-            <Text style={styles.lockRefreshText}>{t('app.pendingLock.checkStatus')}</Text>
+            <Text style={styles.lockRefreshBtnText}>{t('app.pendingLock.checkStatus')}</Text>
           </>
         )}
       </TouchableOpacity>
@@ -802,7 +804,8 @@ const baseStyles = StyleSheet.create({
     borderRadius: 24,
     marginTop: 12,
   },
-  lockRefreshText: {
+  // "...BtnText" keeps the label white on the solid button in light mode too.
+  lockRefreshBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',

@@ -14,11 +14,12 @@ import {
 } from 'lucide-react-native';
 import { ShareImpactModal } from './ShareImpactModal';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { fixed, percent } from '../../utils/numberFormat';
 
 // SOL-103 & SOL-188: Energy Summary View & Impact Scorecard Export Component
 export const EnergySummaryView = () => {
   const styles = useThemedStyles(baseStyles);
-  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+  const { GLASS, COLORS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const { metrics } = useEnergy();
@@ -40,12 +41,13 @@ export const EnergySummaryView = () => {
           <Text style={styles.storyBadgeSub}>Household sustainability & grid independence</Text>
         </View>
         <TouchableOpacity
-          style={[styles.headerShareBtn, GLASS.card, SHADOWS.amberGlow]}
+          style={[styles.headerShareBtn, GLASS.card, SHADOWS.amberGlow, action.tonal.box]}
           onPress={() => setShareModalVisible(true)}
           activeOpacity={0.7}
+          accessibilityRole="button"
         >
-          <Share2 size={15} color={COLORS.amberLight} />
-          <Text style={styles.headerShareBtnText}>Share Impact</Text>
+          <Share2 size={15} color={action.tonal.icon ?? COLORS.amberLight} />
+          <Text style={[styles.headerShareBtnText, action.tonal.text]}>Share Impact</Text>
         </TouchableOpacity>
       </View>
 
@@ -57,7 +59,7 @@ export const EnergySummaryView = () => {
           </View>
           <View style={styles.scoreHeaderTextCol}>
             <Text style={styles.scoreLabel}>{t('member.summary.gridIndependenceRating')}</Text>
-            <Text style={styles.scoreVal}>{t('member.summary.selfSufficient', { percent: metrics.gridIndependence })}</Text>
+            <Text style={styles.scoreVal}>{t('member.summary.selfSufficient', { percent: percent(metrics.gridIndependence) })}</Text>
           </View>
         </View>
 
@@ -67,7 +69,7 @@ export const EnergySummaryView = () => {
         </View>
 
         <Text style={styles.scoreSubText}>
-          {t('member.summary.scoreSubText', { percent: metrics.gridIndependence })}
+          {t('member.summary.scoreSubText', { percent: percent(metrics.gridIndependence) })}
         </Text>
       </View>
 
@@ -78,7 +80,7 @@ export const EnergySummaryView = () => {
           <View style={[styles.impactIconBadge, { backgroundColor: COLORS.tealGlow }]}>
             <CloudOff size={20} color={COLORS.teal} />
           </View>
-          <Text style={styles.impactValue}>{metrics.co2SavedKg} kg</Text>
+          <Text style={styles.impactValue}>{fixed(metrics.co2SavedKg, 1)} kg</Text>
           <Text style={styles.impactLabel}>{t('member.summary.co2OffsetToday')}</Text>
           <Text style={styles.impactSub}>{t('member.summary.equivalentMonthly', { value: monthlyCo2 })}</Text>
         </View>
@@ -121,7 +123,7 @@ export const EnergySummaryView = () => {
             <Sparkles size={20} color={COLORS.amberLight} />
           </View>
           <View style={styles.shareBannerTextCol}>
-            <Text style={styles.shareBannerTitle}>Celebrate Your Clean Energy</Text>
+            <Text style={styles.bannerHeading}>Celebrate Your Clean Energy</Text>
             <Text style={styles.shareBannerDesc}>
               Generate a verified impact scorecard to share across social media or download as an image.
             </Text>
@@ -131,6 +133,7 @@ export const EnergySummaryView = () => {
           style={styles.shareBannerBtn}
           onPress={() => setShareModalVisible(true)}
           activeOpacity={0.8}
+          accessibilityRole="button"
         >
           <Share2 size={16} color={themeColor("#121212", "color")} strokeWidth={2.5} />
           <Text style={styles.shareBannerBtnText}>Export Card</Text>
@@ -254,7 +257,9 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  shareBannerTitle: {
+  // Not named "share...Title": the light-theme adapter keeps white text for share
+  // button labels, which left this heading white on a white card.
+  bannerHeading: {
     fontSize: 14,
     fontWeight: '800',
     color: COLORS.textBright,

@@ -27,6 +27,8 @@ import { LiveTelemetryWidget } from './LiveTelemetryWidget';
 import { WidgetCustomizerModal } from './WidgetCustomizerModal';
 import { FaultAlertCard } from '../alerts/FaultAlertCard';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTheme } from '../../theme/useTheme';
+import { fixed, power, energy, percent } from '../../utils/numberFormat';
 
 // ─── Sub-component: SVG Arc Progress Ring (Issue #2) ───
 const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children }) => {
@@ -72,7 +74,8 @@ const ProgressRing = ({ progress, size = 64, strokeWidth = 4, color, children })
 // SOL-96 / SOL-185 / SOL-187: Home DashBoard View Component
 export const HomeDashboard = () => {
   const styles = useThemedStyles(baseStyles);
-  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+  const { GLASS, COLORS, themeColor, action } = useLegacyTheme();
+  const theme = useTheme();
 
   const { t } = useTranslation();
   const {
@@ -117,16 +120,17 @@ export const HomeDashboard = () => {
   const handleBorrow = () => setMainBottomTab('trade');
 
   // ── Issue #4: Toggle-aware metric values ──
+  // Readings arrive at full precision (0.42391074433922765), so format for display.
   const sitePowerValue = powerEnergyToggle === 'power'
-    ? metrics.instantConsumption
-    : metrics.dailyConsumption;
+    ? power(metrics.instantConsumption)
+    : energy(metrics.dailyConsumption);
   const sitePowerUnit = powerEnergyToggle === 'power' ? 'kW' : 'kWh';
   const solarLegendVal = powerEnergyToggle === 'power'
-    ? metrics.instantProduction.toFixed(2)
-    : metrics.dailyProduction.toFixed(1);
+    ? power(metrics.instantProduction)
+    : energy(metrics.dailyProduction);
   const coopLegendVal = powerEnergyToggle === 'power'
-    ? Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)
-    : Math.max(0, metrics.dailyConsumption - metrics.dailyProduction).toFixed(1);
+    ? power(Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow))
+    : energy(Math.max(0, metrics.dailyConsumption - metrics.dailyProduction));
 
   // ── Issue #2: Environmental gauge progress percentages ──
   const co2DailyTarget = 50; // daily kg CO₂ goal
@@ -150,11 +154,11 @@ export const HomeDashboard = () => {
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
           <Text style={styles.cellValue}>
-            {metrics.instantProduction} <Text style={styles.cellUnit}>kW</Text>
+            {power(metrics.instantProduction)} <Text style={styles.cellUnit}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
             <TrendingUp size={10} color={COLORS.tealLight} />
-            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{metrics.dailyProduction} kWh</Text>
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{energy(metrics.dailyProduction)} kWh</Text>
           </View>
         </TouchableOpacity>
 
@@ -171,7 +175,7 @@ export const HomeDashboard = () => {
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
           <Text style={styles.cellValue}>
-            {Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
+            {power(Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow))} <Text style={styles.cellUnit}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
             <Activity size={10} color={COLORS.textMuted} />
@@ -193,7 +197,7 @@ export const HomeDashboard = () => {
             </Text>
           </View>
           <Text style={[styles.cellValue, { color: COLORS.textBright }]}>
-            {Math.abs(netOutput).toFixed(2)}{' '}
+            {power(Math.abs(netOutput))}{' '}
             <Text style={[styles.cellUnit, { color: isSurplus ? COLORS.amberLight : COLORS.red }]}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
@@ -220,11 +224,11 @@ export const HomeDashboard = () => {
             <ChevronRight size={12} color={COLORS.textMuted} />
           </View>
           <Text style={styles.cellValue}>
-            {metrics.batteryPowerFlow.toFixed(2)} <Text style={styles.cellUnit}>kW</Text>
+            {power(metrics.batteryPowerFlow)} <Text style={styles.cellUnit}>kW</Text>
           </Text>
           <View style={styles.cellTrend}>
             <TrendingUp size={10} color={COLORS.tealLight} />
-            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{metrics.batteryLevel}%</Text>
+            <Text style={[styles.cellTrendText, { color: COLORS.tealLight }]}>{percent(metrics.batteryLevel)}%</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -243,7 +247,7 @@ export const HomeDashboard = () => {
         <View style={styles.benefitCol}>
           <ProgressRing progress={co2Progress} size={64} strokeWidth={4} color={COLORS.tealLight}>
             <Leaf size={11} color={COLORS.tealLight} style={{ position: 'absolute', top: 8 }} />
-            <Text style={styles.gaugeNum}>{metrics.co2SavedKg.toFixed(0)}</Text>
+            <Text style={styles.gaugeNum}>{fixed(metrics.co2SavedKg, 0)}</Text>
           </ProgressRing>
           <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.co2Saved')}</Text>
           <Text style={styles.benefitUnit}>kg</Text>
@@ -263,7 +267,7 @@ export const HomeDashboard = () => {
         <View style={styles.benefitCol}>
           <ProgressRing progress={gridFreeProgress} size={64} strokeWidth={4} color={COLORS.amberLight}>
             <Globe size={11} color={COLORS.amberLight} style={{ position: 'absolute', top: 8 }} />
-            <Text style={styles.gaugeNum}>{metrics.gridIndependence}</Text>
+            <Text style={styles.gaugeNum}>{percent(metrics.gridIndependence)}</Text>
           </ProgressRing>
           <Text style={styles.benefitLabel}>{t('member.dashboard.environmental.gridFree')}</Text>
           <Text style={styles.benefitUnit}>%</Text>
@@ -282,6 +286,9 @@ export const HomeDashboard = () => {
           <TouchableOpacity
             style={[styles.togglePillBtn, powerEnergyToggle === 'power' && styles.togglePillBtnActive]}
             onPress={() => setPowerEnergyToggle('power')}
+            accessibilityRole="button"
+            accessibilityState={{ selected: powerEnergyToggle === 'power' }}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 2 }}
           >
             <Text style={[styles.togglePillText, powerEnergyToggle === 'power' && styles.togglePillTextActive]}>
               {t('member.dashboard.sitePower.togglePower')}
@@ -290,6 +297,9 @@ export const HomeDashboard = () => {
           <TouchableOpacity
             style={[styles.togglePillBtn, powerEnergyToggle === 'energy' && styles.togglePillBtnActive]}
             onPress={() => setPowerEnergyToggle('energy')}
+            accessibilityRole="button"
+            accessibilityState={{ selected: powerEnergyToggle === 'energy' }}
+            hitSlop={{ top: 8, bottom: 8, left: 2, right: 4 }}
           >
             <Text style={[styles.togglePillText, powerEnergyToggle === 'energy' && styles.togglePillTextActive]}>
               {t('member.dashboard.sitePower.toggleEnergy')}
@@ -359,19 +369,19 @@ export const HomeDashboard = () => {
     <View key="coopActivity" style={[GLASS.card, styles.coopStrip]}>
       <View style={styles.coopStripItem}>
         <Users size={14} color={COLORS.tealLight} />
-        <Text style={styles.coopStripValue}>{metrics.coopMembersOnline}</Text>
+        <Text style={styles.coopStripValue}>{fixed(metrics.coopMembersOnline, 0)}</Text>
         <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.online')}</Text>
       </View>
       <View style={styles.coopDivider} />
       <View style={styles.coopStripItem}>
         <Zap size={14} color={COLORS.amber} />
-        <Text style={styles.coopStripValue}>{metrics.coopTotalCapacity}</Text>
+        <Text style={styles.coopStripValue}>{fixed(metrics.coopTotalCapacity, 1)}</Text>
         <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.kwPool')}</Text>
       </View>
       <View style={styles.coopDivider} />
       <View style={styles.coopStripItem}>
         <Coins size={14} color={COLORS.amberLight} />
-        <Text style={styles.coopStripValue}>{metrics.coopTokensEarned}</Text>
+        <Text style={styles.coopStripValue}>{fixed(metrics.coopTokensEarned, 0)}</Text>
         <Text style={styles.coopStripLabel}>{t('member.dashboard.coopActivity.tokens')}</Text>
       </View>
     </View>
@@ -381,10 +391,18 @@ export const HomeDashboard = () => {
     <View key="quickActions" style={styles.quickActionsContainer}>
       {/* Quick Actions — Visual Hierarchy (Issue #3) */}
       <View style={styles.actionsRow}>
-        <TouchableOpacity 
-          style={styles.actionBtnPrimary}
+        <TouchableOpacity
+          style={[
+            styles.actionBtnPrimary,
+            action.solid.box,
+            !theme.isDark && Platform.select({
+              web: { boxShadow: '0px 4px 14px rgba(6, 118, 161, 0.22)' },
+              default: { shadowColor: theme.colors.primary, shadowOpacity: 0.2, shadowRadius: 12, elevation: 3 },
+            }),
+          ]}
           onPress={handleShare}
           activeOpacity={0.8}
+          accessibilityRole="button"
         >
           <ArrowUpRight size={16} color={"#FFFFFF"} />
           <Text style={styles.actionBtnPrimaryText}>{t('member.dashboard.quickActions.shareSurplus')}</Text>
@@ -394,6 +412,7 @@ export const HomeDashboard = () => {
           style={styles.actionBtnSecondary}
           onPress={handleBorrow}
           activeOpacity={0.8}
+          accessibilityRole="button"
         >
           <ArrowDownLeft size={16} color={COLORS.textPrimary} />
           <Text style={styles.actionBtnSecondaryText}>{t('member.dashboard.quickActions.requestDraw')}</Text>
@@ -435,7 +454,8 @@ export const HomeDashboard = () => {
 
       {/* ═══ Title Header with Live Pulse & Layout Customizer (SOL-185) ═══ */}
       <View style={styles.headerRow}>
-        <View>
+        {/* flex:1 + minWidth:0 lets a long title (Tamil, Sinhala) wrap instead of pushing the buttons off screen */}
+        <View style={styles.headerTextCol}>
           <View style={styles.titleRow}>
             <Animated.View style={[styles.livePulseDot, { opacity: pulseAnim }]} />
             <Text style={styles.title}>{t('member.dashboard.title')}</Text>
@@ -449,16 +469,25 @@ export const HomeDashboard = () => {
         </View>
 
         <View style={styles.headerActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.iconCustomLayout}
             onPress={() => setCustomizeModalVisible(true)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('member.widgetCustomizer.title')}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
             <SlidersHorizontal size={14} color={COLORS.amberLight} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconExpand}>
+          {/* Not wired to an action yet: shown as a plain icon and hidden from screen readers rather than as an unlabeled dead button. */}
+          <View
+            style={styles.iconExpand}
+            pointerEvents="none"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
             <Maximize2 size={14} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -513,8 +542,9 @@ const baseStyles = StyleSheet.create({
   },
 
   // ── Header ──
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  headerTextCol: { flex: 1, minWidth: 0 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   livePulseDot: {
     width: 8,
     height: 8,
@@ -523,7 +553,7 @@ const baseStyles = StyleSheet.create({
   },
   title: { fontSize: 20, fontWeight: '800', color: COLORS.textBright, letterSpacing: -0.3 },
   lastUpdate: { fontSize: 11, marginTop: 2, color: COLORS.textMuted, marginLeft: 16 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   iconCustomLayout: { 
     width: 32, height: 32, borderRadius: 16, 
     alignItems: 'center', justifyContent: 'center',
@@ -563,21 +593,21 @@ const baseStyles = StyleSheet.create({
   cellValue: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary, marginTop: 2 },
   cellUnit: { fontSize: 13, fontWeight: '600', color: COLORS.textMuted },
   cellTrend: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
-  cellTrendText: { fontSize: 9, fontWeight: '700', color: COLORS.textMuted },
+  cellTrendText: { fontSize: 10, fontWeight: '700', color: COLORS.textMuted },
 
   // ── Section Cards ──
   sectionCard: { padding: 16, gap: 14 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textBright },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textBright, flexShrink: 1 },
 
   // ── Environmental Benefits (Issue #2) ──
   benefitsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start', paddingTop: 4 },
   benefitCol: { alignItems: 'center', gap: 4 },
   gaugeNum: { fontSize: 16, fontWeight: '800', color: COLORS.textBright, marginTop: 4 },
   benefitLabel: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary, textAlign: 'center' },
-  benefitUnit: { fontSize: 9, fontWeight: '500', color: COLORS.textMuted },
+  benefitUnit: { fontSize: 10, fontWeight: '500', color: COLORS.textMuted },
   benefitDelta: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  benefitDeltaText: { fontSize: 8, fontWeight: '700', color: COLORS.tealLight },
+  benefitDeltaText: { fontSize: 10, fontWeight: '700', color: COLORS.tealLight },
 
   // ── Toggle Pill ──
   togglePillContainer: { 
@@ -592,13 +622,14 @@ const baseStyles = StyleSheet.create({
   togglePillTextActive: { color: COLORS.amberLight, fontWeight: '700' },
 
   // ── Consumption Metrics ──
-  consumptionMetricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  consValue: { fontSize: 24, fontWeight: '800', color: COLORS.textBright },
+  // The legend shrinks and wraps instead of running past the card edge.
+  consumptionMetricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  consValue: { fontSize: 24, fontWeight: '800', color: COLORS.textBright, flexShrink: 0 },
   consUnit: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted },
-  consDotsRow: { gap: 4 },
-  dotLegend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  dotText: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary },
+  consDotsRow: { gap: 4, flexShrink: 1, minWidth: 0 },
+  dotLegend: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0 },
+  dot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
+  dotText: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary, flexShrink: 1, minWidth: 0 },
 
   // ── Energy Flow Diagram (Issue #1 — replaces random bubbles) ──
   energyFlowContainer: {
@@ -619,7 +650,7 @@ const baseStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   flowNodeLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
   },
@@ -653,10 +684,13 @@ const baseStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
+  // Items shrink and their labels wrap, so longer Tamil / Sinhala labels stay inside the card.
   coopStripItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexShrink: 1,
+    minWidth: 0,
   },
   coopStripValue: {
     fontSize: 14,
@@ -667,6 +701,7 @@ const baseStyles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
+    flexShrink: 1,
   },
   coopDivider: {
     width: 1,
@@ -697,6 +732,8 @@ const baseStyles = StyleSheet.create({
   actionBtnPrimary: { 
     flex: 1, 
     backgroundColor: COLORS.amber,
+    borderWidth: 1,
+    borderColor: COLORS.amberDark,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
     gap: 8, paddingVertical: 14, borderRadius: 18,
     ...SHADOWS.glow,

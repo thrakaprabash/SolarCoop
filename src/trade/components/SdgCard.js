@@ -52,7 +52,7 @@ const baseStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeLabel: { fontSize: 9, fontWeight: weight.heavy, lineHeight: 10 },
+  badgeLabel: { fontSize: 10, fontWeight: weight.heavy, lineHeight: 11 },
   badgeNumber: { fontSize: 16, fontWeight: weight.black, lineHeight: 18 },
   title: { flex: 1, fontSize: 13, fontWeight: weight.bold, color: colors.textStrong },
 });

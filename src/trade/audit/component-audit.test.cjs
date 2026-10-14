@@ -53,9 +53,14 @@ function screenHarness(relative, name, overrides = {}) {
     'Metric', 'Notice', 'PrimaryButton', 'ScreenTitle', 'DetailRow', 'EmptyState', 'Pill', 'SectionLabel',
   ].map(name => [name, name]));
   const deps = {
-    ...hooks, ...ui, StyleSheet: { create: x => x }, colors: {}, radius: {}, weight: {},
+    ...hooks, ...ui, StyleSheet: { create: x => x }, Platform: { OS: 'web', select: options => options.web ?? options.default }, colors: {}, radius: {}, weight: {},
     useThemedStyles: styles => styles,
-    useLegacyTheme: () => ({ colors: {}, themeColor: value => value }),
+    // Dark-mode shape: every shared button look is empty, so screens keep their own styling.
+    useLegacyTheme: () => ({
+      colors: {}, themeColor: value => value, switchTrack: null,
+      action: Object.fromEntries(['solid', 'tonal', 'neutral', 'danger', 'dangerTonal', 'selected', 'idle', 'disabled'].map(name => [name, {}])),
+    }),
+    useTheme: () => ({ isDark: true }),
     kwh: format.tradeKwh, decimalAmount: format.decimalAmount, addTradeAmounts: format.addTradeAmounts, reportingHelp,
     money: n => '$' + Number(n).toFixed(2), fmtRate: n => Number(n).toFixed(2),
     stamp: d => d.toISOString(),

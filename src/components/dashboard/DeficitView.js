@@ -5,11 +5,12 @@ import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { AlertTriangle, ArrowDownLeft, ShieldAlert } from 'lucide-react-native';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { power } from '../../utils/numberFormat';
 
 // SOL-100: Deflict (Deficit) View Component
 export const DeficitView = () => {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, themeColor } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
@@ -32,7 +33,7 @@ export const DeficitView = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.alertLabel}>{t('member.deficit.currentDeficit')}</Text>
             <Text style={styles.alertVal}>
-              {Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow).toFixed(2)} <Text style={styles.unit}>kW</Text>
+              {power(Math.max(0, metrics.instantConsumption - metrics.instantProduction + metrics.batteryPowerFlow))} <Text style={styles.unit}>kW</Text>
             </Text>
           </View>
         </View>
@@ -53,9 +54,10 @@ export const DeficitView = () => {
         </View>
 
         <TouchableOpacity
-          style={styles.borrowSubmitBtn}
+          style={[styles.borrowSubmitBtn, action.solid.box]}
           onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
+          accessibilityRole="button"
         >
           <ArrowDownLeft size={18} color={"#FFFFFF"} />
           <Text style={styles.borrowSubmitText}>{t('member.nav.trade')}</Text>

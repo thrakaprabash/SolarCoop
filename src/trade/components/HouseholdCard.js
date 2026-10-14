@@ -7,14 +7,19 @@ import { colors, radius, weight } from '../theme';
 import { Card, Metric, Pill, PrimaryButton, ProgressBar } from './ui';
 import { tradeKwh as kwh, rate as fmtRate } from '../utils/format';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTheme } from '../../theme/useTheme';
 
-export default function HouseholdCard({ household, requested, onRequest, accentColor = colors.teal }) {
+export default function HouseholdCard({ household, requested, onRequest, accentColor }) {
   const styles = useThemedStyles(baseStyles);
   const { colors } = useLegacyTheme();
+  const { isDark } = useTheme();
 
   const { t } = useTranslation();
   const { name, house, dist, soc, online } = household;
-  const buttonBg = !online ? 'rgba(255,255,255,0.12)' : requested ? colors.tealTintStrong : accentColor;
+  // Light mode: the button variant picks the shared blue look (solid, tonal once
+  // requested, grey when offline). Dark mode keeps its original teal look.
+  const darkBackground = !online ? 'rgba(255,255,255,0.12)' : requested ? colors.tealTintStrong : accentColor || colors.teal;
+  const variant = isDark || !online ? 'solid' : requested ? 'ghost' : 'solid';
 
   return (
     <Card style={styles.card}>
@@ -58,7 +63,8 @@ export default function HouseholdCard({ household, requested, onRequest, accentC
         icon={ArrowUpRight}
         onPress={onRequest}
         disabled={!online}
-        background={buttonBg}
+        variant={variant}
+        background={isDark ? darkBackground : undefined}
         style={styles.action}
       />
     </Card>
