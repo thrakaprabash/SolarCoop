@@ -53,7 +53,8 @@ function MemberCard({ member, onPress, t }) {
   const styles = useThemedStyles(baseStyles);
   const { themeColor, COLORS } = useLegacyTheme();
 
-  const accentColor = STATUS_COLORS[member.status];
+  // STATUS_COLORS / STATUS_BG hold dark-theme tokens, so map them for the active theme.
+  const accentColor = themeColor(STATUS_COLORS[member.status], 'color');
   const hasSurplus = member.todaySurplus > 0;
 
   return (
@@ -61,6 +62,8 @@ function MemberCard({ member, onPress, t }) {
       style={styles.memberCard}
       onPress={() => onPress(member)}
       activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={`${member.name}, ${member.household}`}
     >
       {/* Left Status Accent Bar */}
       <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
@@ -76,7 +79,7 @@ function MemberCard({ member, onPress, t }) {
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
           <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: STATUS_BG[member.status], borderColor: `${accentColor}40` }]}>
+          <View style={[styles.statusBadge, { backgroundColor: themeColor(STATUS_BG[member.status], 'backgroundColor'), borderColor: `${accentColor}40` }]}>
             <Text style={[styles.statusText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[member.status] ?? member.status)}</Text>
           </View>
         </View>
@@ -134,7 +137,7 @@ function MemberCard({ member, onPress, t }) {
 
 export default function MemberMonitoringScreen() {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const {
@@ -204,8 +207,8 @@ export default function MemberMonitoringScreen() {
           <AlertCircle size={28} color={COLORS.red} />
           <Text style={styles.errorTitle}>{t('admin.members.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{membersError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadMembers} activeOpacity={0.8}>
-            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          <TouchableOpacity style={[styles.retryBtn, action.tonal.box]} onPress={loadMembers} activeOpacity={0.8} accessibilityRole="button">
+            <Text style={[styles.retryText, action.tonal.text]}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -245,11 +248,14 @@ export default function MemberMonitoringScreen() {
         {FILTER_OPTS.map(opt => (
           <TouchableOpacity
             key={opt}
-            style={[styles.filterChip, filter === opt && styles.filterChipActive]}
+            style={[styles.filterChip, filter === opt && styles.filterChipActive, filter === opt && action.selected.box]}
             onPress={() => setFilter(opt)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === opt }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive]}>{t(STATUS_LABEL_KEY[opt])}</Text>
+            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive, filter === opt && action.selected.text]}>{t(STATUS_LABEL_KEY[opt])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>

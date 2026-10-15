@@ -19,10 +19,12 @@ export default function ConfirmModal({
   onCancel,
 }) {
   const styles = useThemedStyles(baseStyles);
-  const { colors } = useLegacyTheme();
+  const { colors, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const teal = tone === 'teal';
+  // Light mode confirms with the shared solid blue; dark keeps teal.
+  const confirmBackground = teal ? action.solid.box?.backgroundColor ?? colors.teal : colors.danger;
   const resolvedConfirmLabel = confirmLabel || t('common.confirm');
   const resolvedCancelLabel = cancelLabel || t('common.cancel');
 
@@ -41,6 +43,8 @@ export default function ConfirmModal({
           <View style={styles.actions}>
             <Pressable
               onPress={busy ? undefined : onCancel}
+              accessibilityRole="button"
+              accessibilityLabel={resolvedCancelLabel}
               style={({ pressed }) => [styles.button, styles.cancel, busy && styles.busy, pressed && { opacity: 0.85 }]}
             >
               <Text style={styles.cancelLabel}>{resolvedCancelLabel}</Text>
@@ -48,9 +52,12 @@ export default function ConfirmModal({
 
             <Pressable
               onPress={busy ? undefined : onConfirm}
+              accessibilityRole="button"
+              accessibilityLabel={resolvedConfirmLabel}
+              accessibilityState={{ busy }}
               style={({ pressed }) => [
                 styles.button,
-                { backgroundColor: teal ? colors.teal : colors.danger },
+                { backgroundColor: confirmBackground },
                 busy && styles.busy,
                 pressed && { opacity: 0.85 },
               ]}

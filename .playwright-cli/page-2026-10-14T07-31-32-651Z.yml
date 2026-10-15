@@ -1,0 +1,64 @@
+- generic [ref=f2e7]:
+  - generic [ref=f2e8]:
+    - generic [ref=f2e9]:
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: SolarCoop
+        - generic [ref=f2e26]: சமூக ஆற்றல் பகிர்வு
+      - generic [ref=f2e27]: உபரி
+    - generic [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32] [cursor=pointer]: இல்லம்
+        - generic [ref=f2e34] [cursor=pointer]: கூட்டுறவு
+      - generic "தோற்றம்" [ref=f2e603]:
+        - button "இருள்" [ref=f2e604] [cursor=pointer]
+  - generic [ref=f2e41]:
+    - generic [ref=f2e499]:
+      - generic [ref=f2e500]:
+        - generic [ref=f2e501]: VP
+        - generic [ref=f2e503]: வருக, Vihanga
+        - generic [ref=f2e504]: member@example.test
+        - generic [ref=f2e505]:
+          - generic [ref=f2e506]: சூரிய உரிமையாளர்
+          - generic [ref=f2e510]: "நிலை: செயலில்"
+      - generic [ref=f2e513]:
+        - generic [ref=f2e514]:
+          - generic [ref=f2e515]: சுயவிவர விவரங்கள்
+          - button "சுயவிவரத்தைத் திருத்து" [ref=f2e605] [cursor=pointer]:
+            - generic [ref=f2e517]: திருத்து
+        - generic [ref=f2e606]:
+          - generic [ref=f2e607]: பதிவு செய்யப்பட்ட பங்கு
+          - generic [ref=f2e611]: சூரிய உரிமையாளர்
+        - generic [ref=f2e612]:
+          - generic [ref=f2e613]: முழுப் பெயர்
+          - generic [ref=f2e618]: Vihanga Perera
+        - generic [ref=f2e619]:
+          - generic [ref=f2e620]: மொபைல் எண்
+          - generic [ref=f2e624]: "+940703595192"
+        - generic [ref=f2e625]:
+          - generic [ref=f2e626]: இல்ல அடையாளம்
+          - generic [ref=f2e631]: HH-432ab6
+        - generic [ref=f2e632]:
+          - generic [ref=f2e633]: சூரிய திறன்
+          - generic [ref=f2e641]: 6.9 kW
+        - generic [ref=f2e642]:
+          - generic [ref=f2e643]: கணக்கு நிலை
+          - generic [ref=f2e647]: செயலில்
+      - generic [ref=f2e564]:
+        - generic [ref=f2e565]: மொழி
+        - generic [ref=f2e571]:
+          - button "English" [ref=f2e572] [cursor=pointer]
+          - button "සිංහල" [ref=f2e574] [cursor=pointer]
+          - button "தமிழ்" [active] [ref=f2e576] [cursor=pointer]
+      - generic [ref=f2e578]:
+        - generic [ref=f2e579]: தோற்றம்
+        - radiogroup "தோற்றம்" [ref=f2e648]:
+          - radio "ஒளி" [ref=f2e649] [cursor=pointer]
+          - radio "இருள்" [ref=f2e650] [cursor=pointer]
+          - radio "சாதனம்" [ref=f2e651] [cursor=pointer]
+      - button "வெளியேறு" [ref=f2e652] [cursor=pointer]
+    - generic [ref=f2e343]:
+      - generic [ref=f2e344] [cursor=pointer]: டாஷ்போர்டு
+      - generic [ref=f2e352] [cursor=pointer]: P2P வர்த்தகம்
+      - generic [ref=f2e358] [cursor=pointer]: ஆற்றல்
+      - generic [ref=f2e363] [cursor=pointer]: எச்சரிக்கைகள்
+      - generic [ref=f2e369] [cursor=pointer]: சுயவிவரம்

@@ -13,6 +13,9 @@
     "loading": "පූරණය වෙමින්…",
     "welcomeMessage": "SolarCoop වෙත සාදරයෙන් පිළිගනිමු",
     "retry": "යළි උත්සාහ කරන්න",
+    "close": "වසන්න",
+    "back": "ආපසු",
+    "refresh": "නැවුම් කරන්න",
     "status": {
       "all": "සියල්ල",
       "active": "සක්‍රීයයි",
@@ -525,6 +528,8 @@
       "core": "මූලික",
       "position": "ස්ථානය #{{number}}",
       "reset": "යළි පිහිටුවන්න",
+      "moveUp": "ඉහළට ගෙන යන්න",
+      "moveDown": "පහළට ගෙන යන්න",
       "applyLayout": "සැකැස්ම යොදන්න"
     },
     "production": {

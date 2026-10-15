@@ -36,7 +36,7 @@ export const WidgetCustomizerModal = ({
   onResetLayout,
 }) => {
   const styles = useThemedStyles(baseStyles);
-  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+  const { GLASS, COLORS, themeColor, action, switchTrack } = useLegacyTheme();
 
   const { t } = useTranslation();
   const [currentLayout, setCurrentLayout] = useState(layout);
@@ -111,7 +111,14 @@ export const WidgetCustomizerModal = ({
                     <Text style={styles.subtitle}>{t('member.widgetCustomizer.subtitle')}</Text>
                   </View>
                 </View>
-                <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeBtn}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
                   <X size={18} color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
@@ -136,6 +143,10 @@ export const WidgetCustomizerModal = ({
                           style={[styles.arrowBtn, isFirst && styles.arrowBtnDisabled]}
                           onPress={() => handleMoveUp(index)}
                           disabled={isFirst}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${t('member.widgetCustomizer.moveUp')}: ${t(item.labelKey)}`}
+                          accessibilityState={{ disabled: isFirst }}
+                          hitSlop={{ top: 4, bottom: 2, left: 8, right: 8 }}
                         >
                           <ChevronUp size={16} color={isFirst ? COLORS.textMuted : COLORS.textPrimary} />
                         </TouchableOpacity>
@@ -143,6 +154,10 @@ export const WidgetCustomizerModal = ({
                           style={[styles.arrowBtn, isLast && styles.arrowBtnDisabled]}
                           onPress={() => handleMoveDown(index)}
                           disabled={isLast}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${t('member.widgetCustomizer.moveDown')}: ${t(item.labelKey)}`}
+                          accessibilityState={{ disabled: isLast }}
+                          hitSlop={{ top: 2, bottom: 4, left: 8, right: 8 }}
                         >
                           <ChevronDown size={16} color={isLast ? COLORS.textMuted : COLORS.textPrimary} />
                         </TouchableOpacity>
@@ -174,8 +189,10 @@ export const WidgetCustomizerModal = ({
                           <Switch
                             value={item.visible}
                             onValueChange={() => handleToggleVisible(item.id)}
-                            trackColor={{ false: 'rgba(255,255,255,0.1)', true: COLORS.tealLight }}
-                            thumbColor={item.visible ? '#FFFFFF' : '#888888'}
+                            accessibilityLabel={t(item.labelKey)}
+                            trackColor={switchTrack ?? { false: 'rgba(255,255,255,0.1)', true: COLORS.tealLight }}
+                            thumbColor={item.visible || switchTrack ? '#FFFFFF' : '#888888'}
+                            activeThumbColor={switchTrack ? '#FFFFFF' : undefined}
                           />
                         )}
                       </View>
@@ -186,19 +203,21 @@ export const WidgetCustomizerModal = ({
 
               {/* Footer Actions */}
               <View style={styles.footer}>
-                <TouchableOpacity 
-                  style={styles.resetBtn} 
+                <TouchableOpacity
+                  style={[styles.resetBtn, action.neutral.box]}
                   onPress={handleReset}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
                 >
-                  <RotateCcw size={14} color={COLORS.textSecondary} />
-                  <Text style={styles.resetBtnText}>{t('member.widgetCustomizer.reset')}</Text>
+                  <RotateCcw size={14} color={action.neutral.icon ?? COLORS.textSecondary} />
+                  <Text style={[styles.resetBtnText, action.neutral.text]}>{t('member.widgetCustomizer.reset')}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={styles.saveBtn} 
+                <TouchableOpacity
+                  style={styles.saveBtn}
                   onPress={handleSave}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
                 >
                   <Check size={16} color={"#FFFFFF"} />
                   <Text style={styles.saveBtnText}>{t('member.widgetCustomizer.applyLayout')}</Text>
@@ -327,7 +346,7 @@ const baseStyles = StyleSheet.create({
     borderRadius: 8,
   },
   lockedText: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '800',
     color: COLORS.amberLight,
   },

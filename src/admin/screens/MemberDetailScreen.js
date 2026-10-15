@@ -50,7 +50,7 @@ const STATUS_LABEL_KEY = {
 
 export default function MemberDetailScreen() {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const { selectedMember, setSelectedMember, setAdminBottomTab, updateMemberStatus } = useAdmin();
@@ -83,7 +83,8 @@ export default function MemberDetailScreen() {
   // Status comes from selectedMember — kept in sync by AdminContext's optimistic update
   const memberStatus = selectedMember.status ?? 'Active';
   const member       = selectedMember;
-  const accentColor  = STATUS_COLORS[memberStatus];
+  // STATUS_COLORS holds dark-theme tokens, so map it for the active theme.
+  const accentColor  = themeColor(STATUS_COLORS[memberStatus], 'color');
   const hasSurplus   = member.todaySurplus > 0;
 
   const handleBack = () => {
@@ -144,7 +145,13 @@ export default function MemberDetailScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
       {/* Back Button */}
-      <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={[styles.backBtn, action.neutral.box]}
+        onPress={handleBack}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+      >
         <ArrowLeft size={16} color={COLORS.textSecondary} />
         <Text style={styles.backText}>{t('admin.memberDetail.backToMembers')}</Text>
       </TouchableOpacity>
@@ -240,37 +247,44 @@ export default function MemberDetailScreen() {
         <Text style={styles.sectionTitle}>{t('admin.memberDetail.accountManagement')}</Text>
         <Text style={styles.sectionSubtext}>{t('admin.memberDetail.accountManagementSubtitle')}</Text>
         <View style={styles.actionBtnsCol}>
+          {/* Light mode: Activate is the solid blue action, Deactivate tonal blue, Suspend tonal red. */}
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(45,212,191,0.15)", "backgroundColor"), borderColor: themeColor("rgba(45,212,191,0.3)", "borderColor") }, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(45,212,191,0.15)", "backgroundColor"), borderColor: themeColor("rgba(45,212,191,0.3)", "borderColor") }, action.solid.box, (memberStatus === 'Active' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Active')}
             disabled={memberStatus === 'Active' || updating}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: memberStatus === 'Active' || updating }}
           >
             {updating && memberStatus !== 'Active'
-              ? <ActivityIndicator size="small" color={COLORS.tealLight} />
-              : <UserCheck size={16} color={COLORS.tealLight} />
+              ? <ActivityIndicator size="small" color={action.solid.icon ?? COLORS.tealLight} />
+              : <UserCheck size={16} color={action.solid.icon ?? COLORS.tealLight} />
             }
-            <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.memberDetail.activateAccount')}</Text>
+            <Text style={[styles.actionBtnText, { color: COLORS.tealLight }, action.solid.text]}>{t('admin.memberDetail.activateAccount')}</Text>
             {memberStatus === 'Active' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor"), borderColor: themeColor("rgba(251,191,36,0.3)", "borderColor") }, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor"), borderColor: themeColor("rgba(251,191,36,0.3)", "borderColor") }, action.tonal.box, (memberStatus === 'Inactive' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Inactive')}
             disabled={memberStatus === 'Inactive' || updating}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: memberStatus === 'Inactive' || updating }}
           >
             {updating && memberStatus !== 'Inactive'
-              ? <ActivityIndicator size="small" color={COLORS.amberLight} />
-              : <UserX size={16} color={COLORS.amberLight} />
+              ? <ActivityIndicator size="small" color={action.tonal.icon ?? COLORS.amberLight} />
+              : <UserX size={16} color={action.tonal.icon ?? COLORS.amberLight} />
             }
-            <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.memberDetail.deactivateAccount')}</Text>
+            <Text style={[styles.actionBtnText, { color: COLORS.amberLight }, action.tonal.text]}>{t('admin.memberDetail.deactivateAccount')}</Text>
             {memberStatus === 'Inactive' && <View style={styles.currentBadge}><Text style={styles.currentText}>{t('admin.memberDetail.current')}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor"), borderColor: themeColor("rgba(239,68,68,0.3)", "borderColor") }, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
+            style={[styles.actionBtn, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor"), borderColor: themeColor("rgba(239,68,68,0.3)", "borderColor") }, action.dangerTonal.box, (memberStatus === 'Suspended' || updating) && styles.actionBtnDisabled]}
             onPress={() => handleStatusChange('Suspended')}
             disabled={memberStatus === 'Suspended' || updating}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: memberStatus === 'Suspended' || updating }}
           >
             {updating && memberStatus !== 'Suspended'
               ? <ActivityIndicator size="small" color={COLORS.red} />
@@ -409,7 +423,7 @@ const baseStyles = StyleSheet.create({
   actionBtnText: { flex: 1, fontSize: 13, fontWeight: '700' },
   actionBtnDisabled: { opacity: 0.5 },
   currentBadge: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  currentText: { fontSize: 9, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5 },
+  currentText: { fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5 },
 
   // Transactions
   txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
@@ -419,6 +433,6 @@ const baseStyles = StyleSheet.create({
   txTime: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
   txAmount: { fontSize: 14, fontWeight: '800', textAlign: 'right' },
   txStatus: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-end', marginTop: 2 },
-  txStatusText: { fontSize: 9, fontWeight: '700' },
+  txStatusText: { fontSize: 10, fontWeight: '700' },
   emptyText: { color: COLORS.textMuted, fontSize: 13, fontWeight: '600' },
 });

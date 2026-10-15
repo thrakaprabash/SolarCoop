@@ -8,11 +8,18 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Rect, Line, Text as SvgText } from 'react-native-svg';
 import { Sun, Cpu, Compass, Thermometer } from 'lucide-react-native';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTheme } from '../../theme/useTheme';
+import { power, energy } from '../../utils/numberFormat';
 
 // SOL-97: Production View Component
 export const ProductionView = () => {
   const styles = useThemedStyles(baseStyles);
   const { COLORS } = useLegacyTheme();
+  const { isDark } = useTheme();
+  // Light mode: a pale yellow bar nearly vanishes on the white card, so the
+  // regular bars use a deeper amber and the grid lines a soft border colour.
+  const barFill = isDark ? COLORS.amberGlow : '#E9B949';
+  const gridStroke = isDark ? COLORS.textMuted : COLORS.glassBorder;
 
   const { t } = useTranslation();
   const { metrics, hasMetrics } = useEnergy();
@@ -55,7 +62,7 @@ export const ProductionView = () => {
           <View>
             <Text style={styles.gaugeLabel}>{t('member.production.liveGeneration')}</Text>
             <Text style={styles.gaugeValue}>
-              {metrics.instantProduction} <Text style={styles.gaugeUnit}>kW</Text>
+              {power(metrics.instantProduction)} <Text style={styles.gaugeUnit}>kW</Text>
             </Text>
           </View>
         </View>
@@ -65,8 +72,8 @@ export const ProductionView = () => {
           <Text style={styles.chartBoxTitle}>{t('member.production.generationCurve')}</Text>
           <Svg height="120" width="100%" viewBox="0 0 300 120">
             {/* Grid lines */}
-            <Line x1="0" y1="30" x2="300" y2="30" stroke={COLORS.textMuted} strokeDasharray="3 3" />
-            <Line x1="0" y1="70" x2="300" y2="70" stroke={COLORS.textMuted} strokeDasharray="3 3" />
+            <Line x1="0" y1="30" x2="300" y2="30" stroke={gridStroke} strokeDasharray="3 3" />
+            <Line x1="0" y1="70" x2="300" y2="70" stroke={gridStroke} strokeDasharray="3 3" />
 
             {/* Hourly Bars */}
             {bars.map((bar, i) => (
@@ -77,9 +84,9 @@ export const ProductionView = () => {
                   width={Math.max(2, 290 / bars.length - 4)}
                   height={bar.h}
                   rx="4"
-                  fill={i === 3 ? COLORS.amber : COLORS.amberGlow}
+                  fill={i === 3 ? COLORS.amber : barFill}
                 />
-                <SvgText x={5 + (i + 0.5) * (290 / bars.length)} y="115" fill={COLORS.textSecondary} fontSize="9" textAnchor="middle">{bar.time}</SvgText>
+                <SvgText x={5 + (i + 0.5) * (290 / bars.length)} y="115" fill={COLORS.textSecondary} fontSize="10" textAnchor="middle">{bar.time}</SvgText>
               </React.Fragment>
             ))}
           </Svg>
@@ -88,7 +95,7 @@ export const ProductionView = () => {
         <View style={styles.gaugeFooter}>
           <View style={styles.gaugeStat}>
             <Text style={styles.gaugeStatSub}>{t('member.production.dailyTotal')}</Text>
-            <Text style={styles.gaugeStatVal}>{metrics.dailyProduction} kWh</Text>
+            <Text style={styles.gaugeStatVal}>{energy(metrics.dailyProduction)} kWh</Text>
           </View>
           <View style={styles.gaugeDivider} />
           <View style={styles.gaugeStat}>

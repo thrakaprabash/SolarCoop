@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, UserCheck } from 'lucide-react-native';
 import { COLORS } from '../../theme/colors';
-import { useThemedStyles } from '../../theme/useLegacyTheme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const GREEN = '#22C55E';
 
@@ -14,6 +14,9 @@ const GREEN = '#22C55E';
  */
 export function FaultAlertCard({ alert }) {
   const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+  // Icons take their colour as a prop, so map the bright green for the active theme.
+  const green = themeColor(GREEN, 'color');
 
   const { t } = useTranslation();
   const complete = alert.status === 'completed';
@@ -21,7 +24,7 @@ export function FaultAlertCard({ alert }) {
   return (
     <View style={styles.card}>
       <View style={styles.iconRing}>
-        <CheckCircle size={30} color={GREEN} strokeWidth={2.2} />
+        <CheckCircle size={30} color={green} strokeWidth={2.2} />
       </View>
 
       <Text style={styles.title}>
@@ -37,7 +40,7 @@ export function FaultAlertCard({ alert }) {
 
       {/* SOL-200 — who is coming, once a technician has accepted the job */}
       <View style={[styles.techPill, !alert.technicianName && styles.techPillWaiting]}>
-        {alert.technicianName ? <UserCheck size={13} color={GREEN} /> : null}
+        {alert.technicianName ? <UserCheck size={13} color={green} /> : null}
         <Text style={[styles.techText, !alert.technicianName && styles.techTextWaiting]}>
           {alert.technicianName
             ? t(complete ? 'faultAlert.completedBy' : 'faultAlert.assignedTech', { name: alert.technicianName })

@@ -7,7 +7,7 @@ import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AnalyticsStatus({ analytics }) {
   const styles = useThemedStyles(baseStyles);
-  const { colors } = useLegacyTheme();
+  const { colors, action } = useLegacyTheme();
 
   const { t, i18n } = useTranslation();
   const copy = (key, values) => analyticsText(i18n.resolvedLanguage || i18n.language, key, values);
@@ -29,8 +29,8 @@ export default function AnalyticsStatus({ analytics }) {
     <Text style={styles.text}>{message}</Text>
     {analytics.dailyError ? <Text style={styles.text}>{copy('dailyError')}</Text> : null}
     {analytics.ledgerError ? <Text style={styles.text}>{copy('ledgerError')}</Text> : null}
-    {signedIn ? <Pressable accessibilityRole="button" disabled={loading} onPress={refresh}>
-      <Text style={styles.action}>{t(energyError || analytics.dailyError || analytics.ledgerError ? 'trade.tryAgain' : 'member.telemetry.sync')}</Text>
+    {signedIn ? <Pressable accessibilityRole="button" disabled={loading} onPress={refresh} hitSlop={{ top: 6, bottom: 6 }}>
+      <Text style={[styles.action, action.tonal.text]}>{t(energyError || analytics.dailyError || analytics.ledgerError ? 'trade.tryAgain' : 'member.telemetry.sync')}</Text>
     </Pressable> : null}
   </View>;
 }

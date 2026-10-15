@@ -57,7 +57,7 @@ export const DateRangeFilter = ({
   onSelectCustomRange,
 }) => {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
@@ -108,18 +108,22 @@ export const DateRangeFilter = ({
               style={[
                 styles.rangeTab,
                 isActive ? styles.rangeTabActive : styles.rangeTabInactive,
+                isActive && action.selected.box,
               ]}
               onPress={() => handleRangePress(item.key)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              hitSlop={{ top: 8, bottom: 8 }}
             >
               {item.key === 'custom' && (
-                <Calendar 
-                  size={12} 
-                  color={isActive ? '#FFFFFF' : COLORS.textMuted} 
-                  style={{ marginRight: 4 }} 
+                <Calendar
+                  size={12}
+                  color={isActive ? (action.selected.icon ?? '#FFFFFF') : COLORS.textMuted}
+                  style={{ marginRight: 4 }}
                 />
               )}
-              <Text style={[styles.rangeText, isActive && styles.rangeTextActive]}>
+              <Text style={[styles.rangeText, isActive && styles.rangeTextActive, isActive && action.selected.text]}>
                 {t(item.labelKey)}
               </Text>
             </TouchableOpacity>
@@ -156,11 +160,15 @@ export const DateRangeFilter = ({
                   style={[
                     styles.granPill,
                     isGranActive && styles.granPillActive,
+                    isGranActive && action.selected.box,
                   ]}
                   onPress={() => onSelectGranularity && onSelectGranularity(gran.key)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isGranActive }}
+                  hitSlop={{ top: 10, bottom: 10, left: 3, right: 3 }}
                 >
-                  <Text style={[styles.granText, isGranActive && styles.granTextActive]}>
+                  <Text style={[styles.granText, isGranActive && styles.granTextActive, isGranActive && action.selected.text]}>
                     {t(gran.labelKey)}
                   </Text>
                 </TouchableOpacity>
@@ -186,7 +194,13 @@ export const DateRangeFilter = ({
                     <Calendar size={18} color={COLORS.amber} />
                     <Text style={styles.modalTitle}>{t('member.dateFilter.modalTitle')}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCloseBtn}>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(false)}
+                    style={styles.modalCloseBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
                     <X size={16} color={COLORS.textSecondary} />
                   </TouchableOpacity>
                 </View>
@@ -426,7 +440,7 @@ const baseStyles = StyleSheet.create({
     gap: 2,
   },
   dateBoxLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '700',
     color: COLORS.textMuted,
     letterSpacing: 0.5,

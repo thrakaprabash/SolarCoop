@@ -60,6 +60,7 @@ import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import AdminPortal from './src/admin/AdminPortal';
 import TechnicianPortal from './src/technician/TechnicianPortal';
 import { useTheme } from './src/theme/useTheme';
+import { SolarCoopLogo } from './src/components/common/SolarCoopLogo';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -148,11 +149,7 @@ function LoadingSplash({ label = 'Loading SolarCoop…' }) {
         backgroundColor={theme.colors.background}
         translucent
       />
-      <View
-        style={[styles.loadingBadge, { backgroundColor: theme.colors.primarySoft }]}
-      >
-        <Sun size={26} color={theme.colors.primary} />
-      </View>
+      <SolarCoopLogo size={72} decorative style={styles.loadingLogo} />
       <ActivityIndicator
         size="large"
         color={theme.colors.primary}
@@ -282,13 +279,15 @@ function PendingApprovalLock() {
         onPress={handleRefresh}
         disabled={refreshing}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityState={{ busy: refreshing }}
       >
         {refreshing ? (
           <ActivityIndicator size="small" color={"#FFFFFF"} />
         ) : (
           <>
             <RefreshCw size={16} color={"#FFFFFF"} />
-            <Text style={styles.lockRefreshText}>{t('app.pendingLock.checkStatus')}</Text>
+            <Text style={styles.lockRefreshBtnText}>{t('app.pendingLock.checkStatus')}</Text>
           </>
         )}
       </TouchableOpacity>
@@ -723,14 +722,7 @@ const baseStyles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  loadingBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
+  loadingLogo: { marginBottom: 4 },
   loadingSpinner: { marginTop: 8 },
   loadingText: { fontSize: 13, fontWeight: '600' },
 
@@ -812,7 +804,8 @@ const baseStyles = StyleSheet.create({
     borderRadius: 24,
     marginTop: 12,
   },
-  lockRefreshText: {
+  // "...BtnText" keeps the label white on the solid button in light mode too.
+  lockRefreshBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',

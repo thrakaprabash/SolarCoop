@@ -71,6 +71,6 @@ const createStyles = TECH => StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  badgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800' },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
   label: { fontSize: 11 },
 });

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, Sun } from 'lucide-react-native';
+import { SlidersHorizontal } from 'lucide-react-native';
+import { SolarCoopLogo } from '../../components/common/SolarCoopLogo';
 import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { useTechnician } from '../context/TechnicianContext';
 
@@ -17,7 +18,7 @@ export default function TechHeader({ onSettings }) {
   }[connectionStatus] ?? { label: 'syncing', color: TECH.amber };
   return <View style={styles.header}>
     <View style={styles.brand}>
-      <View style={styles.logo}><Sun size={23} color={TECH.orange} strokeWidth={2} /></View>
+      <SolarCoopLogo size={38} decorative />
       <View><Text style={styles.appName}>SolarCoop</Text><Text style={styles.subTitle}>{t('technician.design.fieldService')}</Text></View>
     </View>
     <View style={styles.actions}>
@@ -32,7 +33,6 @@ export default function TechHeader({ onSettings }) {
 const createStyles = TECH => StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderColor: TECH.border, backgroundColor: TECH.bg },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  logo: { width:38,height:38,borderRadius:12,backgroundColor:TECH.orangeSoft,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:TECH.orangeBorder },
   appName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.4, color: TECH.text },
   subTitle: { fontSize: 11, color: TECH.textSecondary, marginTop: 2 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },

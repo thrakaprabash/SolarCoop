@@ -10,10 +10,12 @@ import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestRow({ request, last, onPress }) {
   const styles = useThemedStyles(baseStyles);
-  const { colors } = useLegacyTheme();
+  const { colors, themeColor } = useLegacyTheme();
 
   const { t, i18n } = useTranslation();
-  const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  const base = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  // STATUS_STYLE holds dark-theme tokens, so map them for the active theme.
+  const tone = { color: themeColor(base.color, 'color'), pillBg: themeColor(base.pillBg, 'backgroundColor') };
   const displayName = request.name || t('trade.household.fallback');
 
   return (

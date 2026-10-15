@@ -79,7 +79,7 @@ const STEP_LABEL_KEY = {
 
 function StatusStepper({ currentStatus }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS } = useLegacyTheme();
+  const { COLORS, themeColor } = useLegacyTheme();
 
   const { t } = useTranslation();
   const stepMap = {
@@ -93,7 +93,7 @@ function StatusStepper({ currentStatus }) {
         const done    = currentStep > i;
         const active  = currentStep === i;
         const color   = done || active ? COLORS.amberLight : COLORS.textMuted;
-        const bgColor = active ? 'rgba(245,158,11,0.25)' : done ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)';
+        const bgColor = themeColor(active ? 'rgba(245,158,11,0.25)' : done ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)', 'backgroundColor');
 
         return (
           <React.Fragment key={step}>
@@ -108,7 +108,7 @@ function StatusStepper({ currentStatus }) {
               <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{t(STEP_LABEL_KEY[step])}</Text>
             </View>
             {i < STEPS.length - 1 && (
-              <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : 'rgba(255,255,255,0.1)' }]} />
+              <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : themeColor('rgba(255,255,255,0.1)', 'backgroundColor') }]} />
             )}
           </React.Fragment>
         );
@@ -120,14 +120,16 @@ function StatusStepper({ currentStatus }) {
 // ─── Complaint Card (Member View) ─────────────────────────────────────────────
 function MemberComplaintCard({ complaint, onEdit, onDelete }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const status = complaint.status;
-  const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
+  // STATUS_COLOR / TYPE_COLOR hold dark-theme tokens, so map them for the active theme.
+  const accentColor = themeColor(STATUS_COLOR[status] ?? COLORS.amberLight, 'color');
+  const typeColor = themeColor(TYPE_COLOR[complaint.type] ?? COLORS.textMuted, 'color');
   const canEditOrDelete = complaint.canEdit || complaint.canDelete || status === 'Open';
 
   const handleToggle = () => {
@@ -171,8 +173,8 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 
       <TouchableOpacity style={styles.cardHeader} onPress={handleToggle} activeOpacity={0.85}>
         {/* Type badge */}
-        <View style={[styles.typeBadge, { backgroundColor: `${TYPE_COLOR[complaint.type] ?? COLORS.textMuted}15` }]}>
-          <Text style={[styles.typeText, { color: TYPE_COLOR[complaint.type] ?? COLORS.textSecondary }]}>
+        <View style={[styles.typeBadge, { backgroundColor: `${typeColor}15` }]}>
+          <Text style={[styles.typeText, { color: typeColor }]}>
             {t(TYPE_LABEL_KEY[complaint.type] ?? TYPE_LABEL_KEY.Other)}
           </Text>
         </View>
@@ -180,7 +182,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
         <View style={styles.headerMain}>
           <View style={styles.headerTop}>
             <Text style={styles.descPreview} numberOfLines={1}>{complaint.description}</Text>
-            <View style={[styles.statusPill, { backgroundColor: STATUS_BG[status], borderColor: `${accentColor}30` }]}>
+            <View style={[styles.statusPill, { backgroundColor: themeColor(STATUS_BG[status], 'backgroundColor'), borderColor: `${accentColor}30` }]}>
               <Text style={[styles.statusPillText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[status] ?? STATUS_LABEL_KEY.Open)}</Text>
             </View>
           </View>
@@ -232,19 +234,23 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
           {canEditOrDelete && (
             <View style={styles.memberActionsRow}>
               <TouchableOpacity
-                style={styles.editBtn}
+                style={[styles.editBtn, action.tonal.box]}
                 onPress={() => onEdit(complaint)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
               >
-                <Pencil size={13} color={COLORS.amberLight} />
-                <Text style={styles.editBtnText}>{t('member.alertsHub.editComplaint')}</Text>
+                <Pencil size={13} color={action.tonal.icon ?? COLORS.amberLight} />
+                <Text style={[styles.editBtnText, action.tonal.text]}>{t('member.alertsHub.editComplaint')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.deleteBtn, isDeleting && { opacity: 0.6 }]}
+                style={[styles.deleteBtn, action.dangerTonal.box, isDeleting && { opacity: 0.6 }]}
                 onPress={handleDelete}
                 disabled={isDeleting}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
               >
                 {isDeleting ? (
                   <ActivityIndicator size="small" color={COLORS.red} />
@@ -266,7 +272,7 @@ function MemberComplaintCard({ complaint, onEdit, onDelete }) {
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], loading = false, onEdit, onDelete }) => {
   const styles = useThemedStyles(baseStyles);
-  const { GLASS, COLORS, themeColor } = useLegacyTheme();
+  const { GLASS, COLORS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   return (
@@ -286,9 +292,10 @@ export const AlertsHubScreen = ({ onNavigate, complaints, faultAlerts = [], load
 
       {/* Action Button */}
       <TouchableOpacity
-        style={styles.actionBtn}
+        style={[styles.actionBtn, action.solid.box]}
         activeOpacity={0.8}
         onPress={() => onNavigate('submit')}
+        accessibilityRole="button"
       >
         <PlusCircle size={18} color={"#FFFFFF"} />
         <Text style={styles.actionBtnText}>{t('member.alertsHub.submitButton')}</Text>
@@ -381,13 +388,13 @@ const baseStyles = StyleSheet.create({
     padding: 14,
     paddingLeft: 18,
   },
-  typeBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, width: 90, alignItems: 'center' },
-  typeText: { fontSize: 9, fontWeight: '700', textAlign: 'center' },
+  typeBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, minWidth: 90, maxWidth: 112, alignItems: 'center' },
+  typeText: { fontSize: 10, fontWeight: '700', textAlign: 'center' },
   headerMain: { flex: 1, gap: 4 },
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   descPreview: { fontSize: 13, color: COLORS.textBright, fontWeight: '600', flex: 1, marginRight: 8 },
   statusPill: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  statusPillText: { fontSize: 9, fontWeight: '700' },
+  statusPillText: { fontSize: 10, fontWeight: '700' },
   cardTime: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
 
   // Expanded Panel
@@ -452,6 +459,7 @@ const baseStyles = StyleSheet.create({
     borderWidth: 1,
   },
   stepNum: { fontSize: 10, fontWeight: '700' },
-  stepLabel: { fontSize: 8, fontWeight: '600', textAlign: 'center' },
+  // width 92 lets the label spill evenly past its narrow step column instead of being cut to "Under Re…".
+  stepLabel: { fontSize: 10, fontWeight: '600', textAlign: 'center', width: 92, maxWidth: 92, flexShrink: 0 },
   stepLine: { height: 2, flex: 0.8, marginBottom: 14, borderRadius: 1 },
 });

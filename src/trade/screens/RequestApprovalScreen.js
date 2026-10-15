@@ -23,7 +23,7 @@ import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestApprovalScreen() {
   const styles = useThemedStyles(baseStyles);
-  const { themeColor, colors } = useLegacyTheme();
+  const { themeColor, colors, action } = useLegacyTheme();
 
   const { t, i18n } = useTranslation();
   const { params, navigate } = useNavigation();
@@ -51,7 +51,12 @@ export default function RequestApprovalScreen() {
   const pending = request.status === 'Pending';
   const canApprove = !providersLoading && !providersError && request.kwh <= surplus;
   const remaining = Math.max(0, addTradeAmounts(surplus, -request.kwh));
-  const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  const baseTone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  // STATUS_STYLE holds dark-theme tokens, so map them for the active theme.
+  const tone = { color: themeColor(baseTone.color, 'color'), pillBg: themeColor(baseTone.pillBg, 'backgroundColor') };
+  // Light mode: approve is the solid blue action (grey when it cannot be done);
+  // reject is the tonal red one. Dark mode keeps its original colours.
+  const approveLook = canApprove ? action.solid : action.disabled;
 
   const onApprove = async () => {
     if (pendingAction.current) return;
@@ -143,8 +148,8 @@ export default function RequestApprovalScreen() {
       {providersError ? (
         <View style={styles.balanceError}>
           <Notice tone="error" message={t('trade.incoming.loadSurplusFailed', { error: providersError })} />
-          <Pressable onPress={refreshProviders} style={styles.retryBalance}>
-            <Text style={styles.retryBalanceLabel}>{t('trade.tryAgain')}</Text>
+          <Pressable onPress={refreshProviders} accessibilityRole="button" style={styles.retryBalance}>
+            <Text style={[styles.retryBalanceLabel, action.tonal.text]}>{t('trade.tryAgain')}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -188,24 +193,30 @@ export default function RequestApprovalScreen() {
           <View style={styles.actions}>
             <Pressable
               onPress={busy ? undefined : () => setModal('reject')}
-              style={({ pressed }) => [styles.action, styles.reject, pressed && { opacity: 0.85 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('trade.approval.reject')}
+              style={({ pressed }) => [styles.action, styles.reject, action.dangerTonal.box, pressed && { opacity: 0.85 }]}
             >
-              <X size={16} color={colors.danger} strokeWidth={2.2} />
-              <Text style={[styles.actionLabel, { color: colors.danger }]}>{t('trade.approval.reject')}</Text>
+              <X size={16} color={action.dangerTonal.icon ?? colors.danger} strokeWidth={2.2} />
+              <Text style={[styles.actionLabel, { color: action.dangerTonal.icon ?? colors.danger }]}>{t('trade.approval.reject')}</Text>
             </Pressable>
 
             <Pressable
               onPress={canApprove && !busy ? () => setModal('approve') : undefined}
+              accessibilityRole="button"
+              accessibilityLabel={t('trade.approval.approve')}
+              accessibilityState={{ disabled: !canApprove || busy }}
               style={({ pressed }) => [
                 styles.action,
                 {
                   backgroundColor: canApprove ? colors.teal : 'rgba(20,184,166,0.25)',
-                  opacity: canApprove ? (pressed ? 0.85 : 1) : 0.5,
+                  opacity: canApprove ? (pressed ? 0.85 : 1) : approveLook.box ? 1 : 0.5,
                 },
+                approveLook.box,
               ]}
             >
-              <Check size={16} color={colors.text} strokeWidth={2.4} />
-              <Text style={[styles.actionLabel, { color: colors.text }]}>{t('trade.approval.approve')}</Text>
+              <Check size={16} color={approveLook.icon ?? colors.text} strokeWidth={2.4} />
+              <Text style={[styles.actionLabel, { color: approveLook.icon ?? colors.text }]}>{t('trade.approval.approve')}</Text>
             </Pressable>
           </View>
         </>

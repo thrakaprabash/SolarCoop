@@ -136,20 +136,25 @@ const describeScan = (scan, t) => {
 
 function Chip({ label, active, onPress, color }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
+  // `color` is a dark-theme token (severity colour); map it for the active theme.
+  const tone = color ? themeColor(color, 'color') : null;
 
   return (
     <TouchableOpacity
       style={[
         styles.chip,
-        active && (color
-          ? { backgroundColor: `${color}22`, borderColor: `${color}66` }
-          : styles.chipActive),
+        active && (tone
+          ? { backgroundColor: `${tone}22`, borderColor: `${tone}66` }
+          : [styles.chipActive, action.selected.box]),
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!active }}
+      hitSlop={{ top: 6, bottom: 6 }}
     >
-      <Text style={[styles.chipText, active && { color: color ?? COLORS.amberLight, fontWeight: '700' }]}>
+      <Text style={[styles.chipText, active && { color: tone ?? action.selected.icon ?? COLORS.amberLight, fontWeight: '700' }]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -159,11 +164,16 @@ function Chip({ label, active, onPress, color }) {
 // ─── Alert Card ───────────────────────────────────────────────────────────────
 function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember, t }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
 
   const [busy, setBusy] = useState(null); // 'resolve' | 'reopen' | 'delete' | null
-  const { color, bg, Icon } = SEVERITY_STYLE[alert.severity] ?? SEVERITY_STYLE.Medium;
-  const status = STATUS_STYLE[alert.status] ?? STATUS_STYLE.Open;
+  // SEVERITY_STYLE / STATUS_STYLE hold dark-theme tokens, so map them for the active theme.
+  const rawSeverity = SEVERITY_STYLE[alert.severity] ?? SEVERITY_STYLE.Medium;
+  const color = themeColor(rawSeverity.color, 'color');
+  const bg = themeColor(rawSeverity.bg, 'backgroundColor');
+  const Icon = rawSeverity.Icon;
+  const rawStatus = STATUS_STYLE[alert.status] ?? STATUS_STYLE.Open;
+  const status = { color: themeColor(rawStatus.color, 'color'), bg: themeColor(rawStatus.bg, 'backgroundColor'), Icon: rawStatus.Icon };
   const StatusIcon = status.Icon;
   const isOpen = alert.status === 'Open';
   // The scan raises a system alert again while its cause persists, so deleting one
@@ -245,23 +255,29 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
           </View>
 
           <View style={styles.actionsRow}>
+            {/* Light mode: View member and Reopen are tonal blue, Edit is a white outline,
+                Resolve the solid blue action and Delete tonal red. */}
             {onViewMember && (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.viewBtn]}
+                style={[styles.actionBtn, styles.viewBtn, action.tonal.box]}
                 onPress={() => onViewMember(alert)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
               >
-                <User size={13} color={COLORS.amberLight} />
-                <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.alerts.action.viewMember')}</Text>
+                <User size={13} color={action.tonal.icon ?? COLORS.amberLight} />
+                <Text style={[styles.actionBtnText, { color: COLORS.amberLight }, action.tonal.text]}>{t('admin.alerts.action.viewMember')}</Text>
               </TouchableOpacity>
             )}
 
             {alert.canEdit && (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.editBtn, busy && styles.actionBtnDisabled]}
+                style={[styles.actionBtn, styles.editBtn, action.neutral.box, busy && styles.actionBtnDisabled]}
                 onPress={() => onEdit(alert)}
                 disabled={!!busy}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
               >
                 <Pencil size={13} color={COLORS.textPrimary} />
                 <Text style={[styles.actionBtnText, { color: COLORS.textPrimary }]}>{t('admin.alerts.action.edit')}</Text>
@@ -270,38 +286,44 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
 
             {isOpen ? (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.resolveBtn, busy && styles.actionBtnDisabled]}
+                style={[styles.actionBtn, styles.resolveBtn, action.solid.box, busy && styles.actionBtnDisabled]}
                 onPress={() => changeStatus('resolve', onResolve)}
                 disabled={!!busy}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
               >
                 {busy === 'resolve'
-                  ? <ActivityIndicator size="small" color={COLORS.tealLight} />
-                  : <CheckCircle size={13} color={COLORS.tealLight} />
+                  ? <ActivityIndicator size="small" color={action.solid.icon ?? COLORS.tealLight} />
+                  : <CheckCircle size={13} color={action.solid.icon ?? COLORS.tealLight} />
                 }
-                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.alerts.action.resolve')}</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }, action.solid.text]}>{t('admin.alerts.action.resolve')}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.reopenBtn, busy && styles.actionBtnDisabled]}
+                style={[styles.actionBtn, styles.reopenBtn, action.tonal.box, busy && styles.actionBtnDisabled]}
                 onPress={() => changeStatus('reopen', onReopen)}
                 disabled={!!busy}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
               >
                 {busy === 'reopen'
-                  ? <ActivityIndicator size="small" color={COLORS.blueLight} />
-                  : <RotateCcw size={13} color={COLORS.blueLight} />
+                  ? <ActivityIndicator size="small" color={action.tonal.icon ?? COLORS.blueLight} />
+                  : <RotateCcw size={13} color={action.tonal.icon ?? COLORS.blueLight} />
                 }
-                <Text style={[styles.actionBtnText, { color: COLORS.blueLight }]}>{t('admin.alerts.action.reopen')}</Text>
+                <Text style={[styles.actionBtnText, { color: COLORS.blueLight }, action.tonal.text]}>{t('admin.alerts.action.reopen')}</Text>
               </TouchableOpacity>
             )}
 
             {canDelete && (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.deleteBtn, busy && styles.actionBtnDisabled]}
+                style={[styles.actionBtn, styles.deleteBtn, action.dangerTonal.box, busy && styles.actionBtnDisabled]}
                 onPress={handleDelete}
                 disabled={!!busy}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
               >
                 {busy === 'delete'
                   ? <ActivityIndicator size="small" color={COLORS.red} />
@@ -324,7 +346,7 @@ function AlertCard({ alert, onResolve, onReopen, onDelete, onEdit, onViewMember,
 // state below is always seeded fresh from `editing`.
 function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, themeColor } = useLegacyTheme();
+  const { COLORS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const isEditing = !!editing;
@@ -410,7 +432,13 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
         <View style={styles.modalCard}>
           <View style={styles.modalHeaderRow}>
             <Text style={styles.modalTitle}>{isEditing ? t('admin.alerts.form.editTitle') : t('admin.alerts.form.newTitle')}</Text>
-            <TouchableOpacity onPress={handleClose} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handleClose}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <X size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
           </View>
@@ -478,7 +506,13 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
                         <Text style={styles.pickedText} numberOfLines={1}>
                           {pickedMember.name} · {pickedMember.household}
                         </Text>
-                        <TouchableOpacity onPress={() => setPickedMember(null)} activeOpacity={0.7}>
+                        <TouchableOpacity
+                          onPress={() => setPickedMember(null)}
+                          activeOpacity={0.7}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.close')}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
                           <X size={16} color={COLORS.textMuted} />
                         </TouchableOpacity>
                       </View>
@@ -532,10 +566,12 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
           </ScrollView>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, saving && styles.primaryBtnDisabled]}
+            style={[styles.primaryBtn, action.solid.box, saving && styles.primaryBtnDisabled]}
             onPress={handleSubmit}
             disabled={saving}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityState={{ busy: saving }}
           >
             {saving
               ? <ActivityIndicator size="small" color={themeColor("#000000", "color")} />
@@ -551,7 +587,7 @@ function AlertFormModal({ visible, editing, onClose, onSubmit, members }) {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function AlertsScreen() {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS } = useLegacyTheme();
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
 
   const { t } = useTranslation();
   const {
@@ -654,8 +690,8 @@ export default function AlertsScreen() {
           <AlertCircle size={28} color={COLORS.red} />
           <Text style={styles.errorTitle}>{t('admin.alerts.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{alertsError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadAlerts} activeOpacity={0.8}>
-            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          <TouchableOpacity style={[styles.retryBtn, action.tonal.box]} onPress={loadAlerts} activeOpacity={0.8} accessibilityRole="button">
+            <Text style={[styles.retryText, action.tonal.text]}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -676,25 +712,31 @@ export default function AlertsScreen() {
         <View style={styles.titleRow}>
           <Bell size={18} color={COLORS.amberLight} />
           <Text style={styles.screenTitle}>{t('admin.alerts.title')}</Text>
+          {/* Light mode: Scan is tonal blue, New alert the solid blue action. */}
           <TouchableOpacity
-            style={[styles.scanBtn, scanning && styles.scanBtnDisabled]}
+            style={[styles.scanBtn, action.tonal.box, scanning && styles.scanBtnDisabled]}
             onPress={() => scanAlerts()}
             disabled={scanning}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityState={{ busy: scanning }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
             {scanning
-              ? <ActivityIndicator size="small" color={COLORS.tealLight} />
-              : <ScanSearch size={14} color={COLORS.tealLight} />
+              ? <ActivityIndicator size="small" color={action.tonal.icon ?? COLORS.tealLight} />
+              : <ScanSearch size={14} color={action.tonal.icon ?? COLORS.tealLight} />
             }
-            <Text style={styles.scanBtnText}>{scanning ? t('admin.alerts.scanning') : t('admin.alerts.scanBtn')}</Text>
+            <Text style={[styles.scanBtnText, action.tonal.text]}>{scanning ? t('admin.alerts.scanning') : t('admin.alerts.scanBtn')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.newBtn}
+            style={[styles.newBtn, action.solid.box]}
             onPress={() => setForm({ open: true, editing: null })}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Plus size={14} color={COLORS.amberLight} />
-            <Text style={styles.newBtnText}>{t('admin.alerts.newAlert')}</Text>
+            <Plus size={14} color={action.solid.icon ?? COLORS.amberLight} />
+            <Text style={[styles.newBtnText, action.solid.text]}>{t('admin.alerts.newAlert')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -723,7 +765,8 @@ export default function AlertsScreen() {
         {/* Open-alert count per severity — tap one to filter by it */}
         <View style={styles.severitySummaryRow}>
           {SEVERITIES.map(sev => {
-            const { color, Icon } = SEVERITY_STYLE[sev];
+            const { Icon } = SEVERITY_STYLE[sev];
+            const color = themeColor(SEVERITY_STYLE[sev].color, 'color');
             const active = severityFilter === sev;
             return (
               <TouchableOpacity
@@ -734,6 +777,8 @@ export default function AlertsScreen() {
                 ]}
                 onPress={() => setSeverityFilter(cur => (cur === sev ? null : sev))}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
               >
                 <Icon size={15} color={color} />
                 <Text style={[styles.severityCount, { color }]}>{openBySeverity[sev]}</Text>

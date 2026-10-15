@@ -13,13 +13,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme/useTheme';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
+import { SolarCoopLogo } from '../common/SolarCoopLogo';
 import {
   Share2,
   X,
   Check,
   Copy,
   Sparkles,
-  Sun,
   TreePine,
   DollarSign,
   CloudOff,
@@ -30,6 +30,7 @@ import {
   ShieldCheck,
 } from 'lucide-react-native';
 import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { useTranslation } from 'react-i18next';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -45,8 +46,9 @@ export const ShareImpactModal = ({
   memberName = 'SolarCoop Member',
 }) => {
   const styles = useThemedStyles(baseStyles);
-  const { COLORS, GLASS, themeColor } = useLegacyTheme();
+  const { COLORS, GLASS, action } = useLegacyTheme();
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   const [aspectRatio, setAspectRatio] = useState('square'); // 'square' | 'story'
   const [themePreset, setThemePreset] = useState('amber'); // 'amber' | 'teal' | 'blue'
@@ -172,7 +174,8 @@ export const ShareImpactModal = ({
               <View style={[styles.headerIconBadge, { backgroundColor: themeColors.badge }]}>
                 <Sparkles size={20} color={themeColors.light} />
               </View>
-              <View>
+              {/* flex:1 + minWidth:0 keeps a long subtitle from running under the close button */}
+              <View style={styles.headerText}>
                 <Text style={styles.title}>Share Energy Impact</Text>
                 <Text style={styles.subtitle}>Export & celebrate your clean power achievements</Text>
               </View>
@@ -180,6 +183,8 @@ export const ShareImpactModal = ({
             <TouchableOpacity
               onPress={onClose}
               style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <X size={20} color={COLORS.textSecondary} />
@@ -194,18 +199,24 @@ export const ShareImpactModal = ({
                 <Text style={styles.controlLabel}>FORMAT</Text>
                 <View style={styles.pillToggle}>
                   <TouchableOpacity
-                    style={[styles.pillOption, aspectRatio === 'square' && styles.pillOptionActive]}
+                    style={[styles.pillOption, aspectRatio === 'square' && styles.pillOptionActive, aspectRatio === 'square' && action.selected.box]}
                     onPress={() => setAspectRatio('square')}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: aspectRatio === 'square' }}
+                    hitSlop={{ top: 8, bottom: 8 }}
                   >
-                    <Text style={[styles.pillOptionText, aspectRatio === 'square' && styles.pillOptionTextActive]}>
+                    <Text style={[styles.pillOptionText, aspectRatio === 'square' && styles.pillOptionTextActive, aspectRatio === 'square' && action.selected.text]}>
                       Square (1:1)
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.pillOption, aspectRatio === 'story' && styles.pillOptionActive]}
+                    style={[styles.pillOption, aspectRatio === 'story' && styles.pillOptionActive, aspectRatio === 'story' && action.selected.box]}
                     onPress={() => setAspectRatio('story')}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: aspectRatio === 'story' }}
+                    hitSlop={{ top: 8, bottom: 8 }}
                   >
-                    <Text style={[styles.pillOptionText, aspectRatio === 'story' && styles.pillOptionTextActive]}>
+                    <Text style={[styles.pillOptionText, aspectRatio === 'story' && styles.pillOptionTextActive, aspectRatio === 'story' && action.selected.text]}>
                       Story (9:16)
                     </Text>
                   </TouchableOpacity>
@@ -216,30 +227,22 @@ export const ShareImpactModal = ({
               <View style={styles.selectorGroup}>
                 <Text style={styles.controlLabel}>THEME</Text>
                 <View style={styles.colorPills}>
-                  <TouchableOpacity
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: COLORS.amber },
-                      themePreset === 'amber' && styles.colorDotActive,
-                    ]}
-                    onPress={() => setThemePreset('amber')}
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: COLORS.teal },
-                      themePreset === 'teal' && styles.colorDotActive,
-                    ]}
-                    onPress={() => setThemePreset('teal')}
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: COLORS.blue },
-                      themePreset === 'blue' && styles.colorDotActive,
-                    ]}
-                    onPress={() => setThemePreset('blue')}
-                  />
+                  {[['amber', COLORS.amber, 'Amber'], ['teal', COLORS.teal, 'Teal'], ['blue', COLORS.blue, 'Blue']].map(([preset, swatch, name]) => (
+                    <TouchableOpacity
+                      key={preset}
+                      style={[
+                        styles.colorDot,
+                        { backgroundColor: swatch },
+                        themePreset === preset && styles.colorDotActive,
+                        themePreset === preset && !isDark && styles.colorDotActiveLight,
+                      ]}
+                      onPress={() => setThemePreset(preset)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${name} card theme`}
+                      accessibilityState={{ selected: themePreset === preset }}
+                      hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }}
+                    />
+                  ))}
                 </View>
               </View>
             </View>
@@ -260,7 +263,7 @@ export const ShareImpactModal = ({
                 <View style={styles.cardHeader}>
                   <View style={styles.cardBrand}>
                     <View style={[styles.cardLogoCircle, { backgroundColor: themeColors.primary }]}>
-                      <Sun size={14} color={themeColor("#121212", "color")} strokeWidth={2.5} />
+                      <SolarCoopLogo variant="mark" size={18} color="#121212" gapColor={themeColors.primary} decorative />
                     </View>
                     <View>
                       <Text style={styles.cardBrandName}>SOLARCOOP</Text>
@@ -371,9 +374,10 @@ export const ShareImpactModal = ({
           {/* Action Buttons */}
           <View style={styles.footerActions}>
             <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: themeColors.primary }]}
+              style={[styles.primaryButton, { backgroundColor: themeColors.primary }, action.solid.box]}
               onPress={handleNativeShare}
               activeOpacity={0.8}
+              accessibilityRole="button"
             >
               <Share2 size={18} color={isDark ? '#121212' : '#FFFFFF'} strokeWidth={2.5} />
               <Text style={[styles.primaryButtonText, !isDark && { color: '#FFFFFF' }]}>Share Impact Card</Text>
@@ -384,6 +388,7 @@ export const ShareImpactModal = ({
                 style={[styles.secondaryButton, GLASS.card]}
                 onPress={handleCopyText}
                 activeOpacity={0.7}
+                accessibilityRole="button"
               >
                 {copied ? <Check size={16} color={COLORS.teal} /> : <Copy size={16} color={COLORS.textPrimary} />}
                 <Text style={styles.secondaryButtonText}>{copied ? 'Copied' : 'Copy Text'}</Text>
@@ -393,6 +398,7 @@ export const ShareImpactModal = ({
                 style={[styles.secondaryButton, GLASS.card]}
                 onPress={handleSimulateExport}
                 activeOpacity={0.7}
+                accessibilityRole="button"
               >
                 <Download size={16} color={COLORS.textPrimary} />
                 <Text style={styles.secondaryButtonText}>Export Card</Text>
@@ -443,6 +449,7 @@ const baseStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerText: { flex: 1, minWidth: 0 },
   title: {
     fontSize: 18,
     fontWeight: '800',
@@ -457,6 +464,7 @@ const baseStyles = StyleSheet.create({
   closeButton: {
     width: 34,
     height: 34,
+    marginLeft: 8,
     borderRadius: 17,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     alignItems: 'center',
@@ -527,6 +535,8 @@ const baseStyles = StyleSheet.create({
     borderColor: '#FFFFFF',
     transform: [{ scale: 1.15 }],
   },
+  // A white ring disappears on the light card, so light mode uses the ink colour.
+  colorDotActiveLight: { borderColor: '#09243B' },
   previewContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -570,7 +580,7 @@ const baseStyles = StyleSheet.create({
     color: COLORS.textBright,
   },
   cardBrandSub: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.5,
     color: COLORS.textSecondary,
@@ -585,7 +595,7 @@ const baseStyles = StyleSheet.create({
     borderRadius: 8,
   },
   cardVerifiedText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -628,7 +638,7 @@ const baseStyles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   scoreLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
     color: COLORS.textSecondary,
@@ -664,7 +674,7 @@ const baseStyles = StyleSheet.create({
     color: COLORS.textBright,
   },
   statBoxSub: {
-    fontSize: 9,
+    fontSize: 10,
     color: COLORS.textMuted,
   },
   coopSharingBadge: {
@@ -682,7 +692,7 @@ const baseStyles = StyleSheet.create({
     marginTop: 4,
   },
   cardWatermark: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
     letterSpacing: 0.4,
