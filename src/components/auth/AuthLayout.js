@@ -106,8 +106,6 @@ export const AuthLayout = ({ title, subtitle, children, footer }) => {
               </Text>
             </View>
 
-            <View style={{ marginBottom: 18 }}><ThemeSwitcher /></View>
-
             {/* Card */}
             <View
               style={[
