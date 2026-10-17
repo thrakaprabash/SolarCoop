@@ -384,9 +384,10 @@ export default function AdminSettingsScreen() {
       </View>
 
       {/* Logout */}
-      <TouchableOpacity style={[styles.logoutBtn, action.dangerTonal.box]} onPress={handleLogout} activeOpacity={0.8} accessibilityRole="button">
-        <LogOut size={18} color={COLORS.red} />
-        <Text style={styles.logoutBtnText}>{t('admin.settings.logout')}</Text>
+      {/* Light mode: the same solid red as the member profile's Logout. Dark mode keeps the tonal look below. */}
+      <TouchableOpacity style={[styles.logoutBtn, action.danger.box]} onPress={handleLogout} activeOpacity={0.8} accessibilityRole="button">
+        <LogOut size={18} color={action.danger.icon ?? COLORS.red} />
+        <Text style={[styles.logoutBtnText, action.danger.text]}>{t('admin.settings.logout')}</Text>
       </TouchableOpacity>
 
       <View style={{ height: 24 }} />
