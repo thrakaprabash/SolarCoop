@@ -40,7 +40,7 @@ export const Header = () => {
         </View>
       </View>
 
-      {/* Household scope and appearance */}
+      {/* Household scope */}
       <View style={styles.bottomRow}>
         <View style={styles.scopeContainer}>
           <TouchableOpacity
@@ -62,7 +62,6 @@ export const Header = () => {
             <Text style={[styles.scopeText, viewScope === 'community' && styles.scopeTextActive, viewScope === 'community' && action.selected.text]}>{t('member.header.coop')}</Text>
           </TouchableOpacity>
         </View>
-        <ThemeSwitcher compact />
       </View>
     </View>
   );
