@@ -21,6 +21,7 @@ import {
   AlertCircle,
   Users,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const STATUS_COLORS = {
   Active:    COLORS.tealLight,
@@ -49,7 +50,11 @@ const STATUS_LABEL_KEY = {
 const FILTER_OPTS = ['All', 'Active', 'Pending', 'Inactive', 'Suspended'];
 
 function MemberCard({ member, onPress, t }) {
-  const accentColor = STATUS_COLORS[member.status];
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, COLORS } = useLegacyTheme();
+
+  // STATUS_COLORS / STATUS_BG hold dark-theme tokens, so map them for the active theme.
+  const accentColor = themeColor(STATUS_COLORS[member.status], 'color');
   const hasSurplus = member.todaySurplus > 0;
 
   return (
@@ -57,12 +62,14 @@ function MemberCard({ member, onPress, t }) {
       style={styles.memberCard}
       onPress={() => onPress(member)}
       activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={`${member.name}, ${member.household}`}
     >
       {/* Left Status Accent Bar */}
       <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
 
       {/* Avatar */}
-      <View style={[styles.avatar, { backgroundColor: 'rgba(245,158,11,0.2)', borderColor: 'rgba(245,158,11,0.35)' }]}>
+      <View style={[styles.avatar, { backgroundColor: themeColor("rgba(245,158,11,0.2)", "backgroundColor"), borderColor: themeColor("rgba(245,158,11,0.35)", "borderColor") }]}>
         <Text style={styles.avatarText}>
           {member.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
         </Text>
@@ -72,7 +79,7 @@ function MemberCard({ member, onPress, t }) {
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
           <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: STATUS_BG[member.status], borderColor: `${accentColor}40` }]}>
+          <View style={[styles.statusBadge, { backgroundColor: themeColor(STATUS_BG[member.status], 'backgroundColor'), borderColor: `${accentColor}40` }]}>
             <Text style={[styles.statusText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[member.status] ?? member.status)}</Text>
           </View>
         </View>
@@ -129,6 +136,9 @@ function MemberCard({ member, onPress, t }) {
 }
 
 export default function MemberMonitoringScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     setSelectedMember,
@@ -197,8 +207,8 @@ export default function MemberMonitoringScreen() {
           <AlertCircle size={28} color={COLORS.red} />
           <Text style={styles.errorTitle}>{t('admin.members.errorTitle')}</Text>
           <Text style={styles.errorMessage}>{membersError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadMembers} activeOpacity={0.8}>
-            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          <TouchableOpacity style={[styles.retryBtn, action.tonal.box]} onPress={loadMembers} activeOpacity={0.8} accessibilityRole="button">
+            <Text style={[styles.retryText, action.tonal.text]}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -238,34 +248,37 @@ export default function MemberMonitoringScreen() {
         {FILTER_OPTS.map(opt => (
           <TouchableOpacity
             key={opt}
-            style={[styles.filterChip, filter === opt && styles.filterChipActive]}
+            style={[styles.filterChip, filter === opt && styles.filterChipActive, filter === opt && action.selected.box]}
             onPress={() => setFilter(opt)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === opt }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive]}>{t(STATUS_LABEL_KEY[opt])}</Text>
+            <Text style={[styles.filterChipText, filter === opt && styles.filterChipTextActive, filter === opt && action.selected.text]}>{t(STATUS_LABEL_KEY[opt])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       {/* Summary Strip */}
       <View style={styles.summaryStrip}>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.tealLight }]}>{activeCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.tealLight }]}>{t('common.status.active')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(59,130,246,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.blueLight }]}>{pendingCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.blueLight }]}>{t('common.status.pending')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.amberLight }]}>{inactiveCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.amberLight }]}>{t('common.status.inactive')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.red }]}>{suspendCnt}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.red }]}>{t('common.status.suspended')}</Text>
         </View>
-        <View style={[styles.summaryPill, { backgroundColor: 'rgba(255,255,255,0.07)' }]}>
+        <View style={[styles.summaryPill, { backgroundColor: themeColor("rgba(255,255,255,0.07)", "backgroundColor") }]}>
           <Text style={[styles.summaryNum, { color: COLORS.textPrimary }]}>{filtered.length}</Text>
           <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>{t('admin.members.shown')}</Text>
         </View>
@@ -287,7 +300,7 @@ export default function MemberMonitoringScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 

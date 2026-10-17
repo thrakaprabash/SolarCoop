@@ -1,0 +1,83 @@
+- generic [ref=f2e7]:
+  - generic [ref=f2e8]:
+    - generic [ref=f2e9]:
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: SolarCoop
+        - generic [ref=f2e26]: Community Energy Sharing
+      - generic [ref=f2e27]: Surplus
+    - generic [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32] [cursor=pointer]: Household
+        - generic [ref=f2e34] [cursor=pointer]: Co-op
+      - generic "Appearance" [ref=f2e37]:
+        - button "Dark" [ref=f2e38] [cursor=pointer]
+  - generic [ref=f2e41]:
+    - generic [ref=f2e378]:
+      - generic [ref=f2e379]: Available Community Energy
+      - generic [ref=f2e381]:
+        - generic [ref=f2e388]:
+          - generic [ref=f2e389]: Total Pool Available
+          - generic [ref=f2e390]:
+            - text: "122.59"
+            - generic [ref=f2e391]: kWh
+        - generic [ref=f2e392]:
+          - generic [ref=f2e393]:
+            - generic [ref=f2e394]: Households Online
+            - generic [ref=f2e395]: 2 of 2
+          - generic [ref=f2e397]:
+            - generic [ref=f2e398]: Avg Co-op Rate
+            - generic [ref=f2e399]: $0.22 / kWh
+      - generic [ref=f2e400]:
+        - textbox "Search households" [ref=f2e405]
+        - generic [ref=f2e406] [cursor=pointer]: Most kWh
+      - generic [ref=f2e410]:
+        - generic [ref=f2e411]:
+          - generic [ref=f2e412]:
+            - generic [ref=f2e413]: Sanduni Fernando
+            - generic [ref=f2e414]: DEMO-004 · 350 m
+          - generic [ref=f2e419]: Live
+        - generic [ref=f2e422]:
+          - generic [ref=f2e423]:
+            - generic [ref=f2e424]: Available
+            - generic [ref=f2e425]:
+              - text: "94.98"
+              - generic [ref=f2e426]: kWh
+          - generic [ref=f2e427]:
+            - generic [ref=f2e428]: Rate
+            - generic [ref=f2e429]: $0.22 / kWh
+        - generic [ref=f2e431]:
+          - generic [ref=f2e432]: Battery State (SoC)
+          - generic [ref=f2e433]: 65%
+        - button "Request Energy" [ref=f2e436] [cursor=pointer]
+      - generic [ref=f2e441]:
+        - generic [ref=f2e442]:
+          - generic [ref=f2e443]:
+            - generic [ref=f2e444]: Amara Silva
+            - generic [ref=f2e445]: DEMO-001 · 180 m
+          - generic [ref=f2e450]: Live
+        - generic [ref=f2e453]:
+          - generic [ref=f2e454]:
+            - generic [ref=f2e455]: Available
+            - generic [ref=f2e456]:
+              - text: "27.61"
+              - generic [ref=f2e457]: kWh
+          - generic [ref=f2e458]:
+            - generic [ref=f2e459]: Rate
+            - generic [ref=f2e460]: $0.22 / kWh
+        - generic [ref=f2e462]:
+          - generic [ref=f2e463]: Battery State (SoC)
+          - generic [ref=f2e464]: 78%
+        - button "Request Energy" [ref=f2e467] [cursor=pointer]
+      - button "My Requests" [ref=f2e472] [cursor=pointer]:
+        - generic [ref=f2e477]: "4"
+      - button "Incoming Requests" [ref=f2e479] [cursor=pointer]:
+        - generic [ref=f2e483]: "4"
+      - generic [ref=f2e492] [cursor=pointer]:
+        - generic [ref=f2e493]: Transaction History
+        - generic [ref=f2e494]: View your completed P2P trades
+    - generic [ref=f2e343]:
+      - generic [ref=f2e344] [cursor=pointer]: Dashboard
+      - generic [active] [ref=f2e352] [cursor=pointer]: P2P Trade
+      - generic [ref=f2e358] [cursor=pointer]: Energy
+      - generic [ref=f2e363] [cursor=pointer]: Alerts
+      - generic [ref=f2e369] [cursor=pointer]: Profile

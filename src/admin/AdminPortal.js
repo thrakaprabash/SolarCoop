@@ -19,12 +19,18 @@ import AlertsScreen from './screens/AlertsScreen';
 import ComplaintsScreen from './screens/ComplaintsScreen';
 import AdminSettingsScreen from './screens/AdminSettingsScreen';
 import { supabase } from '../lib/supabase';
+import { useTheme } from '../theme/useTheme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useThemedStyles } from '../theme/useLegacyTheme';
 
 // ─── Background image — same dark-glass theme used by Member & Technician shells
 const BG = require('../../assets/bg.jpg');
 
 // ─── Inner shell — consumes AdminContext ──────────────────────────────────────
 function AdminShell() {
+  const styles = useThemedStyles(baseStyles);
+  const theme = useTheme();
+
   const { adminBottomTab, setAdminBottomTab, loadMembers, loadComplaints, loadTransactions, loadAlerts, scanAlerts } = useAdmin();
 
   // Kick off member, complaint, transaction & alert data fetch as soon as the admin portal mounts.
@@ -87,9 +93,10 @@ function AdminShell() {
   const showChips = adminBottomTab === 'dashboard';
 
   return (
-    <ImageBackground source={BG} style={styles.bgImage} resizeMode="cover">
+    <ImageBackground source={theme.isDark ? BG : undefined} style={styles.bgImage} resizeMode="cover">
       <View style={styles.overlay}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        {!theme.isDark && <LinearGradient pointerEvents="none" colors={['#D9F3FF', '#F5FBFF', '#E4F4DF', '#FFF7D4']} style={StyleSheet.absoluteFillObject} />}
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
         <View style={styles.safeArea}>
           <AdminHeader />
           {showChips && <AdminMetricChips />}
@@ -115,7 +122,7 @@ export default function AdminPortal({ onExit }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   bgImage: {
     flex: 1,
     width: '100%',

@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { History, Search, Download, Filter, Sun, Battery, Zap, ArrowUpRight, ArrowDownLeft, FileText, Check } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-101: Energy History Log View component
 export const EnergyHistoryView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { historyLogs, loadMoreHistory, historyHasMore, loadingMore } = useEnergy();
   const [filterType, setFilterType] = useState('all'); // 'all' | 'surplus' | 'production' | 'consumption' | 'deficit'
@@ -49,7 +53,7 @@ export const EnergyHistoryView = () => {
       <View style={[styles.exportBar, GLASS.card, SHADOWS.glass]}>
         <View style={styles.exportInfo}>
           <FileText size={22} color={COLORS.amber} />
-          <View>
+          <View style={styles.exportText}>
             <Text style={styles.exportTitle}>{t('member.history.exportTitle')}</Text>
             <Text style={styles.exportSub}>{t('member.history.exportSub')}</Text>
           </View>
@@ -59,8 +63,9 @@ export const EnergyHistoryView = () => {
           style={styles.exportBtn}
           onPress={() => setExportModalVisible(true)}
           activeOpacity={0.7}
+          accessibilityRole="button"
         >
-          <Download size={16} color="#FFFFFF" />
+          <Download size={16} color={"#FFFFFF"} />
           <Text style={styles.exportBtnText}>{t('member.history.exportButton')}</Text>
         </TouchableOpacity>
       </View>
@@ -94,10 +99,14 @@ export const EnergyHistoryView = () => {
               styles.filterPill,
               GLASS.pill,
               filterType === p.id && styles.filterPillActive,
+              filterType === p.id && action.selected.box,
             ]}
             onPress={() => setFilterType(p.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filterType === p.id }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Text style={[styles.filterPillText, filterType === p.id && styles.filterPillTextActive]}>
+            <Text style={[styles.filterPillText, filterType === p.id && styles.filterPillTextActive, filterType === p.id && action.selected.text]}>
               {p.label}
             </Text>
           </TouchableOpacity>
@@ -134,14 +143,15 @@ export const EnergyHistoryView = () => {
       {/* Load More */}
       {historyHasMore && (
         <TouchableOpacity
-          style={styles.loadMoreBtn}
+          style={[styles.loadMoreBtn, action.tonal.box]}
           onPress={loadMoreHistory}
           disabled={loadingMore}
           activeOpacity={0.7}
+          accessibilityRole="button"
         >
           {loadingMore
-            ? <ActivityIndicator size="small" color={COLORS.amber} />
-            : <Text style={styles.loadMoreText}>{t('member.history.loadMore')}</Text>
+            ? <ActivityIndicator size="small" color={action.tonal.icon ?? COLORS.amber} />
+            : <Text style={[styles.loadMoreText, action.tonal.text]}>{t('member.history.loadMore')}</Text>
           }
         </TouchableOpacity>
       )}
@@ -163,12 +173,12 @@ export const EnergyHistoryView = () => {
               </View>
             ) : (
               <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setExportModalVisible(false)}>
+                <TouchableOpacity style={[styles.modalCancelBtn, action.neutral.box]} onPress={() => setExportModalVisible(false)} accessibilityRole="button">
                   <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.modalConfirmBtn} onPress={handleSimulateExport}>
-                  <Download size={16} color="#FFFFFF" />
+                <TouchableOpacity style={styles.modalConfirmBtn} onPress={handleSimulateExport} accessibilityRole="button">
+                  <Download size={16} color={"#FFFFFF"} />
                   <Text style={styles.modalConfirmText}>{t('member.history.modal.downloadPdf')}</Text>
                 </TouchableOpacity>
               </View>
@@ -180,13 +190,15 @@ export const EnergyHistoryView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },
   storyBadgeTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, color: COLORS.textBright },
   exportBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
-  exportInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  exportInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, marginRight: 10 },
+  // Lets the title wrap instead of sliding under the Export button.
+  exportText: { flex: 1, minWidth: 0 },
   exportTitle: { fontSize: 14, fontWeight: '800', color: COLORS.textPrimary },
   exportSub: { fontSize: 11, color: COLORS.textSecondary },
   exportBtn: { backgroundColor: COLORS.amber, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, ...SHADOWS.glow },
@@ -205,9 +217,9 @@ const styles = StyleSheet.create({
   logRow: { flexDirection: 'row', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder },
   iconBadge: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   logMain: { flex: 1, gap: 3 },
-  logTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logTitle: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary },
-  logAmount: { fontSize: 13, fontWeight: '800' },
+  logTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  logTitle: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary, flexShrink: 1 },
+  logAmount: { fontSize: 13, fontWeight: '800', flexShrink: 0 },
   logDetail: { fontSize: 11, color: COLORS.textSecondary },
   logMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
   logTime: { fontSize: 10, color: COLORS.textMuted },

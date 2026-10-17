@@ -6,12 +6,16 @@ import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import Svg, { Path, Circle, Line, Rect, Text as SvgText, G } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
 import { DateRangeFilter } from './DateRangeFilter';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 // SOL-102 / SOL-153 / SOL-186: Interactive Energy Charts View Component & Multi-Range Filter
 export const ChartsView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
-    chartData, 
+    chartData,
     loadChartData,
     dateRange,
     setDateRange,
@@ -73,6 +77,11 @@ export const ChartsView = () => {
   // Delta chart calculations
   const deltas = hours.map((_, i) => (Number(prod[i]) || 0) - (Number(cons[i]) || 0));
   const maxDelta = Math.max(1, ...deltas.map(Math.abs));
+
+  // Axis labels are 10px so they stay readable; with many points only every
+  // second or third label is drawn so neighbours never overlap.
+  const labelEvery = hours.length > 14 ? 3 : hours.length > 8 ? 2 : 1;
+  const showLabel = (i, selected) => selected || i % labelEvery === 0;
 
   // Dynamic unit: kW for live/hourly day charts, kWh for cumulative multi-day windows
   const metricUnit = (dateRange === 'today' || dateRange === 'yesterday') ? 'kW' : 'kWh';
@@ -136,7 +145,7 @@ export const ChartsView = () => {
               return (
                 <React.Fragment key={idx}>
                   <Line x1={padding} y1={yPos} x2={width - padding} y2={yPos} stroke={COLORS.glassBorder} strokeDasharray="3 3" />
-                  <SvgText x={padding - 6} y={yPos + 3} fill={COLORS.textMuted} fontSize="8" textAnchor="end">
+                  <SvgText x={padding - 6} y={yPos + 3.5} fill={COLORS.textMuted} fontSize="10" textAnchor="end">
                     {v >= 100 ? v.toFixed(0) : v.toFixed(v % 1 === 0 ? 0 : 1)}
                   </SvgText>
                 </React.Fragment>
@@ -173,16 +182,18 @@ export const ChartsView = () => {
                     stroke={COLORS.textBright} 
                     strokeWidth={1.5}
                   />
-                  <SvgText 
-                    x={cx} 
-                    y={height - 6} 
-                    fill={isSelected ? COLORS.amberLight : COLORS.textMuted} 
-                    fontSize={8} 
-                    fontWeight={isSelected ? 'bold' : 'normal'}
-                    textAnchor="middle"
-                  >
-                    {h}
-                  </SvgText>
+                  {showLabel(i, isSelected) ? (
+                    <SvgText
+                      x={cx}
+                      y={height - 6}
+                      fill={isSelected ? COLORS.amberLight : COLORS.textMuted}
+                      fontSize={10}
+                      fontWeight={isSelected ? 'bold' : 'normal'}
+                      textAnchor="middle"
+                    >
+                      {h}
+                    </SvgText>
+                  ) : null}
                 </G>
               );
             })}
@@ -199,11 +210,15 @@ export const ChartsView = () => {
                 style={[
                   styles.timePill,
                   isSelected ? styles.timePillActive : styles.timePillInactive,
+                  isSelected && action.selected.box,
                 ]}
                 onPress={() => setSelectedIndex(i)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                hitSlop={{ top: 8, bottom: 8 }}
               >
-                <Text style={[styles.timePillText, isSelected && styles.timePillTextActive]}>
+                <Text style={[styles.timePillText, isSelected && styles.timePillTextActive, isSelected && action.selected.text]}>
                   {h}
                 </Text>
               </TouchableOpacity>
@@ -260,7 +275,9 @@ export const ChartsView = () => {
                   rx="3"
                   fill={isPos ? COLORS.teal : COLORS.red}
                 />
-                <SvgText x={barX + barWidth / 2} y="125" fill={COLORS.textMuted} fontSize="8" textAnchor="middle">{h}</SvgText>
+                {showLabel(i, false) ? (
+                  <SvgText x={barX + barWidth / 2} y="125" fill={COLORS.textMuted} fontSize="10" textAnchor="middle">{h}</SvgText>
+                ) : null}
               </React.Fragment>
             );
           })}
@@ -270,7 +287,7 @@ export const ChartsView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

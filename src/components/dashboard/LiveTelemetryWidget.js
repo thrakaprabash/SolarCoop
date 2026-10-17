@@ -13,6 +13,7 @@ import {
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 /**
  * SOL-187: Live Real-Time Telemetry & Status Indicator Widget
@@ -20,6 +21,9 @@ import {
  * inverter performance telemetry, and auto-updating heartbeat ticker.
  */
 export const LiveTelemetryWidget = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     telemetryStatus = 'offline',
@@ -119,7 +123,7 @@ export const LiveTelemetryWidget = () => {
           <View style={styles.iconCircle}>
             <Radio size={14} color={statusColor} />
           </View>
-          <View>
+          <View style={styles.identityText}>
             <View style={styles.labelRow}>
               <Animated.View 
                 style={[
@@ -139,11 +143,14 @@ export const LiveTelemetryWidget = () => {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.refreshBtn, refreshing && styles.refreshBtnActive]} 
+        <TouchableOpacity
+          style={[styles.refreshBtn, refreshing && styles.refreshBtnActive]}
           onPress={handleManualRefresh}
           disabled={refreshing}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('member.telemetry.sync')}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
         >
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
             <RotateCw size={13} color={COLORS.textPrimary} />
@@ -189,7 +196,7 @@ export const LiveTelemetryWidget = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     padding: 14,
     gap: 12,
@@ -215,6 +222,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Lets the title and status badge wrap instead of sliding under the Sync button.
+  identityText: { flex: 1, minWidth: 0 },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -239,7 +248,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   badgeText: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
@@ -286,6 +295,7 @@ const styles = StyleSheet.create({
   },
   telemetryItem: {
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
     gap: 2,
   },
@@ -304,9 +314,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textBright,
     marginTop: 2,
+    textAlign: 'center',
+    // A single long Tamil / Sinhala word may exceed its column: let it wrap rather than spill out.
+    ...Platform.select({ web: { overflowWrap: 'anywhere' }, default: {} }),
   },
   metricSub: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
   },

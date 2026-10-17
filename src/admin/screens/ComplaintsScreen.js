@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -87,6 +88,9 @@ const STEP_LABEL_KEY = {
 };
 
 function StatusStepper({ currentStatus, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor } = useLegacyTheme();
+
   const stepMap = {
     'Open': 0, 'Under Review': 1, 'Investigated': 2, 'Resolved': 3, 'Rejected': -1,
   };
@@ -98,7 +102,7 @@ function StatusStepper({ currentStatus, t }) {
         const done    = currentStep > i;
         const active  = currentStep === i;
         const color   = done || active ? COLORS.amberLight : COLORS.textMuted;
-        const bgColor = active ? 'rgba(245,158,11,0.25)' : done ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)';
+        const bgColor = themeColor(active ? 'rgba(245,158,11,0.25)' : done ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)', 'backgroundColor');
 
         return (
           <React.Fragment key={step}>
@@ -113,7 +117,7 @@ function StatusStepper({ currentStatus, t }) {
               <Text style={[styles.stepLabel, { color }]} numberOfLines={1}>{t(STEP_LABEL_KEY[step])}</Text>
             </View>
             {i < STEPS.length - 1 && (
-              <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : 'rgba(255,255,255,0.1)' }]} />
+              <View style={[styles.stepLine, { backgroundColor: done ? COLORS.amberLight : themeColor('rgba(255,255,255,0.1)', 'backgroundColor') }]} />
             )}
           </React.Fragment>
         );
@@ -124,12 +128,17 @@ function StatusStepper({ currentStatus, t }) {
 
 // ─── Complaint Card ───────────────────────────────────────────────────────────
 function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }) {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor, action } = useLegacyTheme();
+
   const [expanded, setExpanded] = useState(false);
   const [noteText, setNoteText] = useState(complaint.resolutionNote || '');
   const [isSavingNote, setIsSavingNote] = useState(false);
 
   const status = complaint.status;
-  const accentColor = STATUS_COLOR[status] ?? COLORS.amberLight;
+  // STATUS_COLOR / TYPE_COLOR hold dark-theme tokens, so map them for the active theme.
+  const accentColor = themeColor(STATUS_COLOR[status] ?? COLORS.amberLight, 'color');
+  const typeColor = themeColor(TYPE_COLOR[complaint.type] ?? COLORS.textMuted, 'color');
   const canAct = status === 'Open' || status === 'Under Review';
 
   const handleToggle = () => {
@@ -188,8 +197,8 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
 
       <TouchableOpacity style={styles.cardHeader} onPress={handleToggle} activeOpacity={0.85}>
         {/* Type badge */}
-        <View style={[styles.typeBadge, { backgroundColor: `${TYPE_COLOR[complaint.type] ?? COLORS.textMuted}15` }]}>
-          <Text style={[styles.typeText, { color: TYPE_COLOR[complaint.type] ?? COLORS.textSecondary }]}>
+        <View style={[styles.typeBadge, { backgroundColor: `${typeColor}15` }]}>
+          <Text style={[styles.typeText, { color: typeColor }]}>
             {t(TYPE_LABEL_KEY[complaint.type] ?? complaint.type)}
           </Text>
         </View>
@@ -198,7 +207,7 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
           {/* Complainant + household */}
           <View style={styles.headerTop}>
             <Text style={styles.complainantName}>{complaint.complainant}</Text>
-            <View style={[styles.statusPill, { backgroundColor: STATUS_BG[status], borderColor: `${accentColor}30` }]}>
+            <View style={[styles.statusPill, { backgroundColor: themeColor(STATUS_BG[status], 'backgroundColor'), borderColor: `${accentColor}30` }]}>
               <Text style={[styles.statusPillText, { color: accentColor }]}>{t(STATUS_LABEL_KEY[status] ?? status)}</Text>
             </View>
           </View>
@@ -252,16 +261,17 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
             />
             <View style={styles.noteBtnRow}>
               <TouchableOpacity
-                style={[styles.noteSaveBtn, isSavingNote && { opacity: 0.6 }]}
+                style={[styles.noteSaveBtn, action.solid.box, isSavingNote && { opacity: 0.6 }]}
                 onPress={handleSaveNote}
                 disabled={isSavingNote}
                 activeOpacity={0.8}
+                accessibilityRole="button"
               >
                 {isSavingNote ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={"#FFFFFF"} />
                 ) : (
                   <>
-                    <Save size={13} color="#FFFFFF" />
+                    <Save size={13} color={"#FFFFFF"} />
                     <Text style={styles.noteSaveBtnText}>{t('admin.complaints.saveNote')}</Text>
                   </>
                 )}
@@ -269,10 +279,11 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
 
               {complaint.resolutionNote ? (
                 <TouchableOpacity
-                  style={[styles.noteClearBtn, isSavingNote && { opacity: 0.6 }]}
+                  style={[styles.noteClearBtn, action.dangerTonal.box, isSavingNote && { opacity: 0.6 }]}
                   onPress={handleClearNote}
                   disabled={isSavingNote}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
                 >
                   <Trash2 size={13} color={COLORS.red} />
                   <Text style={styles.noteClearBtnText}>{t('admin.complaints.clearNote')}</Text>
@@ -284,28 +295,32 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
           {/* Status Action Buttons */}
           {canAct && (
             <View style={styles.actionBtnsRow}>
+              {/* Light mode: Review is tonal blue, Resolve the solid blue action, Reject tonal red. */}
               {status === 'Open' && (
                 <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: 'rgba(251,191,36,0.12)', borderColor: 'rgba(251,191,36,0.3)' }]}
+                  style={[styles.actionBtn, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor"), borderColor: themeColor("rgba(251,191,36,0.3)", "borderColor") }, action.tonal.box]}
                   onPress={() => onUpdateStatus(complaint.id, 'Under Review')}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
                 >
-                  <Eye size={14} color={COLORS.amberLight} />
-                  <Text style={[styles.actionBtnText, { color: COLORS.amberLight }]}>{t('admin.complaints.action.review')}</Text>
+                  <Eye size={14} color={action.tonal.icon ?? COLORS.amberLight} />
+                  <Text style={[styles.actionBtnText, { color: COLORS.amberLight }, action.tonal.text]}>{t('admin.complaints.action.review')}</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: 'rgba(45,212,191,0.12)', borderColor: 'rgba(45,212,191,0.3)' }]}
+                style={[styles.actionBtn, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor"), borderColor: themeColor("rgba(45,212,191,0.3)", "borderColor") }, action.solid.box]}
                 onPress={() => onUpdateStatus(complaint.id, 'Resolved')}
                 activeOpacity={0.8}
+                accessibilityRole="button"
               >
-                <CheckCircle size={14} color={COLORS.tealLight} />
-                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }]}>{t('admin.complaints.action.resolve')}</Text>
+                <CheckCircle size={14} color={action.solid.icon ?? COLORS.tealLight} />
+                <Text style={[styles.actionBtnText, { color: COLORS.tealLight }, action.solid.text]}>{t('admin.complaints.action.resolve')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }]}
+                style={[styles.actionBtn, { backgroundColor: themeColor("rgba(239,68,68,0.1)", "backgroundColor"), borderColor: themeColor("rgba(239,68,68,0.25)", "borderColor") }, action.dangerTonal.box]}
                 onPress={() => onUpdateStatus(complaint.id, 'Rejected')}
                 activeOpacity={0.8}
+                accessibilityRole="button"
               >
                 <XCircle size={14} color={COLORS.red} />
                 <Text style={[styles.actionBtnText, { color: COLORS.red }]}>{t('admin.complaints.action.reject')}</Text>
@@ -320,6 +335,9 @@ function ComplaintCard({ complaint, onUpdateStatus, onSaveNote, onClearNote, t }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function ComplaintsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const [filter, setFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
@@ -377,8 +395,8 @@ export default function ComplaintsScreen() {
         <View style={[GLASS.card, styles.errorCard]}>
           <AlertTriangle size={24} color={COLORS.red} />
           <Text style={styles.errorText}>{complaintsError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadComplaints} activeOpacity={0.8}>
-            <RefreshCw size={14} color="#FFFFFF" />
+          <TouchableOpacity style={[styles.retryBtn, action.solid.box]} onPress={loadComplaints} activeOpacity={0.8} accessibilityRole="button">
+            <RefreshCw size={14} color={"#FFFFFF"} />
             <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
@@ -386,15 +404,15 @@ export default function ComplaintsScreen() {
 
       {/* Stats Strip */}
       <View style={styles.statsStrip}>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(239,68,68,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.red }]}>{openCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.red }]}>{t('common.status.open')}</Text>
         </View>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.amberLight }]}>{reviewCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.amberLight }]}>{t('admin.complaints.inReviewShort')}</Text>
         </View>
-        <View style={[styles.statPill, { backgroundColor: 'rgba(45,212,191,0.12)' }]}>
+        <View style={[styles.statPill, { backgroundColor: themeColor("rgba(45,212,191,0.12)", "backgroundColor") }]}>
           <Text style={[styles.statNum, { color: COLORS.tealLight }]}>{resolvedCnt}</Text>
           <Text style={[styles.statLabel, { color: COLORS.tealLight }]}>{t('common.status.resolved')}</Text>
         </View>
@@ -405,11 +423,14 @@ export default function ComplaintsScreen() {
         {FILTERS.map(f => (
           <TouchableOpacity
             key={f}
-            style={[styles.filterChip, filter === f && styles.filterChipActive]}
+            style={[styles.filterChip, filter === f && styles.filterChipActive, filter === f && action.selected.box]}
             onPress={() => setFilter(f)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === f }}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{t(STATUS_LABEL_KEY[f])}</Text>
+            <Text style={[styles.filterText, filter === f && styles.filterTextActive, filter === f && action.selected.text]}>{t(STATUS_LABEL_KEY[f])}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -439,7 +460,7 @@ export default function ComplaintsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 12 },
 
@@ -536,7 +557,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   stepNum: { fontSize: 12, fontWeight: '700' },
-  stepLabel: { fontSize: 9, fontWeight: '600', textAlign: 'center' },
+  // width 92 lets the label spill evenly past its narrow step column instead of being cut to "Under Re…".
+  stepLabel: { fontSize: 10, fontWeight: '600', textAlign: 'center', width: 92, maxWidth: 92, flexShrink: 0 },
   stepLine: { height: 2, flex: 0.8, marginBottom: 18, borderRadius: 1 },
 
   // Note Input

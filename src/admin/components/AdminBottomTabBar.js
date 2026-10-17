@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
 import { COLORS } from '../../theme/colors';
 import { colors } from '../../trade/theme';
 import { useAdmin } from '../context/AdminContext';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const TAB_KEYS = [
   { key: 'dashboard', labelKey: 'admin.nav.dashboard', icon: LayoutDashboard },
@@ -21,8 +22,16 @@ const TAB_KEYS = [
 ];
 
 export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 20 }) {
-  const { t } = useTranslation();
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, colors, themeColor, action } = useLegacyTheme();
+
+  const { t, i18n } = useTranslation();
   const { complaints } = useAdmin();
+  // Sinhala and Tamil labels are much wider than English ones. On web each tab is
+  // never narrower than its longest word (min-content) and the rest share the spare
+  // room, so a word never breaks mid-word; native shrinks the label font instead.
+  const language = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0];
+  const compact = language === 'si' || language === 'ta';
 
   // Count open complaints from live Supabase data
   const openComplaintsCount = (complaints || []).filter(c => c.status === 'Open').length;
@@ -33,7 +42,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
   }));
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(bottomInset, 12) }]}>
+    <View style={[styles.bar, compact && styles.barCompact, { paddingBottom: Math.max(bottomInset, 12) }]}>
       {TABS.map((tab) => {
         const active = tab.key === activeKey;
         const color = active ? COLORS.amberLight : colors.textFaint;
@@ -43,12 +52,16 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
             key={tab.key}
             style={styles.tab}
             onPress={() => onSelect(tab.key)}
+            accessibilityRole="tab"
+            accessibilityLabel={t(tab.labelKey)}
+            accessibilityState={{ selected: active }}
           >
             <View style={styles.iconWrapper}>
               <View
                 style={[
                   styles.iconWrap,
-                  active && { backgroundColor: 'rgba(245,158,11,0.2)', borderColor: 'rgba(245,158,11,0.3)' },
+                  active && { backgroundColor: themeColor("rgba(245,158,11,0.2)", "backgroundColor"), borderColor: themeColor("rgba(245,158,11,0.3)", "borderColor") },
+                  active && action.selected.box,
                 ]}
               >
                 <Icon size={18} color={color} strokeWidth={2} />
@@ -57,11 +70,17 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
               {/* Red notification badge — only shows when open complaints exist */}
               {tab.badge != null && tab.badge > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{tab.badge > 99 ? '99+' : tab.badge}</Text>
+                  {/* Inline white: the light-theme adapter would darken a style-based colour on the red dot. */}
+                  <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>{tab.badge > 99 ? '99+' : tab.badge}</Text>
                 </View>
               )}
             </View>
-            <Text style={[styles.label, { color, fontWeight: active ? '700' : '500' }]}>
+            <Text
+              style={[styles.label, compact && styles.labelCompact, { color, fontWeight: active ? '700' : '500' }]}
+              numberOfLines={compact ? 2 : 1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
               {t(tab.labelKey)}
             </Text>
           </Pressable>
@@ -71,7 +90,7 @@ export default function AdminBottomTabBar({ activeKey, onSelect, bottomInset = 2
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -82,7 +101,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.borderSoft,
     backgroundColor: 'rgba(8, 10, 28, 0.85)',
   },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  barCompact: { alignItems: 'flex-start', paddingHorizontal: 4 },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingHorizontal: 3, ...Platform.select({ web: { minWidth: 'min-content' }, default: {} }) },
   iconWrapper: { position: 'relative' },
   iconWrap: {
     width: 44,
@@ -98,13 +118,14 @@ const styles = StyleSheet.create({
     top: -4,
     right: -4,
     backgroundColor: COLORS.red,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  badgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800' },
-  label: { fontSize: 10 },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+  label: { fontSize: 10, textAlign: 'center' },
+  labelCompact: { lineHeight: 13 },
 });

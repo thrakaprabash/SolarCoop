@@ -4,6 +4,7 @@ import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
 /** tone: 'teal' (approve) | 'danger' (reject) */
 export default function ConfirmModal({
@@ -17,8 +18,13 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const teal = tone === 'teal';
+  // Light mode confirms with the shared solid blue; dark keeps teal.
+  const confirmBackground = teal ? action.solid.box?.backgroundColor ?? colors.teal : colors.danger;
   const resolvedConfirmLabel = confirmLabel || t('common.confirm');
   const resolvedCancelLabel = cancelLabel || t('common.cancel');
 
@@ -37,6 +43,8 @@ export default function ConfirmModal({
           <View style={styles.actions}>
             <Pressable
               onPress={busy ? undefined : onCancel}
+              accessibilityRole="button"
+              accessibilityLabel={resolvedCancelLabel}
               style={({ pressed }) => [styles.button, styles.cancel, busy && styles.busy, pressed && { opacity: 0.85 }]}
             >
               <Text style={styles.cancelLabel}>{resolvedCancelLabel}</Text>
@@ -44,14 +52,17 @@ export default function ConfirmModal({
 
             <Pressable
               onPress={busy ? undefined : onConfirm}
+              accessibilityRole="button"
+              accessibilityLabel={resolvedConfirmLabel}
+              accessibilityState={{ busy }}
               style={({ pressed }) => [
                 styles.button,
-                { backgroundColor: teal ? colors.teal : colors.danger },
+                { backgroundColor: confirmBackground },
                 busy && styles.busy,
                 pressed && { opacity: 0.85 },
               ]}
             >
-              {busy ? <ActivityIndicator size="small" color={colors.text} /> : teal ? <Check size={15} color={colors.text} strokeWidth={2.4} /> : null}
+              {busy ? <ActivityIndicator size="small" color="#FFFFFF" /> : teal ? <Check size={15} color="#FFFFFF" strokeWidth={2.4} /> : null}
               <Text style={styles.confirmLabel}>{busy ? t('common.working') : resolvedConfirmLabel}</Text>
             </Pressable>
           </View>
@@ -61,7 +72,7 @@ export default function ConfirmModal({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   scrim: {
     flex: 1,
     backgroundColor: 'rgba(5,8,22,0.7)',

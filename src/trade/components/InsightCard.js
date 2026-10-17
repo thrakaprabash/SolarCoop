@@ -5,21 +5,27 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { Card, IconBadge, PrimaryButton } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const ICONS = { zap: Zap, sun: Sun, down: TrendingDown, up: TrendingUp };
 
 export default function InsightCard({ insight, onCta }) {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const Icon = ICONS[insight.icon] || Zap;
+  // insight colours are dark-theme tokens; map them for the active theme.
+  const accent = themeColor(insight.color, 'color');
 
   return (
     <Card style={styles.card}>
       <View style={styles.head}>
         <IconBadge size={42} background={insight.tint}>
-          <Icon size={20} color={insight.color} strokeWidth={2} />
+          <Icon size={20} color={accent} strokeWidth={2} />
         </IconBadge>
         <View>
-          <Text style={[styles.title, { color: insight.color }]}>{t(insight.titleKey)}</Text>
+          <Text style={[styles.title, { color: accent }]}>{t(insight.titleKey)}</Text>
           <Text style={styles.tag}>{t(insight.tagKey)}</Text>
         </View>
       </View>
@@ -43,7 +49,7 @@ export default function InsightCard({ insight, onCta }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { gap: 10 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { fontSize: 15, fontWeight: weight.heavy },

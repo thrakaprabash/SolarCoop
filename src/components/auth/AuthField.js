@@ -22,6 +22,7 @@ import {
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 export const AuthField = ({
   label,
@@ -39,6 +40,8 @@ export const AuthField = ({
   returnKeyType = 'next',
   onSubmitEditing,
 }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const theme = useTheme();
   const { colors, radius, spacing } = theme;
@@ -140,7 +143,7 @@ export const AuthField = ({
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   field: { gap: 6 },
   label: {
     fontSize: 12,

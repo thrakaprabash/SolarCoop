@@ -24,10 +24,13 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
+import { useThemedStyles } from '../theme/useLegacyTheme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ForgotPasswordScreen = ({ onBackToLogin }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const { resetPasswordForEmail, loading } = useAuth();
   const theme = useTheme();
@@ -110,7 +113,7 @@ export const ForgotPasswordScreen = ({ onBackToLogin }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',

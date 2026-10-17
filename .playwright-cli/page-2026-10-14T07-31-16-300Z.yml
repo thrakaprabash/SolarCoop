@@ -1,0 +1,64 @@
+- generic [ref=f2e7]:
+  - generic [ref=f2e8]:
+    - generic [ref=f2e9]:
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: SolarCoop
+        - generic [ref=f2e26]: Community Energy Sharing
+      - generic [ref=f2e27]: Surplus
+    - generic [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32] [cursor=pointer]: Household
+        - generic [ref=f2e34] [cursor=pointer]: Co-op
+      - generic "Appearance" [ref=f2e37]:
+        - button "Dark" [ref=f2e38] [cursor=pointer]
+  - generic [ref=f2e41]:
+    - generic [ref=f2e499]:
+      - generic [ref=f2e500]:
+        - generic [ref=f2e501]: VP
+        - generic [ref=f2e503]: Welcome, Vihanga
+        - generic [ref=f2e504]: member@example.test
+        - generic [ref=f2e505]:
+          - generic [ref=f2e506]: Solar Owner
+          - generic [ref=f2e510]: "Status: Active"
+      - generic [ref=f2e513]:
+        - generic [ref=f2e514]:
+          - generic [ref=f2e515]: Profile Details
+          - button "Edit profile" [ref=f2e516] [cursor=pointer]:
+            - generic [ref=f2e517]: Edit
+        - generic [ref=f2e522]:
+          - generic [ref=f2e523]: Registered Role
+          - generic [ref=f2e527]: Solar Owner
+        - generic [ref=f2e528]:
+          - generic [ref=f2e529]: Full Name
+          - generic [ref=f2e534]: Vihanga Perera
+        - generic [ref=f2e535]:
+          - generic [ref=f2e536]: Mobile Number
+          - generic [ref=f2e540]: "+940703595192"
+        - generic [ref=f2e541]:
+          - generic [ref=f2e542]: Household ID
+          - generic [ref=f2e547]: HH-432ab6
+        - generic [ref=f2e548]:
+          - generic [ref=f2e549]: Solar Capacity
+          - generic [ref=f2e557]: 6.9 kW
+        - generic [ref=f2e558]:
+          - generic [ref=f2e559]: Account Status
+          - generic [ref=f2e563]: Active
+      - generic [ref=f2e564]:
+        - generic [ref=f2e565]: Language
+        - generic [ref=f2e571]:
+          - button "English" [ref=f2e572] [cursor=pointer]
+          - button "සිංහල" [ref=f2e574] [cursor=pointer]
+          - button "தமிழ்" [ref=f2e576] [cursor=pointer]
+      - generic [ref=f2e578]:
+        - generic [ref=f2e579]: Appearance
+        - radiogroup "Appearance" [ref=f2e580]:
+          - radio "Light" [ref=f2e581] [cursor=pointer]
+          - radio "Dark" [ref=f2e589] [cursor=pointer]
+          - radio "Device" [ref=f2e593] [cursor=pointer]
+      - button "Logout" [ref=f2e597] [cursor=pointer]
+    - generic [ref=f2e343]:
+      - generic [ref=f2e344] [cursor=pointer]: Dashboard
+      - generic [ref=f2e352] [cursor=pointer]: P2P Trade
+      - generic [ref=f2e358] [cursor=pointer]: Energy
+      - generic [ref=f2e363] [cursor=pointer]: Alerts
+      - generic [active] [ref=f2e369] [cursor=pointer]: Profile

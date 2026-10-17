@@ -8,17 +8,25 @@ export async function fetchMyTransactions(userId) {
   if (!userId) return [];
   const rows = [];
   const pageSize = 500;
-  for (let offset = 0; ; offset += pageSize) {
+  let cursor;
+  for (;;) {
+    const participant = `sender_id.eq.${userId},receiver_id.eq.${userId}`;
+    // Keep both conditions in one PostgREST logic tree. Newer inserts cannot
+    // shift this cursor as they would an OFFSET-based second page.
+    const before = cursor && `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`;
     const { data, error } = await supabase
       .from('transactions')
       .select(TRANSACTION_COLUMNS)
-      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .or(cursor ? `and(or(${participant}),or(${before}))` : participant)
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
-      .range(offset, offset + pageSize - 1);
+      .range(0, pageSize - 1);
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < pageSize) break;
+    const next = data[data.length - 1];
+    if (cursor && String(next.id) === String(cursor.id)) throw new Error('Transaction pagination did not advance.');
+    cursor = next;
   }
   const names = await loadProfiles(rows);
   return rows.map((row) => mapTransaction(row, userId, names));
@@ -28,13 +36,14 @@ async function loadProfiles(rows) {
   const ids = [...new Set(rows.flatMap((row) => [row.sender_id, row.receiver_id]).filter(Boolean))];
   if (ids.length === 0) return new Map();
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, name')
-    .in('id', ids);
-
-  if (error) throw error;
-  return new Map((data || []).map((profile) => [profile.id, profile.name]));
+  const names = new Map();
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await supabase.from('profiles')
+      .select('id, name').in('id', ids.slice(i, i + 100));
+    if (error) throw error;
+    (data || []).forEach((profile) => names.set(profile.id, profile.name));
+  }
+  return names;
 }
 
 function mapTransaction(row, userId, names) {

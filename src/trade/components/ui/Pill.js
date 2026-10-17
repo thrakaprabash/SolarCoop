@@ -2,17 +2,25 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, weight } from '../../theme';
+import { useThemedStyles, useLegacyTheme } from '../../../theme/useLegacyTheme';
 
-export default function Pill({ label, color = colors.tealLight, background = colors.tealTintSoft, dotColor, style }) {
+export default function Pill({ label, color, background, dotColor, style }) {
+  const styles = useThemedStyles(baseStyles);
+  const { colors, themeColor } = useLegacyTheme();
+
+  // Colours passed in as props bypass the style adapter, so run them through the
+  // light-theme mapping here; defaults come from the active theme.
+  const textColor = themeColor(color, 'color') || colors.tealLight;
+  const fill = themeColor(background, 'backgroundColor') || colors.tealTintSoft;
   return (
-    <View style={[styles.pill, { backgroundColor: background }, style]}>
-      {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
-      <Text style={[styles.label, { color }]}>{label}</Text>
+    <View style={[styles.pill, { backgroundColor: fill }, style]}>
+      {dotColor ? <View style={[styles.dot, { backgroundColor: themeColor(dotColor, 'backgroundColor') }]} /> : null}
+      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

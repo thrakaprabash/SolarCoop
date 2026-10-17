@@ -1,5 +1,8 @@
 # Technician fault alerts
 
+Testing reference: [case catalogue](testing/TECHNICIAN_TEST_CASES.md) and
+[run commands](testing/TECHNICIAN_TEST_COMMANDS.md).
+
 Run SolarCoop and its local simulator together:
 
 ```sh

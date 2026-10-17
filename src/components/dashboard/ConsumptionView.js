@@ -4,20 +4,25 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { Zap, Wind, Repeat, Droplet, Box, Tv, AlertTriangle, Sparkles, Clock } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { power, energy } from '../../utils/numberFormat';
 
 // SOL-98: Consumption View Component
 export const ConsumptionView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor, COLORS, switchTrack } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, appliances, toggleAppliance } = useEnergy();
 
   const getIcon = (iconName) => {
     switch (iconName) {
-      case 'wind': return <Wind size={20} color="#06B6D4" />;
+      case 'wind': return <Wind size={20} color={themeColor("#06B6D4", "color")} />;
       case 'zap': return <Zap size={20} color={COLORS.amber} />;
       case 'repeat': return <Repeat size={20} color={COLORS.teal} />;
-      case 'droplet': return <Droplet size={20} color="#3B82F6" />;
-      case 'box': return <Box size={20} color="#8B5CF6" />;
-      case 'tv': return <Tv size={20} color="#EC4899" />;
+      case 'droplet': return <Droplet size={20} color={themeColor("#3B82F6", "color")} />;
+      case 'box': return <Box size={20} color={themeColor("#8B5CF6", "color")} />;
+      case 'tv': return <Tv size={20} color={themeColor("#EC4899", "color")} />;
       default: return <Zap size={20} color={COLORS.amber} />;
     }
   };
@@ -38,7 +43,7 @@ export const ConsumptionView = () => {
           <View>
             <Text style={styles.loadLabel}>{t('member.consumption.activeLoad')}</Text>
             <Text style={styles.loadValue}>
-              {metrics.instantConsumption} <Text style={styles.unit}>kW</Text>
+              {power(metrics.instantConsumption)} <Text style={styles.unit}>kW</Text>
             </Text>
           </View>
         </View>
@@ -46,7 +51,7 @@ export const ConsumptionView = () => {
         <View style={styles.loadFooter}>
           <View style={styles.statCol}>
             <Text style={styles.statLabel}>{t('member.consumption.dailyConsumption')}</Text>
-            <Text style={styles.statVal}>{metrics.dailyConsumption} kWh</Text>
+            <Text style={styles.statVal}>{energy(metrics.dailyConsumption)} kWh</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statCol}>
@@ -92,8 +97,11 @@ export const ConsumptionView = () => {
               <Switch
                 value={app.active}
                 onValueChange={() => toggleAppliance(app.id)}
-                trackColor={{ false: 'rgba(255,255,255,0.12)', true: COLORS.amber }}
+                accessibilityLabel={app.name}
+                // Light mode: blue when on, a visible grey-blue track when off.
+                trackColor={switchTrack ?? { false: 'rgba(255,255,255,0.12)', true: COLORS.amber }}
                 thumbColor="#FFFFFF"
+                activeThumbColor={switchTrack ? '#FFFFFF' : undefined}
               />
             </View>
           ))}
@@ -103,7 +111,7 @@ export const ConsumptionView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

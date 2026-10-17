@@ -13,6 +13,9 @@
     "loading": "Loading…",
     "welcomeMessage": "Welcome to SolarCoop",
     "retry": "Retry",
+    "close": "Close",
+    "back": "Back",
+    "refresh": "Refresh",
     "status": {
       "all": "All",
       "active": "Active",
@@ -525,6 +528,8 @@
       "core": "Core",
       "position": "Position #{{number}}",
       "reset": "Reset",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
       "applyLayout": "Apply Layout"
     },
     "production": {
@@ -1189,5 +1194,11 @@
       "featureHeading": "Module Features",
       "createRequest": "Create Energy Request"
     }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Device"
   }
 }

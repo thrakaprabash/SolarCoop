@@ -15,6 +15,7 @@ import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
+import { ThemeSwitcher } from '../../components/common/ThemeSwitcher';
 import {
   UserCog,
   ShieldCheck,
@@ -30,6 +31,7 @@ import {
   Mail,
   Shield,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const SWITCHER_COLORS = {
   card: GLASS.card.backgroundColor,
@@ -48,6 +50,9 @@ const getInitials = (name = '') => {
 };
 
 export default function AdminSettingsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { onExit, communityStats } = useAdmin();
   const { user, profile, updateProfile } = useAuth();
@@ -202,12 +207,25 @@ export default function AdminSettingsScreen() {
         <View style={styles.detailsHeader}>
           <Text style={styles.detailsTitle}>{t('admin.settings.profileInformation')}</Text>
           {!isEditing ? (
-            <TouchableOpacity style={styles.editBtn} onPress={handleStartEdit} activeOpacity={0.7}>
-              <Edit3 size={13} color={COLORS.amberLight} />
-              <Text style={styles.editBtnText}>{t('admin.settings.editProfile')}</Text>
+            <TouchableOpacity
+              style={[styles.editBtn, action.tonal.box]}
+              onPress={handleStartEdit}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            >
+              <Edit3 size={13} color={action.tonal.icon ?? COLORS.amberLight} />
+              <Text style={[styles.editBtnText, action.tonal.text]}>{t('admin.settings.editProfile')}</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.cancelBtnTop} onPress={handleCancelEdit} disabled={saving} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={[styles.cancelBtnTop, action.neutral.box]}
+              onPress={handleCancelEdit}
+              disabled={saving}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            >
               <X size={13} color={COLORS.textMuted} />
               <Text style={styles.cancelBtnTopText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
@@ -309,25 +327,28 @@ export default function AdminSettingsScreen() {
             {/* Edit Actions */}
             <View style={styles.formActionsRow}>
               <TouchableOpacity
-                style={styles.cancelFormBtn}
+                style={[styles.cancelFormBtn, action.neutral.box]}
                 onPress={handleCancelEdit}
                 disabled={saving}
                 activeOpacity={0.7}
+                accessibilityRole="button"
               >
                 <Text style={styles.cancelFormBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.saveFormBtn, saving && styles.disabledBtn]}
+                style={[styles.saveFormBtn, action.solid.box, saving && styles.disabledBtn]}
                 onPress={handleSaveProfile}
                 disabled={saving}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityState={{ busy: saving }}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={"#FFFFFF"} />
                 ) : (
                   <>
-                    <Check size={16} color="#FFFFFF" />
+                    <Check size={16} color={"#FFFFFF"} />
                     <Text style={styles.saveFormBtnText}>{t('admin.settings.saveChanges')}</Text>
                   </>
                 )}
@@ -337,7 +358,8 @@ export default function AdminSettingsScreen() {
         )}
       </View>
 
-      <LanguageSwitcher colors={SWITCHER_COLORS} />
+      <LanguageSwitcher />
+      <ThemeSwitcher />
 
       {/* System Information Card */}
       <View style={[GLASS.card, styles.menuCard]}>
@@ -362,7 +384,7 @@ export default function AdminSettingsScreen() {
       </View>
 
       {/* Logout */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+      <TouchableOpacity style={[styles.logoutBtn, action.dangerTonal.box]} onPress={handleLogout} activeOpacity={0.8} accessibilityRole="button">
         <LogOut size={18} color={COLORS.red} />
         <Text style={styles.logoutBtnText}>{t('admin.settings.logout')}</Text>
       </TouchableOpacity>
@@ -372,7 +394,7 @@ export default function AdminSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 14 },
 

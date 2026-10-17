@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
+import { useThemedStyles } from '../../theme/useLegacyTheme';
 
 const VARIANTS = {
   primary: 'primary',
@@ -38,6 +39,8 @@ export const PrimaryButton = ({
   style,
   labelStyle,
 }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const theme = useTheme();
   const { colors, radius } = theme;
 
@@ -105,9 +108,9 @@ export const PrimaryButton = ({
             borderRadius: radius.xl,
             shadowColor: palette.glowColor,
             shadowOffset: { width: 0, height: 5 },
-            shadowRadius: 14,
-            shadowOpacity: isDisabled ? 0 : 0.35,
-            elevation: isDisabled ? 0 : 5,
+            shadowRadius: theme.isDark ? 14 : 10,
+            shadowOpacity: isDisabled ? 0 : theme.isDark ? 0.35 : 0.18,
+            elevation: isDisabled ? 0 : theme.isDark ? 5 : 3,
           },
           { transform: [{ scale }] },
           isDisabled && styles.buttonDisabled,
@@ -133,7 +136,7 @@ export const PrimaryButton = ({
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   button: {
     minHeight: 52,
     paddingHorizontal: 20,

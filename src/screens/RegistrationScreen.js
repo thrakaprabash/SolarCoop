@@ -49,6 +49,8 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
+import { useThemedStyles } from '../theme/useLegacyTheme';
+import { LIGHT_ACTION } from '../theme/lightTones';
 
 const ROLES = [
   { id: 'consumer', labelKey: 'auth.register.role.consumer', Icon: Home },
@@ -60,10 +62,15 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SEGMENT_GAP = 6;
 
 export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => {
+  const styles = useThemedStyles(baseStyles);
+
   const { t } = useTranslation();
   const { signUp } = useAuth();
   const theme = useTheme();
   const { colors } = theme;
+  // Light mode: the chosen role uses the shared "selected" look (sun tint), like
+  // the appearance picker on this same screen. Dark mode keeps the solid pill.
+  const selectedLook = theme.isDark ? null : LIGHT_ACTION.selected;
 
   const { width: windowWidth } = useWindowDimensions();
 
@@ -428,7 +435,8 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                   styles.segmentPill,
                   {
                     width: segItemWidth,
-                    backgroundColor: colors.primary,
+                    backgroundColor: selectedLook ? selectedLook.box.backgroundColor : colors.primary,
+                    ...(selectedLook ? { borderWidth: 1, borderColor: selectedLook.box.borderColor } : null),
                     transform: [
                       {
                         translateX: segPillAnim.interpolate({
@@ -457,14 +465,14 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                   >
                     <Icon
                       size={16}
-                      color={isActive ? '#FFFFFF' : colors.textSecondary}
+                      color={isActive ? (selectedLook ? selectedLook.icon : '#FFFFFF') : colors.textSecondary}
                       strokeWidth={isActive ? 2.4 : 1.8}
                     />
                     <Text
                       style={[
                         styles.segmentLabel,
                         {
-                          color: isActive ? '#FFFFFF' : colors.textSecondary,
+                          color: isActive ? (selectedLook ? selectedLook.text.color : '#FFFFFF') : colors.textSecondary,
                           fontWeight: isActive ? '800' : '600',
                         },
                       ]}
@@ -528,7 +536,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   stepHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -591,7 +599,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   segmentLabel: {
-    fontSize: 10.5,
+    fontSize: 11,
     letterSpacing: 0.2,
   },
   capacityWrap: {

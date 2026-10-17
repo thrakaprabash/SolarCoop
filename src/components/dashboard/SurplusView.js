@@ -4,9 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useEnergy } from '../../context/EnergyContext';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { BatteryCharging, ArrowUpRight, Share2 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
+import { fixed, energy, percent } from '../../utils/numberFormat';
 
 // SOL-99: Surplus View Component
 export const SurplusView = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { GLASS, COLORS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { metrics, hasMetrics, setMainBottomTab } = useEnergy();
 
@@ -28,7 +33,7 @@ export const SurplusView = () => {
           <View>
             <Text style={styles.label}>{t('member.surplus.currentRate')}</Text>
             <Text style={styles.val}>
-              {metrics.surplusAvailable} <Text style={styles.unit}>kWh</Text>
+              {energy(metrics.surplusAvailable)} <Text style={styles.unit}>kWh</Text>
             </Text>
           </View>
         </View>
@@ -36,7 +41,7 @@ export const SurplusView = () => {
         <View style={styles.batteryProgressContainer}>
           <View style={styles.batteryHeader}>
             <Text style={styles.batteryLabel}>{t('member.surplus.batteryState')}</Text>
-            <Text style={styles.batteryVal}>{metrics.batteryLevel}% ({((metrics.batteryLevel / 100) * metrics.batteryCapacity).toFixed(2)} / {metrics.batteryCapacity} kWh)</Text>
+            <Text style={styles.batteryVal}>{percent(metrics.batteryLevel)}% ({energy((metrics.batteryLevel / 100) * metrics.batteryCapacity)} / {fixed(metrics.batteryCapacity, 1)} kWh)</Text>
           </View>
 
           {/* Custom battery bar */}
@@ -48,12 +53,12 @@ export const SurplusView = () => {
         <View style={styles.statsFooter}>
           <View style={styles.statCol}>
             <Text style={styles.statLabel}>{t('member.surplus.coopSharedToday')}</Text>
-            <Text style={styles.statValText}>{metrics.coopPoolSharedToday} kWh</Text>
+            <Text style={styles.statValText}>{energy(metrics.coopPoolSharedToday)} kWh</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statCol}>
             <Text style={styles.statLabel}>{t('member.surplus.tokensEarned')}</Text>
-            <Text style={[styles.statValText, { color: COLORS.amber }]}>+{metrics.coopTokensEarned} pts</Text>
+            <Text style={[styles.statValText, { color: COLORS.amber }]}>+{fixed(metrics.coopTokensEarned, 0)} pts</Text>
           </View>
         </View>
       </View>
@@ -66,11 +71,12 @@ export const SurplusView = () => {
         </View>
 
         <TouchableOpacity
-          style={styles.shareSubmitBtn}
+          style={[styles.shareSubmitBtn, action.solid.box]}
           onPress={() => setMainBottomTab('trade')}
           activeOpacity={0.7}
+          accessibilityRole="button"
         >
-          <ArrowUpRight size={18} color="#FFFFFF" />
+          <ArrowUpRight size={18} color={"#FFFFFF"} />
           <Text style={styles.shareSubmitText}>{t('member.nav.trade')}</Text>
         </TouchableOpacity>
       </View>
@@ -79,7 +85,7 @@ export const SurplusView = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, gap: 16 },
   storyBadgeHeader: { gap: 2 },

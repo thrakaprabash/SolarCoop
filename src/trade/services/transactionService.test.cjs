@@ -146,7 +146,8 @@ test('history reads every page and scopes both directions to the current member'
   const rows = await loadService(supabase).fetchMyTransactions('owner-1');
   assert.equal(rows.length, 501);
   assert.deepEqual(calls[0].range, [0, 499]);
-  assert.deepEqual(calls[1].range, [500, 999]);
+  assert.deepEqual(calls[1].range, [0, 499]);
+  assert.deepEqual(calls[1].filters, [['or', 'and(or(sender_id.eq.owner-1,receiver_id.eq.owner-1),or(created_at.lt.2026-09-30T10:00:00Z,and(created_at.eq.2026-09-30T10:00:00Z,id.lt.txn-499)))']]);
   assert.deepEqual(calls[0].filters, [['or', 'sender_id.eq.owner-1,receiver_id.eq.owner-1']]);
   assert.deepEqual(calls[0].orders, [['created_at', { ascending: false }], ['id', { ascending: false }]]);
   assert.equal(rows[0].dir, 'sent');

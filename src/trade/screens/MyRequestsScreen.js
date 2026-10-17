@@ -9,8 +9,12 @@ import { useTrade } from '../context/TradeContext';
 import { useNavigation } from '../context/NavigationContext';
 import { RequestRow } from '../components';
 import { Card, Chip, EmptyState, Notice, PrimaryButton, ScreenTitle } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function MyRequestsScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     requests,
@@ -97,7 +101,7 @@ export default function MyRequestsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
   filters: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },

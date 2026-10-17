@@ -13,6 +13,9 @@
     "loading": "ஏற்றுகிறது…",
     "welcomeMessage": "SolarCoop-க்கு வரவேற்கிறோம்",
     "retry": "மீண்டும் முயற்சி",
+    "close": "மூடு",
+    "back": "பின்செல்",
+    "refresh": "புதுப்பி",
     "status": {
       "all": "அனைத்தும்",
       "active": "செயலில்",
@@ -525,6 +528,8 @@
       "core": "அடிப்படை",
       "position": "நிலை #{{number}}",
       "reset": "மீட்டமை",
+      "moveUp": "மேலே நகர்த்து",
+      "moveDown": "கீழே நகர்த்து",
       "applyLayout": "தளவமைப்பைப் பயன்படுத்து"
     },
     "production": {
@@ -1172,5 +1177,11 @@
       "featureHeading": "தொகுதி அம்சங்கள்",
       "createRequest": "ஆற்றல் கோரிக்கையை உருவாக்கு"
     }
+  },
+  "appearance": {
+    "title": "தோற்றம்",
+    "light": "ஒளி",
+    "dark": "இருள்",
+    "system": "சாதனம்"
   }
 }

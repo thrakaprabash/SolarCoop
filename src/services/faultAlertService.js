@@ -20,6 +20,13 @@ const CONSUMER_JOB_COLUMNS =
 // "maintenance complete" rather than the card silently vanishing (SOL-201).
 const SHOW_COMPLETED_FOR_MS = 24 * 60 * 60 * 1000;
 
+let subscriptionSequence = 0;
+
+function nextHouseholdJobsChannelName(userId) {
+  subscriptionSequence += 1;
+  return `household-jobs-${userId}-${Date.now().toString(36)}-${subscriptionSequence}`;
+}
+
 function buildFaultAlert(row) {
   return {
     id:        row.id,
@@ -75,8 +82,11 @@ export async function fetchMyFaultAlerts(userId) {
 export function subscribeToMyFaultAlerts(userId, onChange) {
   if (!userId) return () => {};
 
+  // RealtimeClient.channel() reuses an existing channel with the same topic.
+  // The dashboard and Alerts screen can both listen for this household, so a
+  // stable topic would make the second caller add handlers after subscribe().
   const channel = supabase
-    .channel(`household-jobs-${userId}`)
+    .channel(nextHouseholdJobsChannelName(userId))
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'jobs', filter: `household_user_id=eq.${userId}` },

@@ -5,11 +5,15 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
-import { kwh } from '../utils/format';
+import { tradeKwh as kwh, stamp } from '../utils/format';
 import { IconBadge, Pill } from './ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function IncomingRequestRow({ request, onPress, last }) {
-  const { t } = useTranslation();
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
+  const { t, i18n } = useTranslation();
   const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
 
   return (
@@ -24,7 +28,7 @@ export default function IncomingRequestRow({ request, onPress, last }) {
       <View style={styles.body}>
         <Text style={styles.name}>{request.name || t('trade.communityMember')}</Text>
         <Text style={styles.detail}>{t('trade.request.requested', { amount: kwh(request.kwh) })}</Text>
-        <Text style={styles.when}>{request.when || t('trade.dateUnavailable')}</Text>
+        <Text style={styles.when}>{request.ts ? stamp(new Date(request.ts), i18n.resolvedLanguage || i18n.language) : t('trade.dateUnavailable')}</Text>
       </View>
 
       <View style={styles.trailing}>
@@ -41,7 +45,7 @@ export default function IncomingRequestRow({ request, onPress, last }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divided: { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: colors.hairline },
   initials: { fontSize: 13, fontWeight: weight.heavy, color: colors.tealLight },

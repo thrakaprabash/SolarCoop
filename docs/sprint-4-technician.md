@@ -43,6 +43,10 @@ Expo Go can use the picker too. Camera capture needs a physical device.
 
 ## Verification
 
+See [Technician test cases](testing/TECHNICIAN_TEST_CASES.md) for individual
+scenarios and expected results, and [Technician test commands](testing/TECHNICIAN_TEST_COMMANDS.md)
+for separate suite commands, combined runs and the manual phone checklist.
+
 Run `npm test` for file validation, service failure handling and local PostgreSQL
 checks. Run `npx expo export --platform all` to verify Android, iOS and web bundles.
 

@@ -1,0 +1,4 @@
+# Generated local verification output; regenerate with the audit scripts.
+*.tap
+visual-fixtures.html
+web-export-*.log

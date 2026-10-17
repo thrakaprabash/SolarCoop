@@ -1,10 +1,12 @@
 // Neutral surfaces keep fault priorities easy to distinguish.
+// Light mode uses the same blue as the member and admin portals for every action
+// ("orange*" keys keep their names; in light they hold the blue accent family).
 export const TECH_LIGHT = {
-  heroStart: '#FFF0DF', heroEnd: '#FFFAF4',
-  action: '#B94D0B', onAccent: '#FFFFFF',
+  heroStart: '#E4F3F9', heroEnd: '#F7FBFD',
+  action: '#0676A1', onAccent: '#FFFFFF',
   bg: '#F4F6F8', card: '#FFFFFF', cardRaised: '#EDF1F5', border: '#E0E5EB', borderStrong: '#C6CFD9',
-  orange: '#B54B0A', orangeDark: '#963C08', orangeSoft: '#FFF0E5', orangeBorder: '#EDBF9E',
-  red: '#C13232', redSoft: '#FFF0F0', redBorder: '#EDB5B5', amber: '#956000', amberSoft: '#FFF5DC',
+  orange: '#0A6A8F', orangeDark: '#075471', orangeSoft: '#E4F3F9', orangeBorder: '#9CCBDB',
+  red: '#C13232', redSoft: '#FFF0F0', redBorder: '#EDB5B5', amber: '#8A5800', amberSoft: '#FFF5DC',
   green: '#187547', greenSoft: '#E8F5ED', greenBorder: '#A4D6BA', blue: '#2563A6',
   text: '#172331', textSecondary: '#526174', textMuted: '#58697C',
 };

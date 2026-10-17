@@ -13,6 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { ArrowLeft, Send, AlertCircle } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const COMPLAINT_TYPES = [
   'Transaction Error',
@@ -29,6 +30,9 @@ const TYPE_LABEL_KEY = {
 };
 
 export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = null }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, GLASS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const isEditing = !!existingComplaint;
   
@@ -93,7 +97,14 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={onBack}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+        >
           <ArrowLeft size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{isEditing ? t('member.alertsHub.editComplaint') : t('member.alertsHub.submitButton')}</Text>
@@ -126,11 +137,13 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
               return (
                 <TouchableOpacity
                   key={ct}
-                  style={[styles.chip, active && styles.chipActive]}
+                  style={[styles.chip, active && styles.chipActive, active && action.selected.box]}
                   onPress={() => setType(ct)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, active && styles.chipTextActive, active && action.selected.text]}>
                     {t(TYPE_LABEL_KEY[ct])}
                   </Text>
                 </TouchableOpacity>
@@ -178,15 +191,24 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={[styles.submitBtn, (!isValid || isSubmitting) && styles.submitBtnDisabled]}
+          style={[
+            styles.submitBtn,
+            (!isValid || isSubmitting) && styles.submitBtnDisabled,
+            // Light mode: solid blue (grey only while the form is incomplete, so the
+            // spinner stays visible while sending).
+            !isValid ? action.disabled.box : action.solid.box,
+            action.solid.box && isValid && { shadowColor: action.solid.box.backgroundColor },
+          ]}
           onPress={handleSubmit}
           disabled={!isValid || isSubmitting}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !isValid || isSubmitting, busy: isSubmitting }}
         >
           {isSubmitting ? (
-            <ActivityIndicator size="small" color="#000000" />
+            <ActivityIndicator size="small" color={themeColor("#000000", "color")} />
           ) : (
-            <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled]}>
+            <Text style={[styles.submitBtnText, !isValid && styles.submitBtnTextDisabled, !isValid && action.disabled.text]}>
               {isEditing ? t('admin.settings.saveChanges') : t('member.alertsHub.submitComplaintButton')}
             </Text>
           )}
@@ -198,7 +220,7 @@ export const SubmitComplaintScreen = ({ onBack, onSubmit, existingComplaint = nu
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   
   header: {
@@ -242,7 +264,7 @@ const styles = StyleSheet.create({
   section: { gap: 10 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { fontSize: 11, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 0.5 },
-  charCount: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted },
+  charCount: { fontSize: 11, fontWeight: '600', color: COLORS.textMuted },
   helperText: { fontSize: 11, color: COLORS.textMuted, marginTop: 4 },
 
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

@@ -22,6 +22,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Languages } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '../../i18n';
+import { useTheme } from '../../theme/useTheme';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const LANGUAGES = [
   { code: 'en', nativeLabel: 'English' },
@@ -38,9 +40,15 @@ const DEFAULT_COLORS = {
 };
 
 export const LanguageSwitcher = ({ colors }) => {
+  const styles = useThemedStyles(baseStyles);
+  const { action } = useLegacyTheme();
+
   const { t, i18n } = useTranslation();
-  const theme = colors || DEFAULT_COLORS;
-  const activeCode = i18n.language;
+  const appTheme = useTheme();
+  const theme = colors || appTheme.colors;
+  // Light mode: the chosen language uses the shared "selected" look (sun tint).
+  const activeColor = action.selected.icon ?? (theme.primaryDark || theme.primary);
+  const activeCode = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0];
 
   return (
     <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -63,6 +71,7 @@ export const LanguageSwitcher = ({ colors }) => {
                   backgroundColor: active ? `${theme.primary}26` : 'transparent',
                   borderColor: active ? theme.primary : theme.border,
                 },
+                active && action.selected.box,
               ]}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
@@ -70,7 +79,7 @@ export const LanguageSwitcher = ({ colors }) => {
               <Text
                 style={[
                   styles.pillText,
-                  { color: active ? theme.primary : theme.textSecondary },
+                  { color: active ? activeColor : theme.textSecondary },
                 ]}
               >
                 {lang.nativeLabel}
@@ -83,7 +92,7 @@ export const LanguageSwitcher = ({ colors }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: {
     borderRadius: 18,
     borderWidth: 1,
@@ -94,10 +103,13 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, fontWeight: '700' },
   pillRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   pill: {
+    minHeight: 44,
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingVertical: 8,
     borderRadius: 14,
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pillText: { fontSize: 13, fontWeight: '700' },
 });

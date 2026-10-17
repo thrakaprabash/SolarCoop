@@ -5,11 +5,17 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, radius, weight } from '../theme';
 import { STATUS_STYLE, STATUS_LABEL_KEY } from '../data/requests';
-import { kwh, money } from '../utils/format';
+import { tradeKwh as kwh, money, longDate } from '../utils/format';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function RequestRow({ request, last, onPress }) {
-  const { t } = useTranslation();
-  const tone = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  const styles = useThemedStyles(baseStyles);
+  const { colors, themeColor } = useLegacyTheme();
+
+  const { t, i18n } = useTranslation();
+  const base = STATUS_STYLE[request.status] || STATUS_STYLE.Pending;
+  // STATUS_STYLE holds dark-theme tokens, so map them for the active theme.
+  const tone = { color: themeColor(base.color, 'color'), pillBg: themeColor(base.pillBg, 'backgroundColor') };
   const displayName = request.name || t('trade.household.fallback');
 
   return (
@@ -27,7 +33,7 @@ export default function RequestRow({ request, last, onPress }) {
         </View>
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.detail}>{t('trade.request.requestedColon', { amount: kwh(request.kwh) })}</Text>
-        <Text style={styles.date}>{request.date || t('trade.dateUnavailable')}</Text>
+        <Text style={styles.date}>{request.ts ? longDate(new Date(request.ts), i18n.resolvedLanguage || i18n.language) : t('trade.dateUnavailable')}</Text>
       </View>
 
       {request.rate != null ? (
@@ -40,7 +46,7 @@ export default function RequestRow({ request, last, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   divided: { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: colors.hairline },
   left: { gap: 3 },

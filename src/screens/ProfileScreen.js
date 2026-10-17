@@ -51,7 +51,9 @@ import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { AuthField } from '../components/auth/AuthField';
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
 import { showAlert, showConfirm } from '../utils/alert';
+import { useThemedStyles, useLegacyTheme } from '../theme/useLegacyTheme';
 
 // Canonical role/status values stay in English — only the label shown is
 // translated. Reused verbatim in App.js's role-router shell.
@@ -98,6 +100,23 @@ const STATUS_COLORS = {
   inactive: '#94A3B8',
 };
 
+// Light-mode status and role colours: the same green / amber / red as the rest
+// of the light palette, each at least 4.5:1 on the white-ish badge behind it.
+const LIGHT_STATUS_COLORS = {
+  active: '#0F6B3C',
+  pending_approval: '#855700',
+  pending: '#855700',
+  blocked: '#C0262F',
+  inactive: '#526F80',
+};
+
+const LIGHT_ROLE_COLORS = {
+  admin: '#C0262F',
+  owner: '#066FA2',
+  consumer: '#A14E09',
+  technician: '#0F6B3C',
+};
+
 /** "Amara Perera" → "AP" */
 const getInitials = (name = '') => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -108,6 +127,9 @@ const getInitials = (name = '') => {
 };
 
 export const ProfileScreen = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { themeColor } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { user, profile, signOut, loading, refreshProfile, updateProfile } =
     useAuth();
@@ -146,9 +168,15 @@ export const ProfileScreen = () => {
 
   const status = profile?.status || 'pending_approval';
   const statusLabel = t(STATUS_LABEL_KEY[status] ?? status);
-  const statusColor = STATUS_COLORS[status] || '#94A3B8';
+  const statusColor = theme.isDark
+    ? (STATUS_COLORS[status] || '#94A3B8')
+    : (LIGHT_STATUS_COLORS[status] || '#526F80');
 
   const roleTheme = ROLE_THEMES[role] || ROLE_THEMES.consumer;
+  const roleColor = theme.isDark ? roleTheme.color : (LIGHT_ROLE_COLORS[role] || colors.primary);
+  // Light mode: the Edit/Cancel label sits on the pale-blue tonal fill, where the
+  // main blue is only 4.4:1, so it takes the deeper blue.
+  const editColor = theme.isDark ? colors.primary : colors.primaryDark;
 
   // Solar capacity is an owner-only attribute (SOL-95).
   const isOwner = role === 'owner';
@@ -252,7 +280,7 @@ export const ProfileScreen = () => {
   const DetailRow = ({ icon: Icon, label, value }) => (
     <View style={[styles.row, { borderBottomColor: colors.border }]}>
       <View style={styles.rowLabel}>
-        <Icon size={15} color={roleTheme.color} strokeWidth={2.2} />
+        <Icon size={15} color={roleColor} strokeWidth={2.2} />
         <Text style={[styles.rowLabelText, { color: colors.textSecondary }]}>
           {label}
         </Text>
@@ -275,10 +303,18 @@ export const ProfileScreen = () => {
       >
         {/* Hero member card — tinted by role */}
         <LinearGradient
-          colors={roleTheme.gradient}
+          colors={theme.isDark ? roleTheme.gradient : ['#CDEEFF', '#E2F3DA', '#FFF1A8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.hero}
+          style={[
+            styles.hero,
+            !theme.isDark && {
+              shadowColor: colors.primaryDark,
+              shadowOpacity: 0.12,
+              shadowRadius: 14,
+              elevation: 3,
+            },
+          ]}
         >
           <View style={styles.avatarCircle}>
             <Text style={[styles.avatarInitials, { color: colors.avatarText }]}>
@@ -286,14 +322,14 @@ export const ProfileScreen = () => {
             </Text>
           </View>
 
-          <Text style={styles.heroGreeting}>{t('profile.welcome', { name: firstName })}</Text>
-          <Text style={styles.heroEmail}>{user?.email}</Text>
+          <Text style={[styles.heroGreeting, !theme.isDark && { color: colors.text }]}>{t('profile.welcome', { name: firstName })}</Text>
+          <Text style={[styles.heroEmail, !theme.isDark && { color: colors.textSecondary }]}>{user?.email}</Text>
 
           <View style={styles.badgeRow}>
             {/* Role badge */}
             <View style={styles.roleBadge}>
-              <Shield size={12} color="#FFFFFF" strokeWidth={2.4} />
-              <Text style={styles.badgeText}>{roleLabel}</Text>
+              <Shield size={12} color={theme.isDark ? '#FFFFFF' : colors.text} strokeWidth={2.4} />
+              <Text style={[styles.badgeText, !theme.isDark && { color: colors.text }]}>{roleLabel}</Text>
             </View>
 
             {/* Status badge */}
@@ -301,7 +337,8 @@ export const ProfileScreen = () => {
               style={[
                 styles.statusBadge,
                 {
-                  backgroundColor: `${statusColor}33`,
+                  // Light mode: a near-white pill keeps the status text readable on the pale hero.
+                  backgroundColor: theme.isDark ? `${statusColor}33` : 'rgba(255, 255, 255, 0.78)',
                   borderColor: `${statusColor}66`,
                 },
               ]}
@@ -337,13 +374,18 @@ export const ProfileScreen = () => {
               accessibilityRole="button"
               accessibilityLabel={editing ? t('profile.cancelEditingA11y') : t('profile.editProfileA11y')}
             >
-              <View style={styles.editToggle}>
+              <View
+                style={[
+                  styles.editToggle,
+                  { backgroundColor: colors.primarySoft, borderColor: `${colors.primary}55` },
+                ]}
+              >
                 {editing ? (
-                  <X size={15} color={colors.primary} strokeWidth={2.4} />
+                  <X size={15} color={editColor} strokeWidth={2.4} />
                 ) : (
-                  <Pencil size={14} color={colors.primary} strokeWidth={2.4} />
+                  <Pencil size={14} color={editColor} strokeWidth={2.4} />
                 )}
-                <Text style={[styles.editToggleText, { color: colors.primary }]}>
+                <Text style={[styles.editToggleText, { color: editColor }]}>
                   {editing ? t('common.cancel') : t('profile.edit')}
                 </Text>
               </View>
@@ -441,6 +483,7 @@ export const ProfileScreen = () => {
         </View>
 
         <LanguageSwitcher colors={colors} />
+        <ThemeSwitcher />
 
         {/* Save button — visible only while editing */}
         {editing ? (
@@ -467,7 +510,7 @@ export const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   root: {
     flex: 1,
   },
@@ -585,6 +628,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
+    borderWidth: 1,
     backgroundColor: 'rgba(237, 137, 54, 0.1)',
   },
   editToggleText: {

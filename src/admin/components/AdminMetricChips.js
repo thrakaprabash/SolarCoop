@@ -9,6 +9,7 @@ import {
   Zap,
   BatteryCharging,
 } from 'lucide-react-native';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 const CHIPS = [
   { id: 'all',         labelKey: 'admin.dashboard.metricChip.all', Icon: LayoutGrid },
@@ -18,6 +19,9 @@ const CHIPS = [
 ];
 
 export default function AdminMetricChips() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const { adminMetricChip, setAdminMetricChip } = useAdmin();
 
@@ -34,12 +38,15 @@ export default function AdminMetricChips() {
           return (
             <TouchableOpacity
               key={chip.id}
-              style={[styles.chip, isActive && styles.chipActive]}
+              style={[styles.chip, isActive && styles.chipActive, isActive && action.selected.box]}
               onPress={() => setAdminMetricChip(chip.id)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              hitSlop={{ top: 6, bottom: 6 }}
             >
               <IconComponent size={13} color={isActive ? COLORS.amberLight : COLORS.textMuted} />
-              <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>
+              <Text style={[styles.chipLabel, isActive && styles.chipLabelActive, isActive && action.selected.text]}>
                 {t(chip.labelKey)}
               </Text>
             </TouchableOpacity>
@@ -50,7 +57,7 @@ export default function AdminMetricChips() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     paddingVertical: 6,
     borderBottomWidth: 1,

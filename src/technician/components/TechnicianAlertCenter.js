@@ -3,14 +3,14 @@ import { AppState, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, Vie
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
-import { BellRing, Volume2, VolumeX, X, ChevronRight, Sun, Moon, Smartphone } from 'lucide-react-native';
+import { BellRing, Volume2, VolumeX, X, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTechnician } from '../context/TechnicianContext';
 import { createFaultInbox } from '../utils/faultInbox';
 import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 
 export default function TechnicianAlertCenter({ settingsOpen, onCloseSettings }) {
-  const { TECH, urgencyColor, preference: appearance, setMode, ready: themeReady } = useTechnicianTheme();
+  const { TECH, urgencyColor } = useTechnicianTheme();
   const styles = useTechStyles(createStyles);
   const {t}=useTranslation();
   const {jobs,hasLoaded,technicianId,openJob}=useTechnician();
@@ -71,15 +71,6 @@ export default function TechnicianAlertCenter({ settingsOpen, onCloseSettings })
               <View style={styles.sheetHeader}><Text style={styles.sheetTitle}>{t('technician.design.settings')}</Text>
                 <Pressable onPress={onCloseSettings} accessibilityRole="button" accessibilityLabel={t('technician.design.closeSettings')} style={styles.close}><X size={22} color={TECH.text}/></Pressable>
               </View>
-              <Text style={styles.heading}>{t('technician.design.appearance')}</Text>
-              <View style={styles.appearance}>
-                {[['system',Smartphone],['light',Sun],['dark',Moon]].map(([key,Icon])=><Pressable key={key} onPress={()=>setMode(key)} disabled={!themeReady}
-                  accessibilityRole="radio" aria-checked={appearance===key} accessibilityState={{checked:appearance===key, disabled:!themeReady}}
-                  accessibilityLabel={t(`technician.design.${key}`)} style={[styles.choice,appearance===key&&styles.enabled]}>
-                  <Icon size={22} color={appearance===key?TECH.orange:TECH.textSecondary}/><Text style={styles.buttonText}>{t(`technician.design.${key}`)}</Text>
-                </Pressable>)}
-              </View>
-              <View style={styles.divider}/>
       <View style={styles.controls}>
         <View style={styles.label}>
           <Text style={styles.heading}>{t('technician.alerts.title')}</Text>
@@ -123,9 +114,6 @@ const createStyles = TECH => StyleSheet.create({
   sheetHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   sheetTitle:{fontSize:22,fontWeight:'700',color:TECH.text},
   close:{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'},
-  appearance:{flexDirection:'row',gap:8},
-  choice:{flex:1,minHeight:80,borderWidth:1,borderColor:TECH.borderStrong,borderRadius:12,alignItems:'center',justifyContent:'center',gap:9},
-  divider:{height:1,backgroundColor:TECH.border},
   container:{paddingHorizontal:20,paddingTop:12,paddingBottom:2,gap:8},
   controls:{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:7},
   label:{flexGrow:1,flexBasis:130,gap:3},heading:{fontSize:12,fontWeight:'700',color:TECH.text},

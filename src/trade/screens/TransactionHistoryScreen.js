@@ -8,13 +8,17 @@ import { HISTORY_FILTERS, HISTORY_FILTER_LABEL_KEY } from '../data/transactions'
 import { useAuth } from '../../context/AuthContext';
 import { fetchMyTransactions } from '../services/transactionService';
 import { useNavigation } from '../context/NavigationContext';
-import { kwh } from '../utils/format';
+import { tradeKwh as kwh } from '../utils/format';
 import { analyticsText } from '../utils/analyticsText';
 import { byNewest, emptyCopy, groupByMonth, matchesFilter, monthTotals } from '../utils/transactions';
 import { TransactionCard } from '../components';
 import { Card, Chip, Divider, IconBadge, Notice, PrimaryButton, ScreenTitle, SectionLabel } from '../components/ui';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function TransactionHistoryScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { colors } = useLegacyTheme();
+
   const { t, i18n } = useTranslation();
   const copy = (key) => analyticsText(i18n.language, key);
   const { user } = useAuth();
@@ -64,7 +68,7 @@ export default function TransactionHistoryScreen() {
     () => transactions.filter((t) => matchesFilter(t, filter)).sort(byNewest),
     [transactions, filter]
   );
-  const groups = useMemo(() => groupByMonth(visible), [visible]);
+  const groups = useMemo(() => groupByMonth(visible, i18n.resolvedLanguage || i18n.language), [visible, i18n.resolvedLanguage, i18n.language]);
   const totals = useMemo(() => monthTotals(transactions), [transactions]);
   const empty = emptyCopy(filter);
 
@@ -156,7 +160,7 @@ export default function TransactionHistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20, gap: 16 },
 

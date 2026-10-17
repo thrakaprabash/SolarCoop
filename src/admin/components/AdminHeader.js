@@ -3,9 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
-import { ShieldCheck, LogOut } from 'lucide-react-native';
+import { LogOut } from 'lucide-react-native';
+import { SolarCoopLogo } from '../../components/common/SolarCoopLogo';
+import { useThemedStyles, useLegacyTheme } from '../../theme/useLegacyTheme';
 
 export default function AdminHeader() {
+  const styles = useThemedStyles(baseStyles);
+  const { COLORS, themeColor, action } = useLegacyTheme();
+
   const { t } = useTranslation();
   const {
     adminHeaderToggle,
@@ -62,9 +67,7 @@ export default function AdminHeader() {
       {/* Top Row */}
       <View style={styles.topRow}>
         <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
-            <ShieldCheck size={18} color={COLORS.amberLight} />
-          </View>
+          <SolarCoopLogo size={36} decorative />
           <View>
             <View style={styles.titleRow}>
               <Text style={styles.appName}>{t('common.appName')}</Text>
@@ -78,9 +81,12 @@ export default function AdminHeader() {
 
         {/* System Status Pill — links to the alerts inbox */}
         <TouchableOpacity
-          style={[styles.statusPill, { backgroundColor: pill.bg, borderColor: pill.border }]}
+          style={[styles.statusPill, { backgroundColor: themeColor(pill.bg, 'backgroundColor'), borderColor: pill.border }]}
           onPress={() => setAdminBottomTab('alerts')}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={pill.text}
+          hitSlop={{ top: 8, bottom: 8 }}
         >
           <View style={[styles.statusDot, { backgroundColor: pill.color }]} />
           <Text style={[styles.statusText, { color: pill.color }]}>{pill.text}</Text>
@@ -92,25 +98,37 @@ export default function AdminHeader() {
         {/* Overview / System Health Toggle */}
         <View style={styles.toggleContainer}>
           <TouchableOpacity
-            style={[styles.toggleTab, adminHeaderToggle === 'overview' && styles.toggleTabActive]}
+            style={[styles.toggleTab, adminHeaderToggle === 'overview' && styles.toggleTabActive, adminHeaderToggle === 'overview' && action.selected.box]}
             onPress={() => handleToggle('overview')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: adminHeaderToggle === 'overview' }}
+            hitSlop={{ top: 8, bottom: 8 }}
           >
-            <Text style={[styles.toggleText, adminHeaderToggle === 'overview' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, adminHeaderToggle === 'overview' && styles.toggleTextActive, adminHeaderToggle === 'overview' && action.selected.text]}>
               {t('admin.header.overview')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleTab, adminHeaderToggle === 'health' && styles.toggleTabActive]}
+            style={[styles.toggleTab, adminHeaderToggle === 'health' && styles.toggleTabActive, adminHeaderToggle === 'health' && action.selected.box]}
             onPress={() => handleToggle('health')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: adminHeaderToggle === 'health' }}
+            hitSlop={{ top: 8, bottom: 8 }}
           >
-            <Text style={[styles.toggleText, adminHeaderToggle === 'health' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, adminHeaderToggle === 'health' && styles.toggleTextActive, adminHeaderToggle === 'health' && action.selected.text]}>
               {t('admin.dashboard.systemHealth')}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutHeaderBtn} onPress={handleLogout} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[styles.logoutHeaderBtn, action.dangerTonal.box]}
+          onPress={handleLogout}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+        >
           <LogOut size={13} color={COLORS.red} />
           <Text style={styles.logoutHeaderText}>{t('admin.settings.logout')}</Text>
         </TouchableOpacity>
@@ -119,7 +137,7 @@ export default function AdminHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -135,16 +153,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  logoBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
   },
   adminBadgeText: {
     color: COLORS.amberLight,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -199,10 +207,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.tealLight,
   },
+  // Wraps when a longer translation (Tamil, Sinhala) leaves no room for Logout beside the toggle.
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    rowGap: 8,
   },
   toggleContainer: {
     flexDirection: 'row',
