@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
+import { grouped } from '../../utils/numberFormat';
 import {
   Search,
   TrendingUp,
@@ -55,7 +56,10 @@ function MemberCard({ member, onPress, t }) {
 
   // STATUS_COLORS / STATUS_BG hold dark-theme tokens, so map them for the active theme.
   const accentColor = themeColor(STATUS_COLORS[member.status], 'color');
-  const hasSurplus = member.todaySurplus > 0;
+  // Produced minus consumed, same as the member detail page, so a deficit shows its real size
+  // (the database keeps only the positive part as surplus_kwh).
+  const net = (Number(member.todayProduction) || 0) - (Number(member.todayConsumption) || 0);
+  const hasSurplus = net > 0;
 
   return (
     <TouchableOpacity
@@ -89,11 +93,11 @@ function MemberCard({ member, onPress, t }) {
         <View style={styles.miniStatsRow}>
           <View style={styles.miniStat}>
             <Sun size={11} color={COLORS.amberLight} />
-            <Text style={styles.miniStatText}>{member.todayProduction} kWh</Text>
+            <Text style={styles.miniStatText}>{grouped(member.todayProduction)} kWh</Text>
           </View>
           <View style={styles.miniStat}>
             <Zap size={11} color={COLORS.teal} />
-            <Text style={styles.miniStatText}>{member.todayConsumption} kWh</Text>
+            <Text style={styles.miniStatText}>{grouped(member.todayConsumption)} kWh</Text>
           </View>
           <View style={styles.miniStat}>
             {hasSurplus ? (
@@ -102,7 +106,7 @@ function MemberCard({ member, onPress, t }) {
               <TrendingDown size={11} color={COLORS.red} />
             )}
             <Text style={[styles.miniStatText, { color: hasSurplus ? COLORS.tealLight : COLORS.red }]}>
-              {hasSurplus ? '+' : ''}{member.todaySurplus.toFixed(1)} kWh
+              {hasSurplus ? '+' : ''}{grouped(net)} kWh
             </Text>
           </View>
         </View>
@@ -384,14 +388,15 @@ const baseStyles = StyleSheet.create({
     marginLeft: 6,
   },
   avatarText: { fontSize: 14, fontWeight: '800', color: COLORS.amberLight },
-  cardBody: { flex: 1, gap: 5 },
+  cardBody: { flex: 1, minWidth: 0, gap: 5 },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   memberName: { fontSize: 14, fontWeight: '700', color: COLORS.textBright, flex: 1, marginRight: 8 },
   statusBadge: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
   statusText: { fontSize: 10, fontWeight: '700' },
   householdText: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '500' },
 
-  miniStatsRow: { flexDirection: 'row', gap: 12, marginTop: 2 },
+  // Wraps instead of running past the card when the three figures don't fit on a narrow phone.
+  miniStatsRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 2, marginTop: 2 },
   miniStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   miniStatText: { fontSize: 11, fontWeight: '600', color: COLORS.textSecondary },
 

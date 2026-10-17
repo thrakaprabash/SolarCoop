@@ -16,3 +16,13 @@ export const power = (value) => fixed(value, 2);
 export const energy = (value) => fixed(value, 2);
 /** Whole-number percentage without the % sign. */
 export const percent = (value) => fixed(value, 0);
+
+/** "1,147.9", "8,035.5", "-13.5": fixed decimals plus thousands separators, "—" when there is no usable number. */
+export function grouped(value, digits = 1) {
+  const text = fixed(value, digits);
+  if (!/^-?\d+(?:\.\d+)?$/.test(text)) return text;
+  const negative = text.startsWith('-');
+  const [whole, fraction] = (negative ? text.slice(1) : text).split('.');
+  const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${negative ? '-' : ''}${withCommas}${fraction === undefined ? '' : `.${fraction}`}`;
+}

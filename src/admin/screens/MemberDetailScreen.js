@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS, GLASS, SHADOWS } from '../../theme/colors';
 import { useAdmin } from '../context/AdminContext';
 import { timeAgo } from '../data/mockAdminData';
+import { grouped } from '../../utils/numberFormat';
 import { fetchTransactionsForMember } from '../services/adminTransactionService';
 import {
   ArrowLeft,
@@ -85,7 +86,20 @@ export default function MemberDetailScreen() {
   const member       = selectedMember;
   // STATUS_COLORS holds dark-theme tokens, so map it for the active theme.
   const accentColor  = themeColor(STATUS_COLORS[memberStatus], 'color');
-  const hasSurplus   = member.todaySurplus > 0;
+
+  // Readings arrive at full precision, so show them rounded with thousands separators. The net is
+  // produced minus consumed so the three figures always agree: the database keeps only the
+  // positive part (surplus_kwh), which made every deficit read as 0.
+  const produced     = Number(member.todayProduction) || 0;
+  const consumed     = Number(member.todayConsumption) || 0;
+  const netEnergy    = produced - consumed;
+  const hasSurplus   = netEnergy > 0;
+  const producedText = grouped(produced);
+  const consumedText = grouped(consumed);
+  const netText      = `${hasSurplus ? '+' : ''}${grouped(netEnergy)}`;
+  // The three totals share one row, so a long figure steps the font down for all of them together.
+  const longestValue = Math.max(producedText.length, consumedText.length, netText.length);
+  const energyValueSize = { fontSize: longestValue > 10 ? 16 : longestValue > 8 ? 19 : 22 };
 
   const handleBack = () => {
     setSelectedMember(null);
@@ -205,7 +219,9 @@ export default function MemberDetailScreen() {
             <View style={[styles.energyIcon, { backgroundColor: themeColor("rgba(251,191,36,0.12)", "backgroundColor") }]}>
               <Sun size={16} color={COLORS.amberLight} />
             </View>
-            <Text style={styles.energyValue}>{member.todayProduction}</Text>
+            <Text style={[styles.energyValue, energyValueSize]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {producedText}
+            </Text>
             <Text style={styles.energyUnit}>kWh</Text>
             <Text style={styles.energyLabel}>{t('admin.memberDetail.produced')}</Text>
           </View>
@@ -213,7 +229,9 @@ export default function MemberDetailScreen() {
             <View style={[styles.energyIcon, { backgroundColor: themeColor("rgba(20,184,166,0.12)", "backgroundColor") }]}>
               <Zap size={16} color={COLORS.teal} />
             </View>
-            <Text style={styles.energyValue}>{member.todayConsumption}</Text>
+            <Text style={[styles.energyValue, energyValueSize]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {consumedText}
+            </Text>
             <Text style={styles.energyUnit}>kWh</Text>
             <Text style={styles.energyLabel}>{t('admin.memberDetail.consumed')}</Text>
           </View>
@@ -221,8 +239,13 @@ export default function MemberDetailScreen() {
             <View style={[styles.energyIcon, { backgroundColor: hasSurplus ? 'rgba(45,212,191,0.12)' : 'rgba(239,68,68,0.1)' }]}>
               {hasSurplus ? <TrendingUp size={16} color={COLORS.tealLight} /> : <TrendingDown size={16} color={COLORS.red} />}
             </View>
-            <Text style={[styles.energyValue, { color: hasSurplus ? COLORS.tealLight : COLORS.red }]}>
-              {hasSurplus ? '+' : ''}{member.todaySurplus.toFixed(1)}
+            <Text
+              style={[styles.energyValue, energyValueSize, { color: hasSurplus ? COLORS.tealLight : COLORS.red }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {netText}
             </Text>
             <Text style={styles.energyUnit}>kWh</Text>
             <Text style={styles.energyLabel}>{hasSurplus ? t('admin.memberDetail.surplus') : t('admin.memberDetail.deficit')}</Text>
@@ -233,11 +256,15 @@ export default function MemberDetailScreen() {
         <View style={styles.weeklyRow}>
           <View style={styles.weeklyItem}>
             <Text style={styles.weeklyLabel}>{t('admin.memberDetail.weeklyProduction')}</Text>
-            <Text style={styles.weeklyValue}>{member.weeklyProduction} kWh</Text>
+            <Text style={styles.weeklyValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              {grouped(member.weeklyProduction)} <Text style={styles.weeklyUnit}>kWh</Text>
+            </Text>
           </View>
           <View style={styles.weeklyItem}>
             <Text style={styles.weeklyLabel}>{t('admin.memberDetail.weeklyConsumption')}</Text>
-            <Text style={styles.weeklyValue}>{member.weeklyConsumption} kWh</Text>
+            <Text style={styles.weeklyValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              {grouped(member.weeklyConsumption)} <Text style={styles.weeklyUnit}>kWh</Text>
+            </Text>
           </View>
         </View>
       </View>
@@ -390,12 +417,13 @@ const baseStyles = StyleSheet.create({
   sectionCard: { padding: 16, gap: 14 },
   sectionTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textBright },
   sectionSubtext: { fontSize: 11, color: COLORS.textMuted, fontWeight: '500', marginTop: -8 },
-  energyGrid: { flexDirection: 'row', justifyContent: 'space-around' },
-  energyCell: { alignItems: 'center', gap: 4 },
+  // Three equal columns: a cell can never grow past its share, so a long figure can't push the next one out.
+  energyGrid: { flexDirection: 'row', gap: 8 },
+  energyCell: { flex: 1, minWidth: 0, alignItems: 'center', gap: 4 },
   energyIcon: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  energyValue: { fontSize: 22, fontWeight: '800', color: COLORS.textBright },
+  energyValue: { fontSize: 22, fontWeight: '800', color: COLORS.textBright, maxWidth: '100%', textAlign: 'center' },
   energyUnit: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600', marginTop: -4 },
-  energyLabel: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '600' },
+  energyLabel: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '600', textAlign: 'center' },
   weeklyRow: { flexDirection: 'row', gap: 10 },
   weeklyItem: {
     flex: 1,
@@ -408,6 +436,7 @@ const baseStyles = StyleSheet.create({
   },
   weeklyLabel: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
   weeklyValue: { fontSize: 16, fontWeight: '800', color: COLORS.textPrimary },
+  weeklyUnit: { fontSize: 11, fontWeight: '600', color: COLORS.textMuted },
 
   // Action Buttons
   actionBtnsCol: { gap: 8 },
