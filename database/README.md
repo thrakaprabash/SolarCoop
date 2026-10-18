@@ -1,5 +1,7 @@
 # SolarCoop database workflow
 
+Role-specific signup fields: see [registration setup and SQL script](REGISTRATION_SETUP.md).
+
 The app continues using Supabase Auth, Realtime and its existing RPCs. The pinned Supabase CLI manages database repairs and future SQL migrations from this repository.
 
 ## Connect and repair the simulator

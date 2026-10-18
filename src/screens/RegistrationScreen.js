@@ -47,6 +47,8 @@ import { useAuth } from '../context/AuthContext';
 import { showAlert } from '../utils/alert';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthField } from '../components/auth/AuthField';
+import { RoleDetailsForm } from '../components/auth/RoleDetailsForm';
+import { EMPTY_DETAILS, validateRegistrationDetails, registrationDetailsPayload } from '../utils/registrationDetails';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { useTheme } from '../theme/useTheme';
 import { useThemedStyles } from '../theme/useLegacyTheme';
@@ -81,7 +83,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
   const [password, setPassword] = useState('');
   const [mobile, setMobile] = useState('');
   const [role, setRole] = useState('consumer');
-  const [solarCapacity, setSolarCapacity] = useState('');
+  const [details, setDetails] = useState({ ...EMPTY_DETAILS });
   const [errors, setErrors] = useState({});
 
   // ── Submission state ────────────────────────────────────────────────────
@@ -131,33 +133,6 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
     }).start();
   }, [activeSegIndex, segPillAnim]);
 
-  // ── Conditional capacity slide-down (SOLAR OWNER only) ──────────────────
-  const capacityAnim = useRef(new Animated.Value(0)).current;
-  const capacityHeightAnim = useRef(new Animated.Value(0)).current;
-  const capacityMeasured = useRef(0);
-
-  useEffect(() => {
-    const open = role === 'owner';
-    Animated.parallel([
-      Animated.timing(capacityAnim, {
-        toValue: open ? 1 : 0,
-        duration: 260,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(capacityHeightAnim, {
-        toValue: open ? capacityMeasured.current : 0,
-        duration: 260,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [role, capacityAnim, capacityHeightAnim]);
-
-  const handleCapacityLayout = (event) => {
-    capacityMeasured.current = event.nativeEvent.layout.height;
-  };
-
   // ── Validation ──────────────────────────────────────────────────────────
   const validateStep1 = () => {
     const next = {};
@@ -181,18 +156,9 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
     return next;
   };
 
-  const validateStep2 = () => {
-    const next = {};
-    if (role === 'owner') {
-      const capacity = parseFloat(solarCapacity);
-      if (!solarCapacity.trim()) {
-        next.solarCapacity = t('auth.register.errorCapacityRequired');
-      } else if (Number.isNaN(capacity) || capacity <= 0) {
-        next.solarCapacity = t('auth.register.errorCapacityInvalid');
-      }
-    }
-    return next;
-  };
+  const validateStep2 = () => Object.fromEntries(
+    Object.entries(validateRegistrationDetails(role, details)).map(([key, value]) => [key, t('auth.details.' + value)]),
+  );
 
   const failWith = (next) => {
     setErrors(next);
@@ -236,7 +202,8 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
         name: name.trim(),
         role,
         mobileNumber: mobile.trim(),
-        solarCapacity: role === 'owner' ? parseFloat(solarCapacity) : null,
+        solarCapacity: role === 'owner' ? Number(details.solarCapacity) : null,
+        registrationDetails: registrationDetailsPayload(role, details),
       });
 
       // Surface the exact Supabase error (e.g. "User already registered",
@@ -245,7 +212,9 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
       if (result.error) {
         showAlert(
           t('auth.register.failedTitle'),
-          result.error.message || t('auth.register.unknownError'),
+          result.error.code === 'REGISTRATION_SETUP_REQUIRED'
+            ? t('auth.details.migrationRequired')
+            : result.error.message || t('auth.register.unknownError'),
         );
         return;
       }
@@ -345,7 +314,8 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
           ]}
         >
           {/* STEP 1 — Basic credentials */}
-          <View style={[styles.stepColumn, { width: trackWidth }]}>
+          <View pointerEvents={step === 1 ? 'auto' : 'none'} accessibilityElementsHidden={step !== 1} importantForAccessibility={step === 1 ? 'auto' : 'no-hide-descendants'} style={[styles.stepColumn, { width: trackWidth }, step !== 1 && styles.inactiveStep]}>
+            {step === 1 && <>
             <AuthField
               label={t('auth.field.fullNameLabel')}
               icon={User}
@@ -413,10 +383,12 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
               onPress={handleContinue}
               disabled={loading}
             />
+            </>}
           </View>
 
           {/* STEP 2 — Role customization */}
-          <View style={[styles.stepColumn, { width: trackWidth }]}>
+          <View pointerEvents={step === 2 ? 'auto' : 'none'} accessibilityElementsHidden={step !== 2} importantForAccessibility={step === 2 ? 'auto' : 'no-hide-descendants'} style={[styles.stepColumn, { width: trackWidth }, step !== 2 && styles.inactiveStep]}>
+            {step === 2 && <>
             <Text style={[styles.roleLabel, { color: colors.textSecondary }]}>
               {t('auth.register.joiningAs')}
             </Text>
@@ -458,7 +430,8 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                   <TouchableOpacity
                     key={id}
                     style={styles.segmentItem}
-                    onPress={() => setRole(id)}
+                    disabled={loading}
+                    onPress={() => { setRole(id); setErrors({}); }}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
@@ -484,31 +457,13 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
               })}
             </View>
 
-            {/* Conditional solar capacity (SOLAR OWNER only) */}
-            <Animated.View
-              style={[
-                styles.capacityWrap,
-                {
-                  height: capacityHeightAnim,
-                  opacity: capacityAnim,
-                },
-              ]}
-            >
-              <View onLayout={handleCapacityLayout}>
-                <AuthField
-                  label={t('auth.register.capacityLabel')}
-                  icon={Sun}
-                  value={solarCapacity}
-                  onChangeText={(text) => {
-                    setSolarCapacity(text);
-                    clearError('solarCapacity');
-                  }}
-                  placeholder={t('auth.register.capacityPlaceholder')}
-                  keyboardType="decimal-pad"
-                  error={errors.solarCapacity}
-                />
-              </View>
-            </Animated.View>
+            <RoleDetailsForm
+              role={role}
+              values={details}
+              disabled={loading}
+              errors={Object.fromEntries(Object.entries(validateRegistrationDetails(role, details)).filter(([key]) => errors[key]))}
+              onChange={(key, value) => { setDetails(previous => ({ ...previous, [key]: value })); clearError(key); }}
+            />
 
             {/* Action row */}
             <View style={styles.actionRow}>
@@ -529,6 +484,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                 labelStyle={styles.completeLabel}
               />
             </View>
+            </>}
           </View>
         </Animated.View>
       </View>
@@ -567,6 +523,10 @@ const baseStyles = StyleSheet.create({
   },
   stepColumn: {
     gap: 16,
+  },
+  inactiveStep: {
+    height: 0,
+    overflow: 'hidden',
   },
   roleLabel: {
     fontSize: 12,

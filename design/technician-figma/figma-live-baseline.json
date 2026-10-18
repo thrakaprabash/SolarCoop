@@ -1,0 +1,727 @@
+{
+  "pageId": "0:1",
+  "baseline": [
+    {
+      "id": "9:574",
+      "name": "Dashboard",
+      "x": 1756,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "10:1013",
+      "name": "Charts",
+      "x": 2246,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "10:1417",
+      "name": "Production",
+      "x": 2736,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "14:808",
+      "name": "Summery",
+      "x": 3226,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "18:302",
+      "name": "Consumption",
+      "x": 3716,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "18:626",
+      "name": "Dificit",
+      "x": 4206,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "18:1055",
+      "name": "Surplus",
+      "x": 4696,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 5
+    },
+    {
+      "id": "34:4572",
+      "name": "Admin Dashboard",
+      "x": 1756,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4570",
+      "name": "Admin Member Monitoring",
+      "x": 2246,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "37:525",
+      "name": "History",
+      "x": 5231,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4568",
+      "name": "Admin View Member Profile",
+      "x": 2736,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4566",
+      "name": "Transaction Ledger",
+      "x": 3226,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4574",
+      "name": "Admin Sysytem Alerts",
+      "x": 3716,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4576",
+      "name": "Admin Complaint Review",
+      "x": 4206,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "34:4843",
+      "name": "Admin Profile",
+      "x": 4723,
+      "y": 1655,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "45:935",
+      "name": "available-community-energy",
+      "x": 1756,
+      "y": 3106,
+      "w": 405,
+      "h": 1791,
+      "childCount": 1
+    },
+    {
+      "id": "45:1286",
+      "name": "energy-request",
+      "x": 2952,
+      "y": 3106,
+      "w": 405,
+      "h": 917.1100463867188,
+      "childCount": 1
+    },
+    {
+      "id": "45:1408",
+      "name": "my-requests",
+      "x": 3550,
+      "y": 3106,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "45:1542",
+      "name": "incoming-requests",
+      "x": 4148,
+      "y": 3106,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "45:1687",
+      "name": "request-approval",
+      "x": 4746,
+      "y": 3106,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "45:1836",
+      "name": "insufficient-surplus",
+      "x": 4148,
+      "y": 4300,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "45:1981",
+      "name": "transaction-details-sent",
+      "x": 4768,
+      "y": 4300,
+      "w": 405,
+      "h": 953.0900268554688,
+      "childCount": 1
+    },
+    {
+      "id": "45:2138",
+      "name": "transaction-history",
+      "x": 2354,
+      "y": 3106,
+      "w": 405,
+      "h": 1297.0899658203125,
+      "childCount": 1
+    },
+    {
+      "id": "45:2380",
+      "name": "energy-smart-insights",
+      "x": 2952,
+      "y": 4267,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "45:2517",
+      "name": "energy-impact",
+      "x": 3550,
+      "y": 4300,
+      "w": 405,
+      "h": 917,
+      "childCount": 1
+    },
+    {
+      "id": "50:280",
+      "name": "Alerts",
+      "x": 5766,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "53:452",
+      "name": "Submit Complaint",
+      "x": 6301,
+      "y": 477,
+      "w": 440,
+      "h": 956,
+      "childCount": 1
+    },
+    {
+      "id": "57:158",
+      "name": "Login_Ui ",
+      "x": -3112,
+      "y": 527,
+      "w": 440,
+      "h": 956,
+      "childCount": 26
+    },
+    {
+      "id": "57:255",
+      "name": "Registration Step- 2",
+      "x": -1689,
+      "y": 527,
+      "w": 440,
+      "h": 956,
+      "childCount": 31
+    },
+    {
+      "id": "57:325",
+      "name": "Fogot password ",
+      "x": -889,
+      "y": 527,
+      "w": 440,
+      "h": 956,
+      "childCount": 18
+    },
+    {
+      "id": "57:359",
+      "name": "Registration Step 1",
+      "x": -2401,
+      "y": 527,
+      "w": 440,
+      "h": 956,
+      "childCount": 37
+    },
+    {
+      "id": "57:488",
+      "name": "solarcoop_profile 1",
+      "x": -966,
+      "y": 1770,
+      "w": 440,
+      "h": 956,
+      "childCount": 51
+    },
+    {
+      "id": "67:699",
+      "name": "dual_channel_split_alert 1",
+      "x": -318,
+      "y": 1826,
+      "w": 953,
+      "h": 956,
+      "childCount": 44
+    },
+    {
+      "id": "112:152",
+      "name": "dark-health-error 1",
+      "x": -2645,
+      "y": 4947,
+      "w": 390,
+      "h": 844,
+      "childCount": 29
+    },
+    {
+      "id": "112:209",
+      "name": "dark-health-partial 1",
+      "x": -3700,
+      "y": 4947,
+      "w": 390,
+      "h": 1300,
+      "childCount": 110
+    },
+    {
+      "id": "112:368",
+      "name": "dark-health-search 1",
+      "x": -3140,
+      "y": 4947,
+      "w": 390,
+      "h": 844,
+      "childCount": 69
+    },
+    {
+      "id": "112:594",
+      "name": "dark-logout 1",
+      "x": -1041,
+      "y": 3210,
+      "w": 390,
+      "h": 970,
+      "childCount": 67
+    },
+    {
+      "id": "112:691",
+      "name": "dark-new-fault 1",
+      "x": -2808,
+      "y": 1826,
+      "w": 390,
+      "h": 900,
+      "childCount": 63
+    },
+    {
+      "id": "112:793",
+      "name": "dark-profile 1",
+      "x": -1566,
+      "y": 3216,
+      "w": 390,
+      "h": 970,
+      "childCount": 59
+    },
+    {
+      "id": "112:880",
+      "name": "dark-profile-edit 1",
+      "x": -516,
+      "y": 3210,
+      "w": 390,
+      "h": 1130,
+      "childCount": 61
+    },
+    {
+      "id": "112:969",
+      "name": "dark-settings 1",
+      "x": -2066,
+      "y": 3225,
+      "w": 390,
+      "h": 900,
+      "childCount": 92
+    },
+    {
+      "id": "112:1172",
+      "name": "dark-ticket-active 1",
+      "x": -2580,
+      "y": 3225,
+      "w": 390,
+      "h": 940,
+      "childCount": 45
+    },
+    {
+      "id": "112:1257",
+      "name": "dark-ticket-completed 1",
+      "x": -3140,
+      "y": 3216,
+      "w": 390,
+      "h": 1350,
+      "childCount": 61
+    },
+    {
+      "id": "112:1372",
+      "name": "dark-ticket-pending 1",
+      "x": -3700,
+      "y": 3225,
+      "w": 390,
+      "h": 844,
+      "childCount": 43
+    },
+    {
+      "id": "112:1602",
+      "name": "dark-board-offline 1",
+      "x": -4231,
+      "y": 1826,
+      "w": 390,
+      "h": 900,
+      "childCount": 70
+    },
+    {
+      "id": "112:1710",
+      "name": "dark-board-pending 1",
+      "x": -3783,
+      "y": 1826,
+      "w": 390,
+      "h": 900,
+      "childCount": 69
+    },
+    {
+      "id": "112:1817",
+      "name": "dark-closure-empty 1",
+      "x": -2379,
+      "y": 1826,
+      "w": 390,
+      "h": 1100,
+      "childCount": 45
+    },
+    {
+      "id": "112:1899",
+      "name": "dark-closure-ready 1",
+      "x": -1961,
+      "y": 1826,
+      "w": 390,
+      "h": 1190,
+      "childCount": 49
+    },
+    {
+      "id": "112:1991",
+      "name": "dark-diagnostics 1",
+      "x": -1521,
+      "y": 1826,
+      "w": 390,
+      "h": 844,
+      "childCount": 42
+    },
+    {
+      "id": "112:2201",
+      "name": "dark-diagnostics-pending 1",
+      "x": -1912,
+      "y": 5036,
+      "w": 390,
+      "h": 844,
+      "childCount": 53
+    },
+    {
+      "id": "112:2282",
+      "name": "dark-health 1",
+      "x": -1350,
+      "y": 4947,
+      "w": 390,
+      "h": 1280,
+      "childCount": 109
+    },
+    {
+      "id": "112:2438",
+      "name": "dark-health-attention 1",
+      "x": -830,
+      "y": 4947,
+      "w": 390,
+      "h": 1280,
+      "childCount": 109
+    },
+    {
+      "id": "112:2597",
+      "name": "dark-board-completed 1",
+      "x": -3324,
+      "y": 1826,
+      "w": 390,
+      "h": 844,
+      "childCount": 56
+    }
+  ],
+  "exampleChildren": [
+    {
+      "id": "112:1603",
+      "type": "VECTOR",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 900
+    },
+    {
+      "id": "112:1604",
+      "type": "VECTOR",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 70
+    },
+    {
+      "id": "112:1605",
+      "type": "VECTOR",
+      "x": 0,
+      "y": 69,
+      "w": 390,
+      "h": 1
+    },
+    {
+      "id": "112:1606",
+      "type": "VECTOR",
+      "x": 20,
+      "y": 15,
+      "w": 38,
+      "h": 38
+    },
+    {
+      "id": "112:1607",
+      "type": "GROUP",
+      "x": 29.83333396911621,
+      "y": 24.83333396911621,
+      "w": 18.333335876464844,
+      "h": 18.333335876464844
+    },
+    {
+      "id": "112:1617",
+      "type": "TEXT",
+      "x": 68,
+      "y": 16,
+      "w": 88,
+      "h": 21
+    },
+    {
+      "id": "112:1618",
+      "type": "TEXT",
+      "x": 68,
+      "y": 39,
+      "w": 66,
+      "h": 13
+    },
+    {
+      "id": "112:1619",
+      "type": "VECTOR",
+      "x": 285,
+      "y": 31,
+      "w": 6,
+      "h": 6
+    },
+    {
+      "id": "112:1620",
+      "type": "TEXT",
+      "x": 296,
+      "y": 24,
+      "w": 35,
+      "h": 13
+    },
+    {
+      "id": "112:1621",
+      "type": "GROUP",
+      "x": 355.625,
+      "y": 27.625,
+      "w": 15.75,
+      "h": 15.75
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "style": "Black"
+    },
+    {
+      "family": "Inter",
+      "style": "Black Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Bold"
+    },
+    {
+      "family": "Inter",
+      "style": "Bold Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Extra Bold"
+    },
+    {
+      "family": "Inter",
+      "style": "Extra Bold Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Extra Light"
+    },
+    {
+      "family": "Inter",
+      "style": "Extra Light Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Light"
+    },
+    {
+      "family": "Inter",
+      "style": "Light Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Medium"
+    },
+    {
+      "family": "Inter",
+      "style": "Medium Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Regular"
+    },
+    {
+      "family": "Inter",
+      "style": "Semi Bold"
+    },
+    {
+      "family": "Inter",
+      "style": "Semi Bold Italic"
+    },
+    {
+      "family": "Inter",
+      "style": "Thin"
+    },
+    {
+      "family": "Inter",
+      "style": "Thin Italic"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Black"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Bold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed Black"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed Bold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed ExtraBold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed ExtraLight"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed Light"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed Medium"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed SemiBold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "Condensed Thin"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraBold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed Black"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed Bold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed ExtraBold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed ExtraLight"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed Light"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed Medium"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed SemiBold"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraCondensed Thin"
+    },
+    {
+      "family": "Noto Sans Tamil",
+      "style": "ExtraLight"
+    }
+  ],
+  "variables": []
+}

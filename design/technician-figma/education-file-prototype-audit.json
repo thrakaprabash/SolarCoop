@@ -1,0 +1,175 @@
+{
+  "fileKey": "tKZSbSj99H6DLeo8Qw8Vaf",
+  "date": "2026-10-14",
+  "restoredNavigationLinks": 218,
+  "actions": 530,
+  "broken": [],
+  "flows": [
+    {
+      "nodeId": "1:2320",
+      "name": "Technician · Dark"
+    },
+    {
+      "nodeId": "1:3495",
+      "name": "Technician · Light"
+    }
+  ],
+  "darkReachable": [
+    "dark-board-active 1",
+    "dark-settings 1",
+    "dark-board-pending 1",
+    "dark-diagnostics 1",
+    "dark-board-completed 1",
+    "dark-ticket-active 1",
+    "dark-ticket-pending 1",
+    "dark-health 1",
+    "dark-profile 1",
+    "light-settings 1",
+    "dark-diagnostics-expanded 1",
+    "dark-ticket-completed 1",
+    "dark-closure-empty 1",
+    "dark-health-attention 1",
+    "dark-profile-edit 1",
+    "dark-logout 1",
+    "light-board-active 1",
+    "dark-closure-ready 1",
+    "dark-signed-out-demo",
+    "light-board-pending 1",
+    "light-diagnostics 1",
+    "light-board-completed 1",
+    "light-ticket-active 1",
+    "light-ticket-pending 1",
+    "light-health 1",
+    "light-profile 1",
+    "light-diagnostics-expanded 1",
+    "light-ticket-completed 1",
+    "light-closure-empty 1",
+    "light-health-attention 1",
+    "light-profile-edit 1",
+    "light-logout 1",
+    "light-closure-ready 1",
+    "light-signed-out-demo"
+  ],
+  "lightReachable": [
+    "light-board-active 1",
+    "light-settings 1",
+    "light-board-pending 1",
+    "light-diagnostics 1",
+    "light-board-completed 1",
+    "light-ticket-active 1",
+    "light-ticket-pending 1",
+    "light-health 1",
+    "light-profile 1",
+    "dark-settings 1",
+    "light-diagnostics-expanded 1",
+    "light-ticket-completed 1",
+    "light-closure-empty 1",
+    "light-health-attention 1",
+    "light-profile-edit 1",
+    "light-logout 1",
+    "dark-board-active 1",
+    "light-closure-ready 1",
+    "light-signed-out-demo",
+    "dark-board-pending 1",
+    "dark-diagnostics 1",
+    "dark-board-completed 1",
+    "dark-ticket-active 1",
+    "dark-ticket-pending 1",
+    "dark-health 1",
+    "dark-profile 1",
+    "dark-diagnostics-expanded 1",
+    "dark-ticket-completed 1",
+    "dark-closure-empty 1",
+    "dark-health-attention 1",
+    "dark-profile-edit 1",
+    "dark-logout 1",
+    "dark-closure-ready 1",
+    "dark-signed-out-demo"
+  ],
+  "toggles": [
+    {
+      "name": "Technician / Sound control / dark",
+      "states": [
+        {
+          "name": "State=On",
+          "toggleLinked": true
+        },
+        {
+          "name": "State=Off",
+          "toggleLinked": true
+        }
+      ]
+    },
+    {
+      "name": "Technician / Test control / dark",
+      "states": [
+        {
+          "name": "State=On",
+          "toggleLinked": true
+        },
+        {
+          "name": "State=Off",
+          "toggleLinked": true
+        }
+      ]
+    },
+    {
+      "name": "Technician / Sound control / light",
+      "states": [
+        {
+          "name": "State=On",
+          "toggleLinked": true
+        },
+        {
+          "name": "State=Off",
+          "toggleLinked": true
+        }
+      ]
+    },
+    {
+      "name": "Technician / Test control / light",
+      "states": [
+        {
+          "name": "State=On",
+          "toggleLinked": true
+        },
+        {
+          "name": "State=Off",
+          "toggleLinked": true
+        }
+      ]
+    }
+  ],
+  "closureCheckboxInstances": [
+    {
+      "id": "1:1607",
+      "name": "Interactive / Closure checklist",
+      "activeLinks": 3
+    },
+    {
+      "id": "1:1706",
+      "name": "Interactive / Closure checklist",
+      "activeLinks": 3
+    },
+    {
+      "id": "1:2777",
+      "name": "Interactive / Diagnostics checklist",
+      "activeLinks": 3
+    },
+    {
+      "id": "1:4115",
+      "name": "Interactive / Closure checklist",
+      "activeLinks": 3
+    },
+    {
+      "id": "1:4214",
+      "name": "Interactive / Closure checklist",
+      "activeLinks": 3
+    },
+    {
+      "id": "1:4486",
+      "name": "Interactive / Diagnostics checklist",
+      "activeLinks": 3
+    }
+  ]
+}

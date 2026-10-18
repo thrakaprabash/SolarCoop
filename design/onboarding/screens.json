@@ -1,0 +1,74 @@
+[
+  {
+    "mode": "light",
+    "id": "00-opening",
+    "title": "Opening",
+    "file": "svg/light/00-opening.svg"
+  },
+  {
+    "mode": "light",
+    "id": "01-loading",
+    "title": "Loading",
+    "file": "svg/light/01-loading.svg"
+  },
+  {
+    "mode": "light",
+    "id": "02-monitor",
+    "title": "See your solar. Know your power.",
+    "file": "svg/light/02-monitor.svg"
+  },
+  {
+    "mode": "light",
+    "id": "03-community",
+    "title": "Good energy. Shared together.",
+    "file": "svg/light/03-community.svg"
+  },
+  {
+    "mode": "light",
+    "id": "04-support",
+    "title": "Stay informed. Feel supported.",
+    "file": "svg/light/04-support.svg"
+  },
+  {
+    "mode": "light",
+    "id": "05-welcome",
+    "title": "Welcome",
+    "file": "svg/light/05-welcome.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "00-opening",
+    "title": "Opening",
+    "file": "svg/dark/00-opening.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "01-loading",
+    "title": "Loading",
+    "file": "svg/dark/01-loading.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "02-monitor",
+    "title": "See your solar. Know your power.",
+    "file": "svg/dark/02-monitor.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "03-community",
+    "title": "Good energy. Shared together.",
+    "file": "svg/dark/03-community.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "04-support",
+    "title": "Stay informed. Feel supported.",
+    "file": "svg/dark/04-support.svg"
+  },
+  {
+    "mode": "dark",
+    "id": "05-welcome",
+    "title": "Welcome",
+    "file": "svg/dark/05-welcome.svg"
+  }
+]

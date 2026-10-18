@@ -15,6 +15,7 @@ import { useAdmin } from '../context/AdminContext';
 import { timeAgo } from '../data/mockAdminData';
 import { grouped } from '../../utils/numberFormat';
 import { fetchTransactionsForMember } from '../services/adminTransactionService';
+import { MemberDetailsCard } from '../../components/auth/MemberDetailsCard';
 import {
   ArrowLeft,
   Sun,
@@ -210,6 +211,8 @@ export default function MemberDetailScreen() {
           </View>
         </View>
       </View>
+
+      <MemberDetailsCard key={member.id} userId={member.id} role={member.role} readOnly />
 
       {/* Energy Overview */}
       <View style={[GLASS.card, styles.sectionCard]}>

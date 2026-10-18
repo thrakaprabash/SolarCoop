@@ -99,6 +99,7 @@ export const AuthField = ({
         ) : null}
 
         <TextInput
+          accessibilityLabel={label}
           style={[styles.input, { color: colors.text }]}
           value={value}
           onChangeText={onChangeText}
