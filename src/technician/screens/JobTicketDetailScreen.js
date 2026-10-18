@@ -9,6 +9,7 @@ import { useTechnicianTheme, useTechStyles } from '../TechnicianTheme';
 import { useTechnician } from '../context/TechnicianContext';
 import { fetchHouseholdHistory } from '../services/jobService';
 import { buildDirectionsUrl } from '../utils/maps';
+import { fetchMemberDetails } from '../../services/memberDetailsService';
 
 import RepairEvidenceCard from '../components/RepairEvidenceCard';
 
@@ -55,6 +56,22 @@ export default function JobTicketDetailScreen() {
   const { t } = useTranslation();
   const { selectedJob: job, closeJob, acceptJob, technicianId, openClosure, techBottomTab } = useTechnician();
   const [accepting, setAccepting] = useState(false);
+  const [siteDetails, setSiteDetails] = useState(null);
+  const [siteError, setSiteError] = useState(false);
+  const [siteRetry, setSiteRetry] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setSiteDetails(null); setSiteError(false);
+    if (job.technicianId === technicianId && job.householdUserId) {
+      // RLS permits the assigned technician only. A consumer has no solar
+      // system row, so the common household fields can be loaded as consumer.
+      fetchMemberDetails(job.householdUserId, 'consumer').then(result => {
+        if (active) setSiteDetails({ jobId: job.id, values: result.values });
+      }).catch(() => { if (active) setSiteError(true); });
+    }
+    return () => { active = false; };
+  }, [job.id, job.householdUserId, job.technicianId, technicianId, siteRetry]);
 
   const [history, setHistory]               = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -81,7 +98,11 @@ export default function JobTicketDetailScreen() {
   }, [job.householdUserId, job.id]);
 
   const faultColor = job.errorCode ? TECH.red : TECH.amber;
-  const directionsUrl = buildDirectionsUrl(job.siteAddress);
+  const privateSite = siteDetails?.jobId === job.id && job.technicianId === technicianId ? siteDetails.values : null;
+  const siteAddress = privateSite?.address
+    ? [privateSite.address, privateSite.city, privateSite.district].filter(Boolean).join(', ')
+    : job.siteAddress;
+  const directionsUrl = buildDirectionsUrl(siteAddress);
 
   // SOL-197 — Pending → Active.
   const handleAccept = async () => {
@@ -126,7 +147,8 @@ export default function JobTicketDetailScreen() {
       <DossierCard icon={User} title={t('technician.detail.clientInfo')}>
         <InfoLine label={t('technician.detail.name')} value={job.clientName} />
         <InfoLine label={t('technician.detail.contact')} value={job.clientPhone} />
-        <InfoLine value={job.siteAddress || t('technician.detail.noAddress')} />
+        <InfoLine value={siteAddress || job.siteArea || t('technician.detail.noAddress')} />
+        {siteError && <Pressable accessibilityRole="button" onPress={() => setSiteRetry(value => value + 1)}><Text style={styles.muted}>{t('auth.details.loadFailed')} {t('auth.details.retry')}</Text></Pressable>}
 
         <Pressable
           style={({ pressed }) => [styles.mapsBtn, !directionsUrl && styles.btnDisabled, pressed && styles.pressed]}

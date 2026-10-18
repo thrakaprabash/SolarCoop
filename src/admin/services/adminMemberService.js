@@ -103,6 +103,7 @@ function buildMember(profile, records = []) {
 
   return {
     id:                profile.id,
+    role:              profile.role,
     name:              profile.name ?? 'Unknown Member',
     // No email column in profiles. household_id used as identifier instead.
     email:             null,

@@ -19,7 +19,7 @@
  *                  mounted and can surface Supabase errors with native Alerts.
  *
  *   • `signUp(email, password, metadata)` — `metadata` is
- *       `{ name, role, mobileNumber, solarCapacity }`.
+ *       `{ name, role, mobileNumber, solarCapacity, registrationDetails }`.
  *       Registration status mapping (SOL-90 / SOL-95):
  *         consumer    → status 'active'  (immediate full access)
  *         technician  → status 'active'  (immediate full access)
@@ -27,8 +27,7 @@
  *       The mapped status is written into the raw user metadata (so the
  *       `auth.users → public.profiles` database trigger persists it, even
  *       when email confirmation prevents an immediate session) and then
- *       re-applied directly to the `profiles` row as a belt-and-suspenders
- *       when a session is available.
+ *       validated and persisted by the server during signup.
  *   • `signIn(email, password)`
  *   • `resetPasswordForEmail(email)` — Supabase password recovery workflow.
  *   • `signOut()` — clears the Supabase session, wipes the AsyncStorage
@@ -106,27 +105,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Best-effort direct write of the registration status onto the
-   * `public.profiles` row. The metadata path (database trigger) is the
-   * primary sync; this covers setups where the trigger does not copy
-   * `status`. RLS may block the write — that is fine and non-fatal.
-   */
-  const enforceProfileStatus = useCallback(async (userId, role) => {
-    const status = resolveRegistrationStatus(role);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ status })
-      .eq('id', userId);
-
-    if (error) {
-      console.warn(
-        '[AuthContext] Could not enforce registration status directly ' +
-          `(falling back to metadata/trigger): ${error.message}`,
-      );
-    }
-  }, []);
-
-  /**
    * Register a new member.
    *
    * `options.data` becomes `raw_user_meta_data` on `auth.users`, which the
@@ -137,8 +115,17 @@ export const AuthProvider = ({ children }) => {
    */
   const signUp = useCallback(
     async (email, password, metadata = {}) => {
-      const { name, role, mobileNumber, solarCapacity } = metadata || {};
+      const { name, role, mobileNumber, solarCapacity, registrationDetails } = metadata || {};
       try {
+        if (registrationDetails) {
+          const { data: version, error: setupError } = await supabase.rpc('registration_details_version');
+          if (setupError && !['PGRST202', '42883'].includes(setupError.code)) {
+            return { data: null, error: setupError };
+          }
+          if (setupError || version !== 2) {
+            return { data: null, error: { code: 'REGISTRATION_SETUP_REQUIRED' } };
+          }
+        }
         // Best-effort duplicate mobile-number check. Anon RLS may block the
         // lookup — in that case `checkError` is set and we simply proceed,
         // because the database remains the source of truth.
@@ -174,6 +161,7 @@ export const AuthProvider = ({ children }) => {
                   ? Number(solarCapacity)
                   : null,
               status,
+              ...(registrationDetails ? { registration_details: registrationDetails, registration_version: 2 } : {}),
             },
           },
         });
@@ -184,11 +172,6 @@ export const AuthProvider = ({ children }) => {
 
         // Supabase may return a user without a session when email
         // confirmation is enabled — that is still a successful sign-up.
-        if (data?.user) {
-          // Enforce the role-mapped status on the profiles row when possible.
-          await enforceProfileStatus(data.user.id, role).catch(() => {});
-        }
-
         if (data?.session) {
           setSession(data.session);
           setUser(data.user);
@@ -205,7 +188,7 @@ export const AuthProvider = ({ children }) => {
         return { data: null, error };
       }
     },
-    [enforceProfileStatus, fetchProfile],
+    [fetchProfile],
   );
 
   /**

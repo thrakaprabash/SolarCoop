@@ -50,6 +50,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/useTheme';
 import { PrimaryButton } from '../components/auth/PrimaryButton';
 import { AuthField } from '../components/auth/AuthField';
+import { MemberDetailsCard } from '../components/auth/MemberDetailsCard';
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
 import { showAlert, showConfirm } from '../utils/alert';
 
@@ -439,6 +440,8 @@ export const ProfileScreen = () => {
             value={statusLabel}
           />
         </View>
+
+        <MemberDetailsCard key={`${user?.id}:${role}`} userId={user?.id} role={role} />
 
         <LanguageSwitcher colors={colors} />
 
