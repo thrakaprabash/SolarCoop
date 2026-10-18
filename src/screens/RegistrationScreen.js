@@ -477,16 +477,19 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
             </View>
 
             {/* Conditional solar capacity (SOLAR OWNER only) */}
+            {/* Keep JS-driven height separate from the native-driven fade. */}
             <Animated.View
               style={[
                 styles.capacityWrap,
                 {
                   height: capacityHeightAnim,
-                  opacity: capacityAnim,
                 },
               ]}
             >
-              <View onLayout={handleCapacityLayout}>
+              <Animated.View
+                onLayout={handleCapacityLayout}
+                style={{ opacity: capacityAnim }}
+              >
                 <AuthField
                   label={t('auth.register.capacityLabel')}
                   icon={Sun}
@@ -499,7 +502,7 @@ export const RegistrationScreen = ({ onBackToLogin, onSuccess, navigation }) => 
                   keyboardType="decimal-pad"
                   error={errors.solarCapacity}
                 />
-              </View>
+              </Animated.View>
             </Animated.View>
 
             {/* Action row */}
